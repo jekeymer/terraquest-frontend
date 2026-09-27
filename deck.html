@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kEngram Deck</title>
+<style>
+:root{
+  --bg:#0d0f12;
+  --panel:#15171b;
+  --panel2:#101216;
+  --amber:#d9a441;
+  --amber2:#f0bf58;
+  --cream:#eee4cf;
+  --muted:#9c927d;
+  --line:#3b3222;
+  --green:#8fcf83;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(900px 520px at 50% -120px,#29200f 0%,var(--bg) 64%);
+  color:var(--cream);
+  font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  line-height:1.55;
+}
+header,main,footer{width:min(1120px,calc(100% - 32px));margin:0 auto}
+header{padding:34px 0 24px}
+.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+h1{margin:0;color:var(--amber2);font-size:clamp(28px,5vw,52px);font-weight:500;letter-spacing:.08em}
+.subtitle{max-width:780px;margin:10px 0 0;color:var(--muted);font-family:Georgia,"Times New Roman",serif;font-size:clamp(15px,2vw,19px);font-style:italic}
+nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+nav a,.action,.toggle{
+  border:1px solid var(--line);
+  background:var(--panel2);
+  color:var(--amber);
+  padding:9px 13px;
+  text-decoration:none;
+  font:inherit;
+  font-size:11px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+nav a:hover,.action:hover,.toggle:hover{border-color:var(--amber);color:var(--amber2)}
+.status{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 0 30px;
+  padding:15px 17px;
+  border:1px solid var(--line);
+  background:rgba(21,23,27,.9);
+}
+.status-copy{display:grid;gap:4px}
+.count{color:var(--amber2);font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.gate-note{color:var(--muted);font-size:11px}
+section{margin:0 0 34px}
+section h2{
+  margin:0 0 13px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--line);
+  color:var(--amber);
+  font-size:14px;
+  font-weight:500;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.card{
+  min-height:265px;
+  display:flex;
+  flex-direction:column;
+  padding:18px;
+  border:1px solid var(--line);
+  background:linear-gradient(150deg,rgba(217,164,65,.055),transparent 45%),var(--panel);
+}
+.card.collected{border-color:var(--amber);box-shadow:inset 0 0 0 1px rgba(217,164,65,.13)}
+.card-head{display:flex;align-items:flex-start;gap:12px}
+.badge{
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:34px;
+  border:1px solid var(--amber);
+  color:var(--amber2);
+  font-size:13px;
+}
+.card h3{margin:0;color:var(--cream);font-size:16px;font-weight:500;line-height:1.35}
+.source{margin:10px 0 0;color:var(--amber);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.body{margin:14px 0 18px;color:var(--muted);font-family:Georgia,"Times New Roman",serif;font-size:13px;overflow-wrap:anywhere}
+.toggle{margin-top:auto;width:100%}
+.card.collected .toggle{border-color:var(--green);color:var(--green);background:#111a12}
+footer{
+  margin-top:8px;
+  padding:20px 0 30px;
+  border-top:1px solid var(--line);
+  color:var(--muted);
+  font-size:10px;
+}
+@media (max-width:850px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .topline{flex-direction:column}
+  nav{justify-content:flex-start}
+}
+@media (max-width:560px){
+  header,main,footer{width:min(100% - 20px,1120px)}
+  header{padding-top:22px}
+  .grid{grid-template-columns:1fr}
+  .status{align-items:stretch;flex-direction:column}
+  .action{width:100%}
+  .card{min-height:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="topline">
+    <div>
+      <h1>kEngram Deck</h1>
+      <p class="subtitle">every conception, idea, speculation, hypothesis ... is just a deck of cards (tokens, k-grams)</p>
+    </div>
+    <nav aria-label="Primary">
+      <a href="index.html">Entry</a>
+      <a href="sim.html">Sim</a>
+      <a href="battle.html">Battle</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="status" aria-live="polite">
+    <div class="status-copy">
+      <div class="count">collected <span id="kgCount">0</span> / 9</div>
+      <div class="gate-note">Collecting any kEngram unlocks SELECT - RADIATE - RE-PICK - TRACKER in the Alife Sim.</div>
+    </div>
+    <button class="action" id="releaseAll" type="button">Release all</button>
+  </div>
+
+  <section aria-labelledby="p1">
+    <h2 id="p1">P.1 k-grams</h2>
+    <div class="grid">
+      <article class="card" data-card-id="1">
+        <div class="card-head"><span class="badge">1</span><h3>Top bacterial genome on earth</h3></div>
+        <p class="source">P.1 - Fig. 1</p>
+        <p class="body"></p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+      <article class="card" data-card-id="2">
+        <div class="card-head"><span class="badge">2</span><h3>Group of near-by (phylogenetics) genomes</h3></div>
+        <p class="source">P.1 - Fig. 2A</p>
+        <p class="body"></p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+      <article class="card" data-card-id="3">
+        <div class="card-head"><span class="badge">3</span><h3>IQ, bio-informatics comparative genomics</h3></div>
+        <p class="source">P.1 - Fig. 4A-D</p>
+        <p class="body">Can be combined or replaced for a simpler figure: combined score IQ on the x axis, distribution of bacteria plotted - smart ones on the right tail of the distribution.</p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="p2">
+    <h2 id="p2">P.2 k-grams</h2>
+    <div class="grid">
+      <article class="card" data-card-id="4">
+        <div class="card-head"><span class="badge">4</span><h3>Boids / Vicsek / swarming agents model</h3></div>
+        <p class="source">P.2 - Fig. 3</p>
+        <p class="body"></p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+      <article class="card" data-card-id="5">
+        <div class="card-head"><span class="badge">5</span><h3>Perceptron, local terrain analysis by the swarming agents</h3></div>
+        <p class="source">P.2 - Fig. 2</p>
+        <p class="body">Inspired by my work on bacterial cognition. https://www.pnas.org/doi/10.1073/pnas.0507438103</p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+      <article class="card" data-card-id="6">
+        <div class="card-head"><span class="badge">6</span><h3>Terrain as habitat landscapes</h3></div>
+        <p class="source">P.2 - Fig. 1A</p>
+        <p class="body">An arena where landscape ecology takes place. Inspired by modeling a terrain to implement Sewall Wright's idea of an adaptive landscape: https://www.pnas.org/doi/10.1073/pnas.0607971103 - we moved to discrete CA based models more in the line of metapopulations in dynamic landscapes: https://www.journals.uchicago.edu/doi/abs/10.1086/303407</p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+    </div>
+  </section>
+
+  <section aria-labelledby="lab">
+    <h2 id="lab">Biotexturas lab research k-grams</h2>
+    <div class="grid">
+      <article class="card" data-card-id="7">
+        <div class="card-head"><span class="badge">7</span><h3>TerraScope construction map</h3></div>
+        <p class="source">Biotexturas lab</p>
+        <p class="body">As the Alife Sim (the sandbox simulation) is the Alife part of a hybrid machine that eventually (once built and deployed) includes TerraVerse, a DePIN of TerraScopes. TerraScope is the key hardware entry point. Here is also the Tier Ladder induction point: seduce the player (Tier 3 now) to start wishing for the machine - a TerraScope node to co-build the DePIN. Together this completes the R.AI.'s research lab: an IRL lab (TerraScope-w-HRM) and an Alife one (Alife Sim).</p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+      <article class="card" data-card-id="8">
+        <div class="card-head"><span class="badge">8</span><h3>GA genome chromosome</h3></div>
+        <p class="source">Biotexturas lab</p>
+        <p class="body">The current genome-to-phenotype mapping. Local demography and GA adaptation, based on my work at https://onlinelibrary.wiley.com/doi/epdf/10.1002/cplx.21392</p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+      <article class="card" data-card-id="9">
+        <div class="card-head"><span class="badge">9</span><h3>Hatoclusters</h3></div>
+        <p class="source">Biotexturas lab</p>
+        <p class="body">The time lapse, with the optical flow and cluster analysis. Also the robotic shifting is present. All the details are in Pablo's thesis - the clusters and optical flow, etc.</p>
+        <button class="toggle" type="button">Collect</button>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer>kEngrams = knowledge tokens - Datagrams = data tokens. Display-only: nothing minted, nothing on-chain on this page - minting lives in the Alife Sim chromosome inspector (MVP design).</footer>
+
+<script>
+(function(){
+  'use strict';
+  const CARDS_KEY = 'biotic_kengrams_cards_v1';
+  const cards = Array.from(document.querySelectorAll('[data-card-id]'));
+  const countEl = document.getElementById('kgCount');
+  const releaseAll = document.getElementById('releaseAll');
+  let state = {};
+
+  try {
+    const raw = localStorage.getItem(CARDS_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      Object.keys(parsed).forEach(function(cardId){
+        if (parsed[cardId] === true) state[cardId] = true;
+      });
+    }
+  } catch (e) {
+    state = {};
+  }
+
+  function countCollected(){
+    return Object.keys(state).filter(function(cardId){ return state[cardId] === true; }).length;
+  }
+
+  function render(){
+    const count = countCollected();
+    countEl.textContent = String(count);
+    cards.forEach(function(card){
+      const cardId = card.getAttribute('data-card-id');
+      const active = state[cardId] === true;
+      card.classList.toggle('collected', active);
+      card.querySelector('.toggle').textContent = active ? 'Collected' : 'Collect';
+    });
+  }
+
+  function save(){
+    const count = countCollected();
+    try {
+      localStorage.setItem(CARDS_KEY, JSON.stringify(state));
+      if (count >= 1) {
+        localStorage.setItem('biotic_kengrams_v1','1');
+      } else {
+        localStorage.removeItem('biotic_kengrams_v1');
+      }
+    } catch (e) {}
+    render();
+  }
+
+  cards.forEach(function(card){
+    card.querySelector('.toggle').addEventListener('click', function(){
+      const cardId = card.getAttribute('data-card-id');
+      if (state[cardId] === true) {
+        delete state[cardId];
+      } else {
+        state[cardId] = true;
+      }
+      save();
+    });
+  });
+
+  releaseAll.addEventListener('click', function(){
+    state = {};
+    try {
+      localStorage.removeItem(CARDS_KEY);
+      localStorage.removeItem('biotic_kengrams_v1');
+    } catch (e) {}
+    render();
+  });
+
+  try {
+    if (countCollected() >= 1) {
+      localStorage.setItem('biotic_kengrams_v1','1');
+    } else {
+      localStorage.removeItem('biotic_kengrams_v1');
+    }
+  } catch (e) {}
+  render();
+})();
+</script>
+</body>
+</html>

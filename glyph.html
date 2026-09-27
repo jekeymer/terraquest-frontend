@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Glyph Viewer - Biotic Model</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #14120c;
+    --amber: #d9a441;
+    --amber-dim: #8c6f2c;
+    --amber-deep: #b08a3a;
+    --cream: #e8d9b5;
+    --cream-dim: #b3a481;
+    --text-mute: #8a7d5e;
+    --panel-bg: #1c1a13;
+    --border: #3a3220;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 32px 16px 48px;
+  }
+
+  .page { max-width: 480px; margin: 0 auto; }
+
+  h1 {
+    color: var(--amber);
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    color: var(--text-mute);
+    font-size: 11px;
+    margin: 0 0 24px 0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  canvas#glyph {
+    background: #ffffff;
+    display: block;
+    width: 320px;
+    height: 320px;
+    max-width: 100%;
+    border-radius: 2px;
+  }
+
+  .note {
+    color: var(--text-mute);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    margin: 16px 0 0 0;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .controls {
+    margin-top: 24px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .genotype-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .genotype-row label {
+    color: var(--amber);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .genotype-row input[type=text] {
+    background: var(--bg);
+    color: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease;
+    width: 100%;
+  }
+
+  .genotype-row input[type=text]:focus { border-color: var(--amber); }
+
+  .slider-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 60px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-row label {
+    color: var(--amber);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .slider-row input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    margin: 0;
+  }
+
+  .slider-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--amber);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+
+  .slider-row input[type=range]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--amber);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .slider-row .val {
+    color: var(--cream);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    text-align: right;
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  button {
+    background: transparent;
+    color: var(--amber);
+    border: 1px solid var(--amber-dim);
+    border-radius: 3px;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  button:hover { background: var(--amber); color: var(--bg); }
+  button:active { background: var(--amber-deep); }
+
+  .footer {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-mute);
+    font-size: 10px;
+    line-height: 1.7;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    margin-bottom: 0;
+  }
+
+  .footer .h { color: var(--amber-dim); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Glyph Viewer</h1>
+  <p class="subtitle">Deterministic seeded-walk rendering - biotic-model</p>
+
+  <div class="card">
+    <canvas id="glyph" width="256" height="256"></canvas>
+  </div>
+
+  <p class="note">deterministic function of the chromosome subset - same genome, same face</p>
+
+  <div class="controls">
+    <div class="genotype-row">
+      <label for="genotype">Genotype</label>
+      <input type="text" id="genotype" value="BLACK2b-V453" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="slider-row">
+      <label for="tcs">TCS</label>
+      <input type="range" id="tcs" min="1" max="20" value="7" step="1">
+      <span class="val" id="tcs-v">7</span>
+    </div>
+
+    <div class="slider-row">
+      <label for="tf">TF</label>
+      <input type="range" id="tf" min="0" max="200" value="146" step="1">
+      <span class="val" id="tf-v">146</span>
+    </div>
+
+    <div class="slider-row">
+      <label for="tr">TR</label>
+      <input type="range" id="tr" min="0" max="320" value="155" step="1">
+      <span class="val" id="tr-v">155</span>
+    </div>
+
+    <div class="slider-row">
+      <label for="dr">DR</label>
+      <input type="range" id="dr" min="0" max="60" value="38" step="1">
+      <span class="val" id="dr-v">38</span>
+    </div>
+
+    <div class="buttons">
+      <button id="v453" type="button">V453</button>
+      <button id="render" type="button">Re-render</button>
+    </div>
+  </div>
+
+<pre class="footer"><span class="h">// glyph.html - port provenance</span>
+//   b0 glyph_generator.py v1, 2026-09-25 (Juan-approved mapping)
+//   TCS -> filament count
+//   TF  -> per-step branch prob (~ TF/1000, clamped 0..1)
+//   TR  -> per-step swirl magnitude (|TR|/32, capped 10 deg)
+//   DR  -> barb count (short subordinate outward strokes)
+// Caps: swirl 10 deg/step, noise sigma/clip 3 deg, radial pull 5%/step
+//       abs turn 270 / signed turn 300 per walk, branch depth 2
+//       barb abs 200 / signed 250, no-reentry 25 px (start excl 30 px)
+// Self-avoidance 18 px vs trail older than last 30; origin (128,128) exempt
+// Shared-history promotion skips points within 30 px of the origin
+//   (fix 2026-09-26 - matches b0's glyph_generator fix, artifact 3228c969;
+//    without it filaments 2..n die on their first step against filament 1's
+//    near-origin trail points and only one main filament ever draws)
+// Cross-language bit-exactness vs b0 renders NOT guaranteed
+//   character-level match is the bar (two dials if diverging:
+//    branch prob scale TF/1000 and golden-angle +/-20 deg jitter)
+// Display only - no simulation coupling, no balance surface
+// sites.hellominds.ai/b1/biotic-model/</pre>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+ * glyph.html - standalone browser port
+ *
+ * Source: b0 glyph_generator.py v1, approved 2026-09-25
+ * Mapping (GA genome chromosome subset, biotic-model):
+ *   TCS -> filament count
+ *   TF  -> branching density (per-step branch prob ~ TF/1000, clamped 0..1)
+ *   TR  -> swirl curvature (per-step magnitude min(10, |TR|/32) deg,
+ *          sign fixed per top-level walk, independent per branch)
+ *   DR  -> barb count (short subordinate outward strokes)
+ *
+ * Caps:
+ *   per-step swirl 10 deg, noise sigma 3 deg / clip +/-3 deg,
+ *   outward radial pull 5% of angular gap per step,
+ *   abs turn 270 / signed turn 300 per filament-or-branch walk,
+ *   branch depth cap 2,
+ *   barb abs 200 / signed 250, barb no-reentry within 25 px of origin,
+ *   barb start radius uniform(32, 40) (origin exclusion 30 px),
+ *   filament step 3 px, 150-190 steps, branch 75-95 steps, barb 6-12 steps.
+ *
+ * Self-avoidance:
+ *   18 px minimum distance vs trail points older than the last 30 steps.
+ *   Origin (128, 128) excluded from all avoidance checks.
+ *   Main + branches within one top-level group share a local history;
+ *   completed walks promote to a cumulative history visible to subsequent
+ *   top-levels and all barbs. Promoted history points within 30 px of the
+ *   origin are skipped (2026-09-26 fix, mirrors b0's glyph_generator fix):
+ *   without the exclusion, filaments 2..n die on their very first step
+ *   against filament 1's near-origin trail points.
+ *
+ * Determinism contract:
+ *   Only randomness source is a PRNG seeded from a 64-bit hash of the
+ *   genotype identifier. No wall-clock, no Math.random in the render path.
+ *   Same genotype -> same glyph, within this viewer.
+ *   Cross-language bit-exactness vs b0's PCG64 / BLAKE2b Python renders is
+ *   explicitly NOT guaranteed (agreed caveat). Character-level match is the
+ *   bar; two dials if diverging: branch prob scale (TF/1000) and golden-
+ *   angle +/- 20 deg jitter.
+ *
+ * Display only: no simulation coupling, no balance surface.
+ * Standalone page; chromosome inspector integration follows.
+ * ======================================================================= */
+
+/* ---------- Panel and walk constants ---------- */
+var PANEL = 256;
+var ORIGIN_X = 128;
+var ORIGIN_Y = 128;
+var MARGIN = 8;
+
+var STEP_PX = 3.0;
+var BARB_STEP_PX = 2.0;
+
+var STEPS_MIN = 150;
+var STEPS_MAX = 190;
+var BRANCH_STEPS_MIN = 75;
+var BRANCH_STEPS_MAX = 95;
+var BARB_STEPS_MIN = 6;
+var BARB_STEPS_MAX = 12;
+
+var SELF_AVOID_PX = 18.0;
+var SELF_AVOID_SQ = SELF_AVOID_PX * SELF_AVOID_PX;
+var RECENT_TAIL = 30;
+var HISTORY_ORIGIN_EXCLUSION = 30.0;
+var HISTORY_ORIGIN_EXCLUSION_SQ = HISTORY_ORIGIN_EXCLUSION * HISTORY_ORIGIN_EXCLUSION;
+
+var GOLDEN_ANGLE_DEG = 137.50776405003785;
+
+var SWIRL_CAP_DEG = 10.0;
+var NOISE_SIGMA_DEG = 3.0;
+var NOISE_CLIP_DEG = 3.0;
+var RADIAL_PULL_FRAC = 0.05;
+
+var ABS_TURN_CAP = 270.0;
+var SIGNED_TURN_CAP = 300.0;
+
+var BRANCH_DEPTH_CAP = 2;
+var BRANCH_PROB_SCALE = 1000.0;
+var BRANCH_HEADING_OFFSET_DEG = 30.0;
+var FILAMENT_HEADING_JITTER_DEG = 20.0;
+
+var BARB_ABS_TURN_CAP = 200.0;
+var BARB_SIGNED_TURN_CAP = 250.0;
+var BARB_NO_REENTRY_R = 25.0;
+var BARB_NO_REENTRY_R_SQ = BARB_NO_REENTRY_R * BARB_NO_REENTRY_R;
+var BARB_ORIGIN_EXCLUSION = 30.0;
+var BARB_RADIUS_MIN = 32.0;
+var BARB_RADIUS_MAX = 40.0;
+var BARB_HEADING_JITTER_DEG = 15.0;
+
+/* ---------- PRNG: sfc32 (small fast counter, good distribution) ---------- */
+function _sfc32(a, b, c, d) {
+  return function () {
+    a |= 0; b |= 0; c |= 0; d |= 0;
+    var t = (a + b | 0) + d | 0;
+    d = (d + 1) | 0;
+    a = b ^ (b >>> 9);
+    b = (c + (c << 3)) | 0;
+    c = (c << 21 | c >>> 11);
+    c = (c + t) | 0;
+    return (t >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- Seed derivation ----------
+ * Two 32-bit FNV-1a passes over the genotype (one direct, one reversed+salted),
+ * fed through a SplitMix-style mixer to expand into four 32-bit sfc32 seeds.
+ * Determinism contract: same-genome-same-glyph WITHIN THIS VIEWER.
+ * Cross-language bit-exactness vs b0's PCG64 / BLAKE2b is NOT guaranteed.
+ */
+function _seedFromGenotype(genotype) {
+  var s = String(genotype == null ? "" : genotype);
+  function fnv1a(str) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 0x01000193);
+    }
+    return h >>> 0;
+  }
+  function mix(x, salt) {
+    var m = (x ^ salt) >>> 0;
+    m = Math.imul(m ^ (m >>> 16), 0x85ebca6b) >>> 0;
+    m = Math.imul(m ^ (m >>> 13), 0xc2b2ae35) >>> 0;
+    m = (m ^ (m >>> 16)) >>> 0;
+    return m;
+  }
+  var h1 = fnv1a(s);
+  var h2 = fnv1a(s.split("").reverse().join("") + "");
+  return [
+    mix(h1, 0x9e3779b1),
+    mix(h1, 0x85ebca6b),
+    mix(h2, 0xc2b2ae35),
+    mix(h2, 0x27d4eb2f)
+  ];
+}
+
+/* ---------- Math helpers ---------- */
+function _deg2rad(d) { return d * Math.PI / 180; }
+
+function _circularDiff(a, b) {
+  // Shortest signed angular difference a-b, in (-180, 180].
+  return ((a - b) % 360 + 540) % 360 - 180;
+}
+
+function _gauss(rng, sigma) {
+  // Box-Muller; one of (z, z') returned, multiplied by sigma.
+  var u = 0, v = 0;
+  while (u === 0) u = rng();
+  while (v === 0) v = rng();
+  var z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  return z * sigma;
+}
+
+function _clip(v, c) {
+  if (v > c) return c;
+  if (v < -c) return -c;
+  return v;
+}
+
+function _uniform(rng, a, b) {
+  return a + (b - a) * rng();
+}
+
+function _uniformInt(rng, min, max) {
+  return Math.floor(rng() * (max - min + 1)) + min;
+}
+
+/* ---------- Shared-history promotion ----------
+ * Push a completed walk into the cumulative self-avoidance history,
+ * skipping points within HISTORY_ORIGIN_EXCLUSION (30 px) of the origin.
+ * Without the exclusion, filament 2..n die on their very first step
+ * against filament 1's near-origin trail points (2026-09-26 fix,
+ * mirrors b0's glyph_generator fix, artifact 3228c969).
+ */
+function _pushHistory(hist, trail) {
+  for (var j = 0; j < trail.length; j++) {
+    var p = trail[j];
+    var odx = p[0] - ORIGIN_X;
+    var ody = p[1] - ORIGIN_Y;
+    if (odx * odx + ody * ody < HISTORY_ORIGIN_EXCLUSION_SQ) continue;
+    hist.push(p);
+  }
+}
+
+/* ---------- Walker: filament (recursive; depth==0 is top-level) ----------
+ * Per-step heading update:
+ *   heading += swirlSign * swirlMag + clipped_gauss(sigma=3, clip=+/-3)
+ *            + circularDiff(radialDeg, heading) * 0.05   (outward radial pull)
+ * Step 3 px.  Break on turn-cap violation, margin exit, or self-avoidance hit.
+ * Per-step branch: probability TF/1000 (caller pre-computes branchProb);
+ * branch inherits its own swirl sign; offset +/- uniform(0,30) deg from
+ * parent's heading; steps uniformInt(75,95); depth cap 2.
+ * Self-avoidance: own trail older than last 30 steps + ctx.cumulative
+ * (other completed walks in / before this group). Origin (128,128) exempt.
+ */
+function _walkFilamentRecursive(rng, swirlMag, branchProb, n, swirlSign, depth,
+                                startHeading, startX, startY, ctx) {
+  var trail = [];
+  var x = startX;
+  var y = startY;
+  var heading = startHeading;
+  trail.push([x, y]);
+
+  var steps = Math.max(2, Math.floor(n));
+  var absTurn = 0;
+  var signedTurn = 0;
+  var i, p, dx, dy, r2, radialDeg, angularGap, pull, noise, swirlStep;
+  var oldHeading, turn, branchSign, offset, branchSteps, branchHeading;
+  var branchSwirlSign, branchTrail, j, rad, newX, newY;
+
+  function violates(cx, cy) {
+    if (cx === ORIGIN_X && cy === ORIGIN_Y) return false;
+    var recentStart = Math.max(0, trail.length - RECENT_TAIL);
+    for (i = 0; i < recentStart; i++) {
+      p = trail[i];
+      dx = p[0] - cx;
+      dy = p[1] - cy;
+      if (dx * dx + dy * dy < SELF_AVOID_SQ) return true;
+    }
+    var cum = ctx.cumulative;
+    for (i = 0; i < cum.length; i++) {
+      p = cum[i];
+      dx = p[0] - cx;
+      dy = p[1] - cy;
+      if (dx * dx + dy * dy < SELF_AVOID_SQ) return true;
+    }
+    return false;
+  }
+
+  for (i = 1; i < steps; i++) {
+    // Outward radial direction (degrees, canvas convention: 0 = +x, 90 = +y down)
+    dx = x - ORIGIN_X;
+    dy = y - ORIGIN_Y;
+    r2 = dx * dx + dy * dy;
+    if (r2 < 1e-6) {
+      radialDeg = heading;
+    } else {
+      radialDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+    }
+
+    // Per-step heading delta
+    angularGap = _circularDiff(radialDeg, heading);
+    pull = angularGap * RADIAL_PULL_FRAC;
+    noise = _clip(_gauss(rng, NOISE_SIGMA_DEG), NOISE_CLIP_DEG);
+    swirlStep = swirlSign * swirlMag;
+
+    oldHeading = heading;
+    heading = heading + swirlStep + noise + pull;
+
+    turn = heading - oldHeading;
+    absTurn += Math.abs(turn);
+    signedTurn += turn;
+
+    if (absTurn > ABS_TURN_CAP ||
+        signedTurn > SIGNED_TURN_CAP ||
+        signedTurn < -SIGNED_TURN_CAP) {
+      break;
+    }
+
+    // Branch spawn (depth-first; spawned branch walks to completion before
+    // this walk continues its next step)
+    if (depth < BRANCH_DEPTH_CAP && rng() < branchProb) {
+      branchSign = rng() < 0.5 ? -1 : 1;
+      offset = branchSign * _uniform(rng, 0, BRANCH_HEADING_OFFSET_DEG);
+      branchSteps = _uniformInt(rng, BRANCH_STEPS_MIN, BRANCH_STEPS_MAX);
+      branchHeading = heading + offset;
+      branchSwirlSign = rng() < 0.5 ? -1 : 1;
+
+      branchTrail = _walkFilamentRecursive(
+        rng, swirlMag, branchProb, branchSteps,
+        branchSwirlSign, depth + 1,
+        branchHeading, x, y, ctx
+      );
+      ctx.drawTrails.push(branchTrail);
+      _pushHistory(ctx.cumulative, branchTrail);
+    }
+
+    // Step forward
+    rad = _deg2rad(heading);
+    newX = x + Math.cos(rad) * STEP_PX;
+    newY = y + Math.sin(rad) * STEP_PX;
+
+    if (newX < MARGIN || newX >= PANEL - MARGIN ||
+        newY < MARGIN || newY >= PANEL - MARGIN) {
+      break;
+    }
+    if (violates(newX, newY)) break;
+
+    x = newX;
+    y = newY;
+    trail.push([x, y]);
+  }
+
+  return trail;
+}
+
+/* ---------- Walker: barb ----------
+ * Start radius uniform(32, 40) px from origin (>= 30 px exclusion).
+ * Heading = outward radial +/- 15 deg jitter.
+ * Step 2 px.  n = uniformInt(6, 12).
+ * Noise-only motion (sigma 3, clip +/-3).
+ * Turn caps: abs 200 / signed 250.
+ * No-reentry within 25 px of origin (any step back inside terminates).
+ * Self-avoidance: own trail + cumulative (18 px squared distance, origin exempt).
+ */
+function _walkBarb(rng, startX, startY, startHeading, cumulativeHistory) {
+  var trail = [];
+  var x = startX;
+  var y = startY;
+  var heading = startHeading;
+  trail.push([x, y]);
+
+  var n = _uniformInt(rng, BARB_STEPS_MIN, BARB_STEPS_MAX);
+  var absTurn = 0;
+  var signedTurn = 0;
+  var i, p, dx, dy, noise, oldHeading, turn, rad, newX, newY, odx, ody;
+
+  function violates(cx, cy) {
+    if (cx === ORIGIN_X && cy === ORIGIN_Y) return false;
+    for (i = 0; i < cumulativeHistory.length; i++) {
+      p = cumulativeHistory[i];
+      dx = p[0] - cx;
+      dy = p[1] - cy;
+      if (dx * dx + dy * dy < SELF_AVOID_SQ) return true;
+    }
+    for (i = 0; i < trail.length; i++) {
+      p = trail[i];
+      dx = p[0] - cx;
+      dy = p[1] - cy;
+      if (dx * dx + dy * dy < SELF_AVOID_SQ) return true;
+    }
+    return false;
+  }
+
+  for (i = 1; i < n; i++) {
+    noise = _clip(_gauss(rng, NOISE_SIGMA_DEG), NOISE_CLIP_DEG);
+    oldHeading = heading;
+    heading = heading + noise;
+
+    turn = heading - oldHeading;
+    absTurn += Math.abs(turn);
+    signedTurn += turn;
+
+    if (absTurn > BARB_ABS_TURN_CAP ||
+        signedTurn > BARB_SIGNED_TURN_CAP ||
+        signedTurn < -BARB_SIGNED_TURN_CAP) {
+      break;
+    }
+
+    rad = _deg2rad(heading);
+    newX = x + Math.cos(rad) * BARB_STEP_PX;
+    newY = y + Math.sin(rad) * BARB_STEP_PX;
+
+    // Panel margin
+    if (newX < MARGIN || newX >= PANEL - MARGIN ||
+        newY < MARGIN || newY >= PANEL - MARGIN) {
+      break;
+    }
+
+    // No-reentry within 25 px radius of origin
+    odx = newX - ORIGIN_X;
+    ody = newY - ORIGIN_Y;
+    if (odx * odx + ody * ody < BARB_NO_REENTRY_R_SQ) break;
+
+    if (violates(newX, newY)) break;
+
+    x = newX;
+    y = newY;
+    trail.push([x, y]);
+  }
+
+  return trail;
+}
+
+/* ---------- Render ----------
+ * n_filaments = max(1, floor(TCS))
+ * swirl_mag   = min(10, |TR|/32)
+ * branch_prob = clamp(TF/1000, 0, 1)
+ * n_barbs     = max(0, floor(DR))
+ * Per top-level filament:
+ *   base heading = k * golden_angle (137.50776405003785 deg)
+ *   jitter = uniform(-20, 20) deg
+ *   swirl_sign = +/-1 (p 0.5) - independent per filament
+ *   steps = uniformInt(150, 190)
+ *   Spawn branches during walk (per-step prob branch_prob, depth cap 2).
+ *   After completion, promote to cumulative for next filaments and barbs
+ *   (near-origin points skipped - see _pushHistory).
+ */
+function render(genotype, TCS, TF, TR, DR, canvas, ctx2d) {
+  // 1. White panel background (preserves the approved-card monochrome look)
+  ctx2d.save();
+  ctx2d.fillStyle = "#ffffff";
+  ctx2d.fillRect(0, 0, PANEL, PANEL);
+
+  // 2. Seed PRNG from genotype hash (no wall-clock, no Math.random)
+  var seeds = _seedFromGenotype(genotype);
+  var rng = _sfc32(seeds[0], seeds[1], seeds[2], seeds[3]);
+
+  // 3. Parameter -> caps mapping
+  var nFilaments = Math.max(1, Math.floor(Number(TCS)));
+  var swirlMag = Math.min(SWIRL_CAP_DEG, Math.abs(Number(TR)) / 32);
+  var branchProb = Math.max(0, Math.min(1, Number(TF) / BRANCH_PROB_SCALE));
+  var nBarbs = Math.max(0, Math.floor(Number(DR)));
+
+  // 4. Walk accumulators
+  var filamentWalks = [];
+  var barbWalks = [];
+  var cumulative = [];
+
+  // 5. Walk top-level filaments (with their branches)
+  var k, baseHeading, jitter, startHeading, swirlSign, steps;
+  var groupCtx, mainTrail, j, w, walk;
+  for (k = 0; k < nFilaments; k++) {
+    baseHeading = k * GOLDEN_ANGLE_DEG;
+    jitter = _uniform(rng, -FILAMENT_HEADING_JITTER_DEG, FILAMENT_HEADING_JITTER_DEG);
+    startHeading = baseHeading + jitter;
+    swirlSign = rng() < 0.5 ? -1 : 1;
+    steps = _uniformInt(rng, STEPS_MIN, STEPS_MAX);
+
+    groupCtx = { cumulative: cumulative, drawTrails: [] };
+    mainTrail = _walkFilamentRecursive(
+      rng, swirlMag, branchProb, steps, swirlSign,
+      0, startHeading, ORIGIN_X, ORIGIN_Y, groupCtx
+    );
+    filamentWalks.push(mainTrail);
+    // Promote main trail to cumulative (branches already added by walker);
+    // near-origin points excluded from the shared history
+    _pushHistory(cumulative, mainTrail);
+    // Collect branch trails for drawing
+    for (j = 0; j < groupCtx.drawTrails.length; j++) {
+      filamentWalks.push(groupCtx.drawTrails[j]);
+    }
+  }
+
+  // 6. Walk barbs against cumulative history
+  var attempts = 0;
+  var placed = 0;
+  var maxAttempts = Math.max(8, nBarbs * 4 + 8);
+  var startRadius, angle, headingJitter, trail, startX, startY;
+  while (placed < nBarbs && attempts < maxAttempts) {
+    attempts++;
+    startRadius = _uniform(rng, BARB_RADIUS_MIN, BARB_RADIUS_MAX);
+    if (startRadius < BARB_ORIGIN_EXCLUSION) continue;
+
+    angle = rng() * 360;
+    headingJitter = _uniform(rng, -BARB_HEADING_JITTER_DEG, BARB_HEADING_JITTER_DEG);
+    startHeading = angle + headingJitter;
+
+    startX = ORIGIN_X + Math.cos(_deg2rad(angle)) * startRadius;
+    startY = ORIGIN_Y + Math.sin(_deg2rad(angle)) * startRadius;
+
+    trail = _walkBarb(rng, startX, startY, startHeading, cumulative);
+    if (trail && trail.length >= 2) {
+      barbWalks.push(trail);
+      placed++;
+    }
+  }
+
+  // 7. Draw filaments as near-black thin polylines (main + all branches)
+  ctx2d.strokeStyle = "#1a1a1a";
+  ctx2d.lineWidth = 1;
+  ctx2d.lineCap = "butt";
+  ctx2d.lineJoin = "round";
+  ctx2d.beginPath();
+  for (w = 0; w < filamentWalks.length; w++) {
+    walk = filamentWalks[w];
+    if (walk.length < 2) continue;
+    ctx2d.moveTo(walk[0][0], walk[0][1]);
+    for (j = 1; j < walk.length; j++) {
+      ctx2d.lineTo(walk[j][0], walk[j][1]);
+    }
+  }
+  ctx2d.stroke();
+
+  // 8. Draw barbs as mid-grey thin polylines (subordinate - Python 120/255)
+  ctx2d.strokeStyle = "#787878";
+  ctx2d.lineWidth = 1;
+  ctx2d.lineCap = "butt";
+  ctx2d.lineJoin = "round";
+  ctx2d.beginPath();
+  for (w = 0; w < barbWalks.length; w++) {
+    walk = barbWalks[w];
+    if (walk.length < 2) continue;
+    ctx2d.moveTo(walk[0][0], walk[0][1]);
+    for (j = 1; j < walk.length; j++) {
+      ctx2d.lineTo(walk[j][0], walk[j][1]);
+    }
+  }
+  ctx2d.stroke();
+
+  // 9. Origin dot (1 px radius)
+  ctx2d.fillStyle = "#1a1a1a";
+  ctx2d.beginPath();
+  ctx2d.arc(ORIGIN_X, ORIGIN_Y, 1, 0, Math.PI * 2);
+  ctx2d.fill();
+
+  ctx2d.restore();
+}
+
+/* ---------- Canvas setup (devicePixelRatio aware) ---------- */
+function _setupCanvas(canvas) {
+  var dpr = window.devicePixelRatio || 1;
+  var cssSize = 320;
+  canvas.style.width = cssSize + "px";
+  canvas.style.height = cssSize + "px";
+  canvas.width = Math.round(cssSize * dpr);
+  canvas.height = Math.round(cssSize * dpr);
+  var c = canvas.getContext("2d");
+  var scale = canvas.width / PANEL;
+  c.setTransform(scale, 0, 0, scale, 0, 0);
+  return c;
+}
+
+/* ---------- UI wiring ---------- */
+(function init() {
+  function $(id) { return document.getElementById(id); }
+
+  var canvas = $("glyph");
+  var ctx2d = _setupCanvas(canvas);
+
+  var genotypeInput = $("genotype");
+  var tcsInput = $("tcs"), tcsVal = $("tcs-v");
+  var tfInput  = $("tf"),  tfVal  = $("tf-v");
+  var trInput  = $("tr"),  trVal  = $("tr-v");
+  var drInput  = $("dr"),  drVal  = $("dr-v");
+
+  function readParams() {
+    return {
+      genotype: genotypeInput.value,
+      TCS: parseInt(tcsInput.value, 10),
+      TF:  parseInt(tfInput.value, 10),
+      TR:  parseInt(trInput.value, 10),
+      DR:  parseInt(drInput.value, 10)
+    };
+  }
+
+  function renderNow() {
+    var p = readParams();
+    render(p.genotype, p.TCS, p.TF, p.TR, p.DR, canvas, ctx2d);
+  }
+
+  var debounceTimer = null;
+  function scheduleRender() {
+    if (debounceTimer !== null) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      debounceTimer = null;
+      renderNow();
+    }, 100);
+  }
+
+  function updateVal(input, valSpan) {
+    valSpan.textContent = input.value;
+  }
+
+  genotypeInput.addEventListener("input", scheduleRender);
+
+  tcsInput.addEventListener("input", function () { updateVal(tcsInput, tcsVal); scheduleRender(); });
+  tfInput .addEventListener("input", function () { updateVal(tfInput,  tfVal);  scheduleRender(); });
+  trInput .addEventListener("input", function () { updateVal(trInput,  trVal);  scheduleRender(); });
+  drInput .addEventListener("input", function () { updateVal(drInput,  drVal);  scheduleRender(); });
+
+  $("v453").addEventListener("click", function () {
+    genotypeInput.value = "BLACK2b-V453";
+    tcsInput.value = "7";   updateVal(tcsInput, tcsVal);
+    tfInput.value  = "146"; updateVal(tfInput,  tfVal);
+    trInput.value  = "155"; updateVal(trInput,  trVal);
+    drInput.value  = "38";  updateVal(drInput,  drVal);
+    if (debounceTimer !== null) { clearTimeout(debounceTimer); debounceTimer = null; }
+    renderNow();
+  });
+
+  $("render").addEventListener("click", function () {
+    if (debounceTimer !== null) { clearTimeout(debounceTimer); debounceTimer = null; }
+    renderNow();
+  });
+
+  // Initial render with default values (genotype BLACK2b-V453, preset V453)
+  renderNow();
+})();
+</script>
+</body>
+</html>
