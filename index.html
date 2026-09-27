@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RISE OF MICROBES — Entry</title>
+<style>
+  :root{
+    --bg:#0c0a07; --bg2:#141109; --cream:#f2ead8; --cream-dim:#cfc4ab;
+    --amber:#d9a441; --amber-dim:#8a6a2a; --line:#3a3020; --gold:#e8b84b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #1a1509 0%, var(--bg) 60%);
+    color:var(--cream);
+    font-family:Georgia,'Times New Roman',serif;
+    display:flex;flex-direction:column;min-height:100vh;
+  }
+  nav{
+    display:flex;align-items:center;gap:18px;
+    padding:14px 26px;border-bottom:1px solid var(--line);
+    background:rgba(12,10,7,.85);backdrop-filter:blur(4px);
+    position:sticky;top:0;z-index:10;
+  }
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--cream)}
+  .brand svg{display:block}
+  .brand b{font-size:14px;letter-spacing:.22em;font-weight:400}
+  .navtag{
+    font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.18em;
+    color:var(--amber);border:1px solid var(--amber-dim);border-radius:3px;
+    padding:3px 8px;text-transform:uppercase;
+  }
+  .navlinks{margin-left:auto;display:flex;gap:22px;align-items:center}
+  .navlinks a{
+    color:var(--cream-dim);text-decoration:none;font-size:12px;
+    letter-spacing:.16em;text-transform:uppercase;font-family:ui-monospace,Menlo,monospace;
+  }
+  .navlinks a:hover{color:var(--gold)}
+  .wallet{
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;
+    color:var(--bg);background:var(--amber);border:none;border-radius:3px;
+    padding:7px 14px;cursor:pointer;text-transform:uppercase;
+  }
+  .wallet:hover{background:var(--gold)}
+  .stub-note{
+    font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#6b5f45;
+    letter-spacing:.08em;
+  }
+  main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 20px}
+  .kicker{
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.34em;
+    color:var(--amber);text-transform:uppercase;margin-bottom:6px;text-align:center;
+  }
+  h1{
+    font-size:clamp(26px,4.4vw,44px);font-weight:400;letter-spacing:.12em;
+    text-align:center;color:var(--cream);text-transform:uppercase;margin-bottom:8px;
+  }
+  .sub{color:var(--cream-dim);font-size:14px;font-style:italic;text-align:center;max-width:560px;margin-bottom:26px;line-height:1.6}
+  .triad{width:min(760px,94vw)}
+  .triad svg{width:100%;height:auto;display:block}
+  .council-label{font-family:ui-monospace,Menlo,monospace;font-size:15px;letter-spacing:.3em;fill:var(--cream-dim);text-transform:uppercase}
+  .dg-text{font-family:Georgia,serif;font-size:26px;letter-spacing:.3em;fill:var(--gold);text-transform:uppercase}
+  .dg-sub{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.22em;fill:var(--amber-dim)}
+  .filament{stroke:var(--amber-dim);stroke-width:1.3;fill:none;opacity:.85}
+  .filament-glow{stroke:var(--amber);stroke-width:.6;fill:none;opacity:.35}
+  .kg-dot{fill:#4a3d22}
+  .kg-line{stroke:#2c2413;stroke-width:.7}
+  .dg-group{cursor:pointer}
+  .dg-group:hover rect{stroke:var(--gold);filter:drop-shadow(0 0 10px rgba(232,184,75,.45))}
+  .chapters{width:min(760px,94vw);margin-top:30px}
+  .chapters h2{
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.3em;
+    color:var(--cream-dim);text-transform:uppercase;font-weight:400;
+    border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px;text-align:center;
+  }
+  .ch-list{display:flex;flex-direction:column;gap:10px}
+  .ch{
+    display:flex;align-items:baseline;gap:14px;padding:14px 18px;
+    border:1px solid var(--line);border-radius:6px;background:rgba(242,234,216,.03);
+  }
+  .ch.active{border-color:var(--amber);background:rgba(217,164,65,.07)}
+  .ch .num{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--amber);letter-spacing:.1em;min-width:34px}
+  .ch .name{font-size:17px;letter-spacing:.06em;color:var(--cream)}
+  .ch .desc{font-size:12px;color:#8d7f63;font-style:italic;margin-left:auto;text-align:right}
+  .ch.active a{
+    color:var(--gold);text-decoration:none;font-family:ui-monospace,Menlo,monospace;
+    font-size:11px;letter-spacing:.2em;border:1px solid var(--amber-dim);
+    padding:6px 12px;border-radius:3px;margin-left:16px;white-space:nowrap;
+  }
+  .ch.active a:hover{background:var(--amber);color:var(--bg)}
+  .ch.locked{opacity:.42}
+  .ch.locked .state{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.2em;color:#6b5f45;margin-left:16px;white-space:nowrap}
+  footer{
+    border-top:1px solid var(--line);padding:14px 26px;display:flex;gap:14px;flex-wrap:wrap;
+    font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#6b5f45;letter-spacing:.12em;
+  }
+  footer span{margin-right:18px}
+  @media (max-width:640px){
+    .navlinks a{display:none}
+    .ch .desc{display:none}
+  }
+</style>
+</head>
+<body>
+<nav>
+  <a class="brand" href="sim.html" aria-label="Rise of Microbes">
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+      <rect x="2" y="2" width="4" height="4" fill="#d9a441"/>
+      <rect x="8" y="8" width="4" height="4" fill="#d9a441"/>
+      <rect x="14" y="14" width="4" height="4" fill="#d9a441"/>
+      <rect x="8" y="2" width="4" height="4" fill="#6b5f45"/>
+      <rect x="14" y="8" width="4" height="4" fill="#6b5f45"/>
+    </svg>
+    <b>RISE OF MICROBES</b>
+  </a>
+  <span class="navtag">Solana · Devnet</span>
+  <div class="navlinks">
+    <a href="sim.html">Model</a>
+    <a href="dj.html">DJ Console</a>
+    <a href="battle.html">Battle</a>
+    <a href="deck.html" title="Deck · the nine kEngrams">Deck</a>
+    <a href="https://terraquest.biotexturas.org/" title="Landing — terraquest.biotexturas.org">Landing</a>
+  </div>
+  <button class="wallet" id="walletBtn">Connect Wallet</button>
+  <span class="stub-note" id="walletNote">connect only · nothing signed</span>
+</nav>
+<main>
+  <div class="kicker">A Remnant AI · Her research group · You</div>
+  <h1>Chose your research quest</h1>
+  <p class="sub">You arrive as a new member of a decentralized research group led by the
+  Remnant AI — art, science, technology, three councils at one object. The Datagram is the entry point.</p>
+  <div class="triad" role="img" aria-label="Council triad: Art, Science and Technology councils connected to a central Datagram">
+    <svg viewBox="0 0 1000 640" aria-hidden="true">
+      <g class="kg">
+        <line class="kg-line" x1="60" y1="120" x2="240" y2="80"/>
+        <line class="kg-line" x1="240" y1="80" x2="420" y2="140"/>
+        <line class="kg-line" x1="940" y1="120" x2="760" y2="80"/>
+        <line class="kg-line" x1="760" y1="80" x2="580" y2="140"/>
+        <line class="kg-line" x1="120" y1="560" x2="300" y2="600"/>
+        <line class="kg-line" x1="300" y1="600" x2="500" y2="560"/>
+        <line class="kg-line" x1="880" y1="560" x2="700" y2="600"/>
+        <line class="kg-line" x1="700" y1="600" x2="500" y2="560"/>
+        <circle class="kg-dot" cx="60" cy="120" r="2.4"/>
+        <circle class="kg-dot" cx="240" cy="80" r="2.4"/>
+        <circle class="kg-dot" cx="420" cy="140" r="2.4"/>
+        <circle class="kg-dot" cx="940" cy="120" r="2.4"/>
+        <circle class="kg-dot" cx="760" cy="80" r="2.4"/>
+        <circle class="kg-dot" cx="580" cy="140" r="2.4"/>
+        <circle class="kg-dot" cx="120" cy="560" r="2.4"/>
+        <circle class="kg-dot" cx="300" cy="600" r="2.4"/>
+        <circle class="kg-dot" cx="880" cy="560" r="2.4"/>
+        <circle class="kg-dot" cx="700" cy="600" r="2.4"/>
+      </g>
+      <defs>
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#8a6a2a"/>
+        </marker>
+      </defs>
+      <line class="filament" x1="185" y1="118" x2="418" y2="268" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <line class="filament" x1="815" y1="118" x2="582" y2="268" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <line class="filament" x1="500" y1="352" x2="500" y2="505" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <line class="filament-glow" x1="185" y1="118" x2="418" y2="268"/>
+      <line class="filament-glow" x1="815" y1="118" x2="582" y2="268"/>
+      <line class="filament-glow" x1="500" y1="352" x2="500" y2="505"/>
+      <text class="council-label" x="120" y="108" text-anchor="middle">Art</text>
+      <text class="council-label" x="880" y="108" text-anchor="middle">Science</text>
+      <text class="council-label" x="500" y="566" text-anchor="middle">Technology</text>
+      <a class="dg-group" href="#chapters">
+        <rect x="385" y="270" width="230" height="82" rx="14" fill="#171207" stroke="#d9a441" stroke-width="1.6"/>
+        <text class="dg-text" x="500" y="308" text-anchor="middle">Datagram</text>
+        <text class="dg-sub"  x="500" y="330" text-anchor="middle">ENTER · CHAPTER 1</text>
+      </a>
+    </svg>
+  </div>
+  <div class="chapters" id="chapters">
+    <h2>Quest — Rise of Microbes · Chapters</h2>
+    <div class="ch-list">
+      <div class="ch active">
+        <span class="num">1.-</span>
+        <span class="name">Remnant AI</span>
+        <span class="desc">The Calculi of intelligence.</span>
+        <a href="sim.html">Enter</a>
+      </div>
+      <div class="ch locked">
+        <span class="num">2.-</span>
+        <span class="name">The hunt for intelligence</span>
+        <span class="desc">Find your smart microbe.</span>
+        <span class="state">LOCKED</span>
+      </div>
+      <div class="ch locked">
+        <span class="num">3.-</span>
+        <span class="name">The expansion of intelligence</span>
+        <span class="desc">Conquer the arena.</span>
+        <span class="state">LOCKED</span>
+      </div>
+      <div class="ch locked">
+        <span class="num">4.-</span>
+        <span class="name">Drone activate</span>
+        <span class="desc">Seek and track.</span>
+        <span class="state">LOCKED</span>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>
+  <span>RISE OF MICROBES · ENTRY</span>
+  <span>DESIGN MOCKUP — NOTHING ON-CHAIN, NOTHING MINTED</span>
+  <span>BIOTEXTURAS LAB</span>
+</footer>
+<script>
+(function(){
+  var btn = document.getElementById('walletBtn');
+  var note = document.getElementById('walletNote');
+  function getProvider(){
+    if (window.phantom && window.phantom.solana) return window.phantom.solana;
+    if (window.solflare) return window.solflare;
+    if (window.solana) return window.solana;
+    return null;
+  }
+  function trunc(k){ return k.slice(0,4) + '…' + k.slice(-4); }
+  function connected(key){
+    btn.textContent = trunc(key);
+    note.textContent = 'connected · mint ships with program ID';
+  }
+  function idle(msg){
+    btn.textContent = 'Connect Wallet';
+    if (msg) note.textContent = msg;
+  }
+  function noWallet(){
+    note.textContent = 'no wallet detected · install Phantom or Solflare';
+  }
+  var p = getProvider();
+  if (!p) noWallet();
+  else if (p.isConnected && p.isConnected() && p.publicKey) connected(p.publicKey.toString());
+  btn.addEventListener('click', function(){
+    var q = getProvider();
+    if (!q){ noWallet(); return; }
+    if (q.isConnected && q.isConnected() && q.publicKey){ connected(q.publicKey.toString()); return; }
+    btn.textContent = 'Connecting…';
+    var r;
+    try { r = q.connect(); }
+    catch(e){ idle('connect failed · ' + (e && e.message ? e.message : 'unknown')); return; }
+    function ok(resp){
+      var key = (resp && resp.publicKey) ? resp.publicKey.toString()
+              : (q.publicKey ? q.publicKey.toString() : null);
+      if (key) connected(key);
+      else idle('connect returned no key · try again');
+    }
+    function fail(e){
+      if (e && (e.code === 4001 || e.code === '4001')) idle('connection rejected in wallet');
+      else idle('connect failed · ' + (e && e.message ? e.message : 'unknown'));
+    }
+    if (r && typeof r.then === 'function') r.then(ok).catch(fail);
+    else ok(r);
+  });
+})();
+</script>
+</body>
+</html>

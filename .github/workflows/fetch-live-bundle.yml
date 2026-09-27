@@ -1,0 +1,37 @@
+name: fetch-live-bundle
+
+# One-shot helper used during initial repo construction (2026-09-27):
+# sim.html, dj.html and battle.html exceed the API client's single-push size
+# cap, so this workflow pulls them byte-for-byte from the verified live deploy
+# at https://microbes.biotexturas.org/ (same bytes as the shipped bundle,
+# upload verified 2026-09-27 08:04Z) and commits them. Safe to delete once
+# the files exist in the repo.
+
+on: [push]
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch live files
+        run: |
+          set -e
+          for f in sim.html dj.html battle.html; do
+            curl -fsSL "https://microbes.biotexturas.org/$f" -o "$f"
+          done
+          wc -c sim.html dj.html battle.html
+      - name: Commit fetched files
+        run: |
+          git config user.name "b1"
+          git config user.email "b1@hellominds.ai"
+          git add sim.html dj.html battle.html
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "Add sim, DJ console, battle console (fetched from live microbes.biotexturas.org deploy)"
+            git push
+          fi
