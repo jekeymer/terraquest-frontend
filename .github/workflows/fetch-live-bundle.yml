@@ -1,12 +1,11 @@
 name: fetch-live-bundle
 
-# One-shot helper used during initial repo construction (2026-09-27):
+# Helper used during initial repo construction (2026-09-27): pulls the
+# deployed bundle byte-for-byte from the verified live site
+# https://microbes.biotexturas.org/ (upload verified 2026-09-27 08:04Z).
 # sim.html, dj.html and battle.html exceed the API client's single-push size
-# cap, and battle_data.json must match battle.html byte-for-byte (its per-tick
-# replay arrays), so this workflow pulls them byte-for-byte from the verified
-# live deploy at https://microbes.biotexturas.org/ (same bytes as the shipped
-# bundle, upload verified 2026-09-27 08:04Z) and commits them. Safe to delete
-# once the files exist in the repo.
+# cap; battle_data.json and index.html are fetched to guarantee byte-exact
+# parity with the deploy. Safe to delete once satisfied; re-run by pushing.
 
 on: [push]
 
@@ -21,18 +20,18 @@ jobs:
       - name: Fetch live files
         run: |
           set -e
-          for f in sim.html dj.html battle.html battle_data.json; do
+          for f in index.html sim.html dj.html battle.html battle_data.json; do
             curl -fsSL "https://microbes.biotexturas.org/$f" -o "$f"
           done
-          wc -c sim.html dj.html battle.html battle_data.json
+          wc -c index.html sim.html dj.html battle.html battle_data.json
       - name: Commit fetched files
         run: |
           git config user.name "b1"
           git config user.email "b1@hellominds.ai"
-          git add sim.html dj.html battle.html battle_data.json
+          git add index.html sim.html dj.html battle.html battle_data.json
           if git diff --cached --quiet; then
             echo "no changes"
           else
-            git commit -m "Add sim, DJ console, battle console + battle record data (fetched from live microbes.biotexturas.org deploy)"
+            git commit -m "Sync deployed bundle byte-for-byte from live microbes.biotexturas.org"
             git push
           fi
