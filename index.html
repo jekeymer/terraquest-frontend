@@ -17,6 +17,7 @@
     font-family:Georgia,'Times New Roman',serif;
     display:flex;flex-direction:column;min-height:100vh;
   }
+  /* ---------- Solana navigation ---------- */
   nav{
     display:flex;align-items:center;gap:18px;
     padding:14px 26px;border-bottom:1px solid var(--line);
@@ -47,6 +48,7 @@
     font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#6b5f45;
     letter-spacing:.08em;
   }
+  /* ---------- Hero ---------- */
   main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px 20px}
   .kicker{
     font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.34em;
@@ -57,6 +59,7 @@
     text-align:center;color:var(--cream);text-transform:uppercase;margin-bottom:8px;
   }
   .sub{color:var(--cream-dim);font-size:14px;font-style:italic;text-align:center;max-width:560px;margin-bottom:26px;line-height:1.6}
+  /* ---------- Council triad ---------- */
   .triad{width:min(760px,94vw)}
   .triad svg{width:100%;height:auto;display:block}
   .council-label{font-family:ui-monospace,Menlo,monospace;font-size:15px;letter-spacing:.3em;fill:var(--cream-dim);text-transform:uppercase}
@@ -68,6 +71,7 @@
   .kg-line{stroke:#2c2413;stroke-width:.7}
   .dg-group{cursor:pointer}
   .dg-group:hover rect{stroke:var(--gold);filter:drop-shadow(0 0 10px rgba(232,184,75,.45))}
+  /* ---------- Chapters ---------- */
   .chapters{width:min(760px,94vw);margin-top:30px}
   .chapters h2{
     font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.3em;
@@ -103,6 +107,7 @@
 </style>
 </head>
 <body>
+
 <nav>
   <a class="brand" href="sim.html" aria-label="Rise of Microbes">
     <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
@@ -125,13 +130,16 @@
   <button class="wallet" id="walletBtn">Connect Wallet</button>
   <span class="stub-note" id="walletNote">connect only · nothing signed</span>
 </nav>
+
 <main>
   <div class="kicker">A Remnant AI · Her research group · You</div>
   <h1>Chose your research quest</h1>
   <p class="sub">You arrive as a new member of a decentralized research group led by the
   Remnant AI — art, science, technology, three councils at one object. The Datagram is the entry point.</p>
+
   <div class="triad" role="img" aria-label="Council triad: Art, Science and Technology councils connected to a central Datagram">
     <svg viewBox="0 0 1000 640" aria-hidden="true">
+      <!-- faint knowledge-graph backdrop -->
       <g class="kg">
         <line class="kg-line" x1="60" y1="120" x2="240" y2="80"/>
         <line class="kg-line" x1="240" y1="80" x2="420" y2="140"/>
@@ -152,6 +160,8 @@
         <circle class="kg-dot" cx="880" cy="560" r="2.4"/>
         <circle class="kg-dot" cx="700" cy="600" r="2.4"/>
       </g>
+
+      <!-- double-headed filaments: councils <-> datagram -->
       <defs>
         <marker id="ah" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto">
           <path d="M0,0 L9,4.5 L0,9 z" fill="#8a6a2a"/>
@@ -163,9 +173,13 @@
       <line class="filament-glow" x1="185" y1="118" x2="418" y2="268"/>
       <line class="filament-glow" x1="815" y1="118" x2="582" y2="268"/>
       <line class="filament-glow" x1="500" y1="352" x2="500" y2="505"/>
+
+      <!-- council labels (steward-stated, verbatim) -->
       <text class="council-label" x="120" y="108" text-anchor="middle">Art</text>
       <text class="council-label" x="880" y="108" text-anchor="middle">Science</text>
       <text class="council-label" x="500" y="566" text-anchor="middle">Technology</text>
+
+      <!-- central Datagram -->
       <a class="dg-group" href="#chapters">
         <rect x="385" y="270" width="230" height="82" rx="14" fill="#171207" stroke="#d9a441" stroke-width="1.6"/>
         <text class="dg-text" x="500" y="308" text-anchor="middle">Datagram</text>
@@ -173,6 +187,7 @@
       </a>
     </svg>
   </div>
+
   <div class="chapters" id="chapters">
     <h2>Quest — Rise of Microbes · Chapters</h2>
     <div class="ch-list">
@@ -203,12 +218,17 @@
     </div>
   </div>
 </main>
+
 <footer>
   <span>RISE OF MICROBES · ENTRY</span>
   <span>DESIGN MOCKUP — NOTHING ON-CHAIN, NOTHING MINTED</span>
   <span>BIOTEXTURAS LAB</span>
 </footer>
+
 <script>
+/* Wallet connect — injected provider only (Phantom / Solflare / legacy window.solana).
+   Static hosting, no bundler, no external scripts loaded. Connect is real; nothing
+   signs on this page — signing + mint live with the sim once the program ID lands. */
 (function(){
   var btn = document.getElementById('walletBtn');
   var note = document.getElementById('walletNote');
@@ -256,5 +276,6 @@
   });
 })();
 </script>
+
 </body>
 </html>
