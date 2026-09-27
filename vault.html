@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAULT — browser-local inspector</title>
+<style>
+:root{
+  --bg:#0a0e0a;--panel:#0e1610;--pb:#1c2a1c;--tx:#b8d4b8;--td:#5a7a5a;
+  --am:#e8b840;--gn:#4dd070;--gb:#88ffa0;--rd:#d04040;--bl:#4090d0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px}
+body{padding:6px}
+#app{max-width:1280px;margin:0 auto;display:grid;gap:6px}
+header,.panel,footer{background:var(--panel);border:1px solid var(--pb)}
+header{padding:12px}
+header h1{color:var(--gb);font-size:18px;letter-spacing:.22em;text-transform:uppercase;font-weight:normal}
+header p{color:var(--td);font-size:10px;margin-top:5px;line-height:1.5}
+header em{color:var(--am);font-style:normal}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+nav a{display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--pb);padding:5px 8px;text-decoration:none;font-size:10px}
+nav a:hover,nav a:focus-visible{border-color:var(--gn);color:var(--gb);outline:none}
+.panel{padding:8px 10px}
+.hint{color:var(--am);font-size:10px;line-height:1.55}
+.status{color:var(--td);font-size:9px;line-height:1.45;margin-top:4px;min-height:13px}
+.vault-section{background:var(--panel);border:1px solid var(--pb);padding:8px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--pb);padding-bottom:5px;margin-bottom:7px}
+.section-head h2{font-size:11px;color:var(--am);letter-spacing:.16em;text-transform:uppercase;font-weight:normal}
+.section-head .sub{color:var(--td);font-size:9px}
+.rows{display:grid;gap:6px}
+.empty{border:1px dashed var(--pb);padding:12px;color:var(--td);font-size:10px;background:#050a05}
+.vault-row{border:1px solid var(--pb);background:#0b120c;padding:7px}
+.vault-row:hover{border-color:#2a3a2a}
+.row-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.row-key{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.hash{color:var(--gb);font-size:12px;letter-spacing:.05em;overflow-wrap:anywhere}
+.src-tag{color:var(--am);border:1px solid #4a3a18;background:#1a1408;padding:1px 4px;font-size:8px;text-transform:uppercase;letter-spacing:.06em}
+.meta{color:var(--td);font-size:9px;margin-top:4px;line-height:1.5}
+.meta b{color:var(--tx);font-weight:normal}
+.row-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.badge{font-size:9px;letter-spacing:.08em;border:1px solid;padding:3px 6px;white-space:nowrap}
+.badge.verified{color:var(--gb);border-color:var(--gn);background:#101a10}
+.badge.mismatch{color:#ff7a7a;border-color:var(--rd);background:#1a0b0b}
+.release{background:var(--bg);color:var(--td);border:1px solid var(--pb);font-family:inherit;font-size:10px;padding:3px 7px;cursor:pointer}
+.release:hover,.release:focus-visible{border-color:var(--rd);color:var(--rd);outline:none}
+.old-note,.invalid-note{margin-top:7px;border-left:2px solid var(--am);padding:5px 7px;background:#12150d;color:var(--am);font-size:10px}
+.invalid-note{border-left-color:var(--rd);color:#ff7a7a;background:#170b0b}
+.expanded{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:12px;margin-top:8px;border-top:1px dotted var(--pb);padding-top:8px}
+.means{display:grid;grid-template-columns:repeat(4,minmax(70px,1fr));gap:4px;margin-bottom:7px}
+.mean{background:#050a05;border:1px solid var(--pb);padding:5px}
+.mean .n{display:block;color:var(--am);font-size:8px;letter-spacing:.1em}
+.mean .v{display:block;color:var(--tx);font-size:11px;margin-top:2px;font-variant-numeric:tabular-nums}
+.chrom-row{display:flex;gap:4px;margin:3px 0;align-items:center}
+.chrom-label{font-size:9px;color:var(--am);width:48px;letter-spacing:.05em}
+.chrom-bars{display:flex;gap:0;flex:1;height:10px;overflow-x:auto;background:#050a05;padding:1px;border:1px solid var(--pb);min-width:0}
+.chrom-cell{flex:0 0 auto;min-width:1px;height:6px;background:#1c2a1c}
+.integrity-line{color:var(--td);font-size:9px;line-height:1.5;margin-top:6px}
+.integrity-line code{color:var(--tx);font-family:inherit}
+.glyph-box{display:flex;flex-direction:column;align-items:flex-start}
+.glyph-title{color:var(--am);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.glyph-canvas{width:150px;height:150px;max-width:100%;display:block;background:#050a05;border:1px solid var(--pb)}
+.glyph-note{color:var(--td);font-size:8px;line-height:1.4;margin-top:4px;max-width:155px}
+.schema-note{color:var(--td);font-size:9px;line-height:1.5}
+.schema-note code{color:var(--gn);font-family:inherit}
+footer{padding:8px 10px;font-size:9px;color:var(--td);line-height:1.55}
+footer em{color:var(--am);font-style:normal}
+@media (max-width:700px){
+  .expanded{grid-template-columns:1fr}
+  .means{grid-template-columns:repeat(2,minmax(70px,1fr))}
+  .row-head{flex-direction:column}
+  .row-actions{justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>VAULT</h1>
+    <p>browser-local portal across the three modes - <em>nothing on-chain</em></p>
+    <nav aria-label="Bundle navigation">
+      <a href="index.html">Rise of Microbes</a>
+      <a href="sim.html">ALife World</a>
+      <a href="dj.html">Terrain Console</a>
+      <a href="battle.html">Battle Arena</a>
+      <a href="deck.html">Knowledge Engrams</a>
+      <a href="glyph.html">genome glyph</a>
+      <a href="https://terraquest.biotexturas.org/">TerraQuest</a>
+    </nav>
+  </header>
+
+  <div class="panel">
+    <div class="hint">loading happens in each mode: LOAD AS CONTESTANT (Battle Arena), LOAD AS FOUNDER (Terrain Console), SAVE (ALife World)</div>
+    <div class="status" id="vault-status" role="status" aria-live="polite"></div>
+  </div>
+
+  <section class="vault-section" aria-labelledby="saved-title">
+    <div class="section-head"><h2 id="saved-title">SAVED</h2><span class="sub" id="saved-count">watchlist</span></div>
+    <div class="rows" id="saved-rows"></div>
+  </section>
+
+  <section class="vault-section" aria-labelledby="owned-title">
+    <div class="section-head"><h2 id="owned-title">OWNED</h2><span class="sub" id="owned-count">minted demo</span></div>
+    <div class="rows" id="owned-rows"></div>
+  </section>
+
+  <section class="vault-section" aria-labelledby="registry-title">
+    <div class="section-head"><h2 id="registry-title">REGISTRY</h2><span class="sub" id="registry-count">mock registry</span></div>
+    <div class="rows" id="registry-rows"></div>
+  </section>
+
+  <div class="panel schema-note">
+    storage contract: <code>biotic_vault_v1</code> → <code>{saved:{hash:row}, registry:{hash:row}, msg:string}</code>.
+    OWNED is a view of registry rows where <code>owner === "you"</code>; it is not a separate storage key.
+    Source tags marked with * are derived for display because the ALife World row schema does not persist a <code>src</code> field.
+  </div>
+
+  <footer>
+    <em>DISPLAY-ONLY.</em> State is browser-local and limited to this browser profile on this device. Clearing site data, private browsing limits, storage quotas, or moving to another browser/device can remove or isolate it. nothing on-chain. no wallet code.
+  </footer>
+</div>
+<script>
+'use strict';
+const TCS=7,TF=146,TR=155,DR=38,CHROM=TCS+TF+TR+DR;
+const TCS_OFF=0,TF_OFF=TCS,TR_OFF=TCS+TF,DR_OFF=TCS+TF+TR;
+const VAULT_KEY='biotic_vault_v1';
+const DEFAULT_MSG='select an agent, then SAVE or OWNERSHIP in the inspector';
+const HOUSE_HASH='a1b2c3d4';
+
+function meanOff(a,o,sz){let s=0;for(let i=0;i<sz;i++)s+=a[o+i];return s/sz}
+function glyphHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return h>>>0}
+function qhash(chrom){let h=2166136261>>>0;for(let i=0;i<CHROM;i++){let q=Math.round((chrom[i]+1)*127.5);if(q<0)q=0;else if(q>255)q=255;h^=q;h=Math.imul(h,16777619)>>>0}return(h>>>0).toString(16).padStart(8,'0')}
+function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,a|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function glyphVals(chrom){let fs=0,rs=0;for(let i=0;i<TF;i++)fs+=chrom[TF_OFF+i];for(let i=0;i<TR;i++)rs+=chrom[TR_OFF+i];return{tcs:TCS,tf:Math.max(2,Math.min(300,Math.round(Math.abs(fs)*140))),tr:Math.max(2,Math.min(320,Math.round(Math.abs(rs)*140)))}}
+function drawGlyph(chrom){
+  const gcv=document.getElementById('glyph-cv');if(!gcv)return;
+  const g=glyphVals(chrom);
+  const c2=gcv.getContext('2d'),W=gcv.width,H=gcv.height,cx=W/2,cy=H/2,pad=8,stepL=Math.min(W,H)/170;
+  c2.clearRect(0,0,W,H);
+  const rnd=mulberry32(glyphHash(g.tcs+'-'+g.tf+'-'+g.tr));
+  c2.strokeStyle='rgba(232,184,40,0.85)';c2.lineWidth=1;c2.lineJoin='round';
+  c2.fillStyle='#e8b840';c2.beginPath();c2.arc(cx,cy,2,0,Math.PI*2);c2.fill();
+  const GOLDEN=Math.PI*(3-Math.sqrt(5)),D=Math.PI/180;
+  function walk(x,y,ang,steps,sign,depth){
+    let cum=0,signed=0;
+    let branchE=g.tf/30;if(depth>0)branchE*=0.5;
+    const pB=Math.min(0.08,branchE/steps);
+    c2.beginPath();c2.moveTo(x,y);
+    for(let s=0;s<steps;s++){
+      let dth=sign*Math.min(1,g.tr/320)*D*4+(rnd()-0.5)*D*4;
+      if(Math.abs(signed+dth)>D*300)dth=0;
+      if(cum+Math.abs(dth)>D*270)dth=0;
+      const rx=x-cx,ry=y-cy,rl=Math.hypot(rx,ry)||1;
+      ang=Math.atan2(Math.sin(ang)*0.85+ry/rl*0.15,Math.cos(ang)*0.85+rx/rl*0.15);
+      ang+=dth;
+      cum+=Math.abs(dth);signed+=dth;
+      x+=Math.cos(ang)*stepL;y+=Math.sin(ang)*stepL;
+      c2.lineTo(x,y);
+      if(x<pad||x>W-pad||y<pad||y>H-pad)break;
+      if(depth<2&&rnd()<pB){
+        const ba=ang+(rnd()<0.5?1:-1)*(0.5+rnd()*0.5),bs=Math.floor((steps-s)*0.5);
+        if(bs>20)walk(x,y,ba,bs,sign,depth+1);
+      }
+    }
+    c2.stroke();
+  }
+  for(let k=0;k<g.tcs;k++){
+    const base=k*GOLDEN+(rnd()-0.5)*0.3,sign=rnd()<0.5?1:-1,steps=150+Math.floor(rnd()*41);
+    walk(cx,cy,base,steps,sign,0);
+  }
+}
+
+function isRecord(v){return !!v&&typeof v==='object'&&!Array.isArray(v)}
+function getStorage(storage){
+  if(storage)return storage;
+  try{return localStorage}catch(e){return null}
+}
+function loadVault(storage){
+  const vault={saved:{},registry:{},msg:DEFAULT_MSG};
+  let issue='';
+  const store=getStorage(storage);
+  if(!store)issue='localStorage unavailable; showing the in-memory reference defaults only';
+  else{
+    try{
+      const raw=store.getItem(VAULT_KEY);
+      if(raw)Object.assign(vault,JSON.parse(raw));
+    }catch(e){issue='stored vault JSON could not be read; showing safe defaults'}
+  }
+  if(!isRecord(vault.saved)){vault.saved={};issue=issue||'saved map was not an object; ignored'}
+  if(!isRecord(vault.registry)){vault.registry={};issue=issue||'registry map was not an object; ignored'}
+  if(typeof vault.msg!=='string')vault.msg=DEFAULT_MSG;
+  if(!Object.keys(vault.registry).length)vault.registry[HOUSE_HASH]={owner:'another',id:0,gen:0,tick:0,demo:true};
+  return{vault,issue}
+}
+function vaultSave(vault,storage){
+  const store=getStorage(storage);
+  if(!store)return false;
+  try{store.setItem(VAULT_KEY,JSON.stringify(vault));return true}catch(e){return false}
+}
+function releaseSaved(hash,storage){
+  const loaded=loadVault(storage),vault=loaded.vault;
+  delete vault.saved[hash];
+  vault.msg='released · forgotten · '+hash;
+  const persisted=vaultSave(vault,storage);
+  return{vault,persisted,issue:loaded.issue}
+}
+function esc(v){
+  return String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))
+}
+function numericField(row,key){
+  const v=row?row[key]:undefined;
+  return typeof v==='number'&&Number.isFinite(v)?String(v):'—'
+}
+function hasStoredGenes(row){
+  return !!row&&Object.prototype.hasOwnProperty.call(row,'chrom')&&row.chrom!==null&&row.chrom!==undefined
+}
+function finiteChrom(chrom){
+  if(!chrom||typeof chrom.length!=='number'||chrom.length!==CHROM)return false;
+  for(let i=0;i<CHROM;i++)if(!Number.isFinite(chrom[i]))return false;
+  return true
+}
+function inspectRow(key,row){
+  if(!hasStoredGenes(row))return{state:'old',geneCount:0,computed:null,integrity:null};
+  const geneCount=row.chrom&&typeof row.chrom.length==='number'?row.chrom.length:0;
+  if(!finiteChrom(row.chrom))return{state:'invalid',geneCount,computed:null,integrity:'MISMATCH'};
+  const computed=qhash(row.chrom);
+  return{state:'genes',geneCount,computed,integrity:computed===String(key).toLowerCase()?'VERIFIED':'MISMATCH'}
+}
+function sourceTag(kind,row){
+  if(row&&typeof row.src==='string'&&row.src.trim())return row.src.trim();
+  if(row&&row.demo)return'house demo*';
+  if(kind==='saved')return'ALife World · SAVE*';
+  if(row&&row.owner==='you')return'ALife World · OWNERSHIP*';
+  return'mock registry*'
+}
+function renderBars(chrom){
+  const secs=[['TCS',TCS_OFF,TCS],['TF',TF_OFF,TF],['TR',TR_OFF,TR],['DR',DR_OFF,DR]];
+  let html='';
+  for(const[name,off,sz]of secs){
+    html+=`<div class="chrom-row"><div class="chrom-label">${name}×${sz}</div><div class="chrom-bars">`;
+    const cw=sz<=7?5:sz<=40?3:1.5;
+    for(let i=0;i<sz;i++){const v=chrom[off+i],mag=Math.min(1,Math.abs(v)*3),bg=v>=0?`rgb(${Math.floor(mag*40)},${Math.floor(80+mag*140)},${Math.floor(mag*40)})`:`rgb(${Math.floor(80+mag*140)},${Math.floor(mag*40)},${Math.floor(mag*40)})`;html+=`<div class="chrom-cell" style="flex:0 0 ${cw}px;background:${bg}" title="${name}[${i}]=${v.toFixed(2)}"></div>`}
+    html+='</div></div>';
+  }
+  return html
+}
+function renderMeans(chrom){
+  const vals=[
+    ['TCS',meanOff(chrom,TCS_OFF,TCS)],
+    ['TF',meanOff(chrom,TF_OFF,TF)],
+    ['TR',meanOff(chrom,TR_OFF,TR)],
+    ['DR',meanOff(chrom,DR_OFF,DR)]
+  ];
+  return`<div class="means">${vals.map(([n,v])=>`<div class="mean"><span class="n">${n} MEAN</span><span class="v">${v.toFixed(4)}</span></div>`).join('')}</div>`
+}
+function renderRow(kind,key,row){
+  row=isRecord(row)?row:{};
+  const check=inspectRow(key,row);
+  const release=kind==='saved'?`<button class="release" type="button" data-release="${esc(key)}" aria-label="Release saved row ${esc(key)}">Release (x)</button>`:'';
+  const badge=check.integrity?`<span class="badge ${check.integrity==='VERIFIED'?'verified':'mismatch'}">${check.integrity}</span>`:'';
+  const owner=row.owner==='you'?' · owner <b>you</b>':row.owner?' · owner <b>'+esc(row.owner)+'</b>':'';
+  let body='';
+  if(check.state==='old'){
+    body='<div class="old-note">old row - re-save from ALife World</div>';
+  }else if(check.state==='invalid'){
+    body='<div class="invalid-note">stored genes are not exactly 346 finite values - re-save from ALife World</div>';
+  }else{
+    body=`<div class="expanded"><div>${renderMeans(row.chrom)}${renderBars(row.chrom)}<div class="integrity-line">recomputed <code>${check.computed}</code> · row key <code>${esc(key)}</code> · FNV-1a over 346 quantized 8-bit genes</div></div><div class="glyph-box"><div class="glyph-title">Genome Glyph</div><canvas class="glyph-canvas" data-glyph-kind="${kind}" data-glyph-key="${esc(key)}" width="220" height="220" aria-label="Genome glyph for ${esc(key)}"></canvas><div class="glyph-note">intrinsic 220×220 · reference drawing rules · displayed at max 150px</div></div></div>`;
+  }
+  return`<article class="vault-row" data-row-kind="${kind}" data-row-key="${esc(key)}"><div class="row-head"><div><div class="row-key"><code class="hash">${esc(key)}</code><span class="src-tag">src ${esc(sourceTag(kind,row))}</span></div><div class="meta">id <b>${numericField(row,'id')}</b> · gen <b>${numericField(row,'gen')}</b> · tick <b>${numericField(row,'tick')}</b> · gene count <b>${check.geneCount}</b>${owner}</div></div><div class="row-actions">${badge}${release}</div></div>${body}</article>`
+}
+function entriesFor(kind,vault){
+  if(kind==='saved')return Object.entries(vault.saved);
+  if(kind==='owned')return Object.entries(vault.registry).filter(([,row])=>isRecord(row)&&row.owner==='you');
+  return Object.entries(vault.registry)
+}
+function renderRows(kind,vault){
+  const entries=entriesFor(kind,vault);
+  if(!entries.length){
+    const message=kind==='saved'?'empty · no saved watchlist rows in biotic_vault_v1':kind==='owned'?'empty · no registry rows with owner === "you"':'empty · no mock registry rows';
+    return`<div class="empty">${message}</div>`
+  }
+  return entries.map(([key,row])=>renderRow(kind,key,row)).join('')
+}
+function drawGlyphInto(chrom,canvas){
+  const previous=canvas.getAttribute('id');
+  const active=document.getElementById('glyph-cv');
+  if(active&&active!==canvas)active.removeAttribute('id');
+  canvas.setAttribute('id','glyph-cv');
+  drawGlyph(chrom);
+  if(previous)canvas.setAttribute('id',previous);else canvas.removeAttribute('id')
+}
+function init(){
+  let loaded=loadVault(),vault=loaded.vault,statusOverride='';
+  const status=document.getElementById('vault-status');
+  const roots={
+    saved:document.getElementById('saved-rows'),
+    owned:document.getElementById('owned-rows'),
+    registry:document.getElementById('registry-rows')
+  };
+  function drawAll(){
+    document.querySelectorAll('canvas[data-glyph-key]').forEach(canvas=>{
+      const kind=canvas.getAttribute('data-glyph-kind'),key=canvas.getAttribute('data-glyph-key');
+      const row=kind==='saved'?vault.saved[key]:vault.registry[key];
+      if(row&&finiteChrom(row.chrom))drawGlyphInto(row.chrom,canvas)
+    });
+  }
+  function render(){
+    for(const kind of['saved','owned','registry'])roots[kind].innerHTML=renderRows(kind,vault);
+    document.getElementById('saved-count').textContent=entriesFor('saved',vault).length+' watchlist row(s)';
+    document.getElementById('owned-count').textContent=entriesFor('owned',vault).length+' owned row(s)';
+    document.getElementById('registry-count').textContent=entriesFor('registry',vault).length+' registry row(s)';
+    status.textContent=statusOverride||loaded.issue||('storage '+VAULT_KEY+' · '+entriesFor('saved',vault).length+' saved · '+entriesFor('owned',vault).length+' owned · '+entriesFor('registry',vault).length+' registry');
+    drawAll()
+  }
+  document.getElementById('app').addEventListener('click',event=>{
+    const button=event.target.closest('[data-release]');
+    if(!button)return;
+    const hash=button.getAttribute('data-release'),result=releaseSaved(hash);
+    vault=result.vault;loaded={vault,issue:result.issue};
+    statusOverride=result.persisted?vault.msg:'release changed the in-memory view, but localStorage could not be written';
+    render()
+  });
+  if(typeof window!=='undefined')window.addEventListener('storage',event=>{
+    if(event.key!==VAULT_KEY)return;
+    loaded=loadVault();vault=loaded.vault;statusOverride='storage changed in another page · view refreshed';render()
+  });
+  render()
+}
+const VaultInspector={VAULT_KEY,TCS,TF,TR,DR,CHROM,TCS_OFF,TF_OFF,TR_OFF,DR_OFF,qhash,inspectRow,renderBars,renderMeans,renderRow,renderRows,loadVault,vaultSave,releaseSaved,finiteChrom,glyphVals,drawGlyph};
+if(typeof globalThis!=='undefined')globalThis.__vaultInspector=VaultInspector;
+if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
