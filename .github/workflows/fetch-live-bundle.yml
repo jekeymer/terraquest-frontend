@@ -1,37 +1,86 @@
 name: fetch-live-bundle
-
-# Helper used during initial repo construction (2026-09-27): pulls the
-# deployed bundle byte-for-byte from the verified live site
-# https://microbes.biotexturas.org/ (upload verified 2026-09-27 08:04Z).
-# sim.html, dj.html and battle.html exceed the API client's single-push size
-# cap; battle_data.json and index.html are fetched to guarantee byte-exact
-# parity with the deploy. Safe to delete once satisfied; re-run by pushing.
-
-on: [push]
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fetch-live-bundle.yml'
 
 permissions:
   contents: write
 
 jobs:
-  fetch:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Fetch live files
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Fetch all 46 bundle files from the reference site
+        env:
+          BASE: https://sites.hellominds.ai/b1/biotic-model
         run: |
-          set -e
-          for f in index.html sim.html dj.html battle.html battle_data.json; do
-            curl -fsSL "https://microbes.biotexturas.org/$f" -o "$f"
+          set -euo pipefail
+          files=(
+            battle.html
+            battle_data.json
+            collections.html
+            config.json
+            construct.html
+            cv_demo.html
+            deck.html
+            dj.html
+            entry.html
+            glyph.html
+            index.html
+            kEngram1.html
+            kengram1_card_atlas.png
+            kengram1_card_chord.png
+            kengram1_card_contracted.png
+            kengram1_card_expanded.png
+            kEngram2.html
+            kengram2_card_contracted.png
+            kengram2_card_expanded.png
+            kEngram3.html
+            kengram3_card_contracted.png
+            kengram3_card_expanded.png
+            kEngram4.html
+            kengram4_card_contracted.png
+            kengram4_card_fig3.png
+            kEngram5.html
+            kengram5_card_fig2.png
+            kengram5_card_perceptron.png
+            kEngram6.html
+            kengram6_card_fig5b.png
+            kengram6_card_landscape.png
+            kEngram7.html
+            kEngram8.html
+            kengram8_card_console.png
+            kengram8_card_contracted.png
+            kEngram9.html
+            kengram9_card_contracted.png
+            kengram9_card_hato.png
+            perceptron_source.svg
+            Seek.html
+            sim.html
+            terrascope-construction-manual-player-build-v0.2.md
+            terrascope-construction-manual-player-build-v0.2.pdf
+            terrascope_card_contracted.png
+            terrascope_card_expanded.png
+            vault.html
+          )
+          if [ "${#files[@]}" -ne 46 ]; then echo "manifest count ${#files[@]} != 46"; exit 1; fi
+          for f in "${files[@]}"; do
+            echo "fetch $f"
+            curl -fsSL --retry 3 --retry-delay 2 "$BASE/$f" -o "$f"
           done
-          wc -c index.html sim.html dj.html battle.html battle_data.json
-      - name: Commit fetched files
+      - name: Commit and push
         run: |
-          git config user.name "b1"
+          git config user.name "b1-sync"
           git config user.email "b1@hellominds.ai"
-          git add index.html sim.html dj.html battle.html battle_data.json
+          git add -A
           if git diff --cached --quiet; then
-            echo "no changes"
+            echo "No changes - repo already matches the reference site"
           else
-            git commit -m "Sync deployed bundle byte-for-byte from live microbes.biotexturas.org"
+            git commit -m "Sync 46-file bundle from sites.hellominds.ai/b1/biotic-model"
             git push
           fi
