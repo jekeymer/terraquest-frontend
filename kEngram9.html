@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kEngram 9 - Ancient datagram</title>
+<style>
+:root{
+  --bg:#0d0f12;
+  --panel:#15171b;
+  --panel2:#101216;
+  --amber:#d9a441;
+  --amber2:#f0bf58;
+  --cream:#eee4cf;
+  --muted:#9c927d;
+  --line:#3b3222;
+  --green:#8fcf83;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 520px at 50% -120px,#29200f 0%,var(--bg) 64%);color:var(--cream);font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;line-height:1.55}
+header,main,footer{width:min(960px,calc(100% - 32px));margin:0 auto}
+header{padding:24px 0 16px}
+nav{display:flex;flex-wrap:wrap;gap:8px}
+nav a,.toggle{border:1px solid var(--line);background:var(--panel2);color:var(--amber);padding:9px 13px;text-decoration:none;font:inherit;font-size:11px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+nav a:hover,.toggle:hover{border-color:var(--amber);color:var(--amber2)}
+.status{margin:0 0 18px;padding:18px;border:1px solid var(--line);background:rgba(21,23,27,.92)}
+.hero{display:flex;align-items:flex-start;gap:14px}
+.badge{flex:0 0 auto;display:grid;place-items:center;min-width:34px;height:34px;padding:0 8px;border:1px solid var(--amber);color:var(--amber2);font-size:12px}
+h1{margin:0;color:var(--amber2);font-size:clamp(24px,5vw,42px);font-weight:500;line-height:1.2}
+.source{margin:8px 0 0;color:var(--amber);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.body{margin:14px 0 0;color:var(--muted);font-family:Georgia,"Times New Roman",serif;font-size:15px;overflow-wrap:anywhere}
+.card-face{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--bg);border:1px solid var(--line);margin:14px 0 0}
+.console-chip{width:135px;height:51.5px;margin-top:10px;border:1px solid var(--line);background-image:url(terrascope_card_expanded.png);background-repeat:no-repeat;background-size:352px 160px;background-position:-206.75px -54.25px}
+.device-chip{margin-top:8px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);max-width:430px}
+.device-chip p{margin:0 0 4px;color:var(--muted);font-size:10px;letter-spacing:.04em;line-height:1.5}
+.device-chip p:last-child{margin-bottom:0}
+section{margin:0 0 24px}
+section h2{margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--amber);font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{display:flex;align-items:center;gap:10px;padding:13px;border:1px solid var(--line);background:var(--panel);color:var(--cream);text-decoration:none}
+.card:hover{border-color:var(--amber)}
+.card .badge{min-width:30px;height:30px}
+.scale-box,.charter,.flow{padding:15px;border:1px solid var(--line);background:var(--panel)}
+.scale-box p,.charter p,.flow p{margin:0 0 9px;color:var(--muted)}
+.scale-box p:last-child,.charter p:last-child,.flow p:last-child{margin-bottom:0}
+.external-links{display:grid;gap:6px;margin-top:10px}
+.external-links a,.group-link{color:var(--amber2);overflow-wrap:anywhere}
+blockquote{margin:0}
+.collect{margin-top:12px}
+.toggle{width:100%}
+.toggle.collected{border-color:var(--green);color:var(--green);background:#111a12}
+.granted{margin-top:8px;color:var(--green);font-size:11px}
+footer{margin-top:8px;padding:20px 0 30px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}
+@media(max-width:620px){header,main,footer{width:min(100% - 20px,960px)}.grid{grid-template-columns:1fr}.hero{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <nav aria-label="Primary">
+    <a href="deck.html">Knowledge Engrams</a>
+    <a href="index.html">Rise of Microbes</a>
+  </nav>
+</header>
+<main>
+  <div class="status">
+    <div class="hero">
+      <span class="badge">kEngram 9</span>
+      <div>
+        <h1>Ancient datagram</h1>
+        <p class="source">Biotexturas lab</p>
+      </div>
+    </div>
+    <p class="body">Drone Activate. Ancient datagram composed using an optical flow and a cluster analysis computer vision pipeline applied to a time lapse captured by TerraScope. In the datagram, we can see the robotic shifting of TerraScope’s XY stage while the computer vision machine is tracking an emitted ArrowHead and snakes morphs of P. lautus.</p>
+    <img class="card-face" src="kengram9_card_hato.png" alt="Hato Completo and Clusters - the time-lapse cluster figure in the tones of the page">
+    <div class="console-chip" role="img" aria-label="TerraScope console render"></div>
+    <div class="device-chip">
+      <p>TerraPi | Raspberry Pi | serial 00000000ba807092</p>
+      <p>TerraScope v1.0 - raspistill 1920x1080</p>
+      <p>same device (TerraPi, serial 00000000ba807092) - steward-confirmed</p>
+      <p>this capture predates Fuji - the Fuji registration below is the same Pi's later on-chain registration, not of this capture</p>
+      <p>device 0xAf2f889073Fa571Fd13526A7adB105560B0B40f5 (Avalanche Fuji, chain 43113) - later registration</p>
+      <p>serial hash 0x3f28f696...4b6f</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>THE ANCIENT DATAGRAM</h2>
+    <div class="scale-box">
+      <p>This capture is the Ancient Datagram - minted as the founding datagram, and preserved in lifelong decentralized storage.</p>
+      <p style="overflow-wrap:anywhere">Capture hash (SHA-256, locked): 59022e0c72476839737e37c29f98a6cb4ff131d106ce1a9fcd7c6ad765e7fd80 - over hatoclusters.avi as-is, 14,486,308 bytes.</p>
+      <p>Mint status: minted - signature 64w4abEpX1i7oSnkXsNcqCBfeJFnFQSaErs7M8XXMyULQc7FshjYQhMWixUkynUgxePBDxvWjBG9ePw8P5UbEwiZ (devnet, slot 507391878, 2026-10-04 14:16:38 UTC, instruction MintFoundingDatagram, finalized) - <a href="https://explorer.solana.com/tx/64w4abEpX1i7oSnkXsNcqCBfeJFnFQSaErs7M8XXMyULQc7FshjYQhMWixUkynUgxePBDxvWjBG9ePw8P5UbEwiZ?cluster=devnet" target="_blank" rel="noopener">view on explorer</a>.</p>
+      <div class="external-links">
+        <a href="https://turbo-gateway.com/mj6CwfZoDqkvSd_oQQ0WVHuNG4g515F_Y-d6yxkh6DE" target="_blank" rel="noopener">Preserved on Arweave - tx mj6CwfZoDqkvSd_oQQ0WVHuNG4g515F_Y-d6yxkh6DE</a>
+        <a href="https://etherscan.io/token/0x495f947276749ce646f68ac8c248420045cb7b5e?a=25655250801155587230025393748837896128739972791917445680102782704550626197505" target="_blank" rel="noopener">Ethereum reference - Etherscan token record</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>DEVICE</h2>
+    <div class="scale-box">
+      <p>Capture device: TerraPi (Raspberry Pi, hw_serial 00000000ba807092), TerraScope v1.0 - raspistill 1920x1080 quality 90; signed capture timestamp 2026-03-21T19:43:37Z. OS: version unspecified (pending) - possibly a different Linux version than the current build, per the steward.</p>
+      <p>This capture predates Fuji - nothing about the capture or video origin is Fuji-specific. Registered device: 0xAf2f889073Fa571Fd13526A7adB105560B0B40f5 on Avalanche Fuji (chain 43113, contract 0xF7497fC600Bd4877A0Ad3C0B3BBBEE80b9038477) - the same physical Pi's later on-chain registration, unrelated to the capture era; serial hash 0x3f28f696...4b6f (documented as keccak256 of the hardware serial per contract natspec - not re-derived here); attester 0xba9C2f6Edf0C9968F0b3af39a7B52A8Ea03c06e5.</p>
+      <p>Same device (TerraPi, serial 00000000ba807092) produced this capture and hatoclusters - steward-confirmed in-thread (2026-10-04 19:23 UTC); nothing in the TerraGenesis repos names hatoclusters, so it is stated by the steward, not verified on-chain. Steward's words: "All the same hardware than the Susana and Pablo's data."</p>
+      <p>Notes: the committed demo capture was signed by a different key than the registered Fuji address (the registered one prints above); the capture metadata's camera_info field is the Pi's codec entry, not the camera sensor model - sensor model pending, not fabricated.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>SAME SCALE - ONTOLOGY NEIGHBORHOOD</h2>
+    <div class="grid">
+      <a class="card neighbor" href="kEngram1.html"><span class="badge">1</span><span>Smartest bacterial genome on Earth?</span></a>
+      <a class="card neighbor" href="kEngram2.html"><span class="badge">2</span><span>Other, near-by, smart genomes</span></a>
+      <a class="card neighbor" href="kEngram3.html"><span class="badge">3</span><span>IQ, bio-informatics comparative genomics</span></a>
+      <a class="card neighbor" href="kEngram4.html"><span class="badge">4</span><span>Boids/Vicsek model of swarming agents</span></a>
+      <a class="card neighbor" href="kEngram5.html"><span class="badge">5</span><span>Perceptrons, adaptive cognition, and swarming agents</span></a>
+      <a class="card neighbor" href="kEngram6.html"><span class="badge">6</span><span>Habitat terrains as adaptive landscapes</span></a>
+      <a class="card neighbor" href="kEngram7.html"><span class="badge">7</span><span>TerraScope machine</span></a>
+      <a class="card neighbor" href="kEngram8.html"><span class="badge">8</span><span>Genome to phenotype</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>SMALLER SCALE - COMPOSED BY</h2>
+    <div class="scale-box">
+      <p>Biotexturas lab</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>LARGER SCALE - COMPOSES INTO</h2>
+    <div class="scale-box">
+      <p><a class="group-link" href="deck.html">Biotexturas lab research Knowledge Engrams</a></p>
+    </div>
+    <div class="charter">
+      <blockquote>
+        <p>the deck is a card representation of these pages as well as their entry point on our deck on knowledge</p>
+        <p>Here we build the lab knowledge culture</p>
+        <p>not only is connected to kEngrams on the same scale (on the ontology) but they are composed by nodes at other scales</p>
+      </blockquote>
+    </div>
+    <div class="flow">
+      <p>For MVP we click collected there. Later with conditions there. Still only one collec needed to unlock Tools.</p>
+      <p>one collect anywhere unlocks SELECT - RADIATE - RE-PICK - TRACKER in the ALife Ecology</p>
+    </div>
+    <div class="collect">
+      <button class="toggle" id="kc" type="button">Collect</button>
+      <div class="granted" id="granted" hidden>granted - tools unlocked in the ALife Ecology</div>
+    </div>
+  </section>
+</main>
+<footer>Knowledge Engrams = knowledge tokens - Datagrams = data tokens. Collect is browser-local and display-only; the founding datagram's mint is cited in the record above.</footer>
+<script>
+(function(){
+  'use strict';
+  const N='9',CARDS_KEY='biotic_kengrams_cards_v1';
+  const button=document.getElementById('kc'),granted=document.getElementById('granted');
+  let state={};
+  try{
+    const raw=localStorage.getItem(CARDS_KEY);
+    const parsed=raw?JSON.parse(raw):{};
+    if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))state=parsed;
+  }catch(e){state={}}
+  function showCollected(){
+    button.textContent='Collected';
+    button.classList.add('collected');
+    granted.hidden=false;
+  }
+  if(state[N]===true)showCollected();
+  button.addEventListener('click',function(){
+    state[N]=true;
+    try{
+      localStorage.setItem(CARDS_KEY,JSON.stringify(state));
+      localStorage.setItem('biotic_kengrams_v1','1');
+    }catch(e){}
+    showCollected();
+  });
+})();
+</script>
+</body>
+</html>

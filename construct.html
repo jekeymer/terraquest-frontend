@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construct your own TerraScope — TerraQuest</title>
+<meta name="description" content="Build your own TerraScope: an open-source Raspberry Pi camera microscope with a robotic XY stage. Full bill of materials, assembly order, pin maps and software setup.">
+<!--
+  DRAFT v0.2 — generated from: TerraScope Construction Manual — Player Build (v0.2, 2026-10-02)
+  PALETTE: b1's Family A (TerraQuest content surface, terraquest.biotexturas.org landing) values verbatim, applied 2026-10-03. Paper #f4efe6 not used — this page is charcoal-ground.
+  SYNC PIPELINE: when the manual (md) is edited -> re-render PDF -> regenerate this page from the same md -> ship all three to b1 together.
+  Version stamp below must match the manual version it was generated from.
+  PAGE CHROME (b1, 2026-10-04): the hero header carries the return link (class backlink -> kEngram7). Chrome is part of the page template — every regeneration from the md must re-include it (canonical recipe: terrascope-manual-sync-pipeline-v2).
+-->
+<style>
+:root{
+  /* Family A — TerraQuest content surface, values verbatim from b1 (measured from the served landing page) */
+  --tq-bg:#161614;        /* charcoal bg */
+  --tq-surface:#111110;   /* ink, as panel ground */
+  --tq-surface-2:#3a382f; /* line, as raised block */
+  --tq-line:#3a382f;      /* line */
+  --tq-text:#d8d2c2;      /* body text */
+  --tq-muted:#8a8574;     /* muted */
+  --tq-accent:#e8a51c;    /* amber */
+  --tq-accent-2:#c8a24a;  /* gold divider */
+  --tq-code-bg:#111110;   /* ink */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--tq-bg);color:var(--tq-text);font:16px/1.6 Georgia,"Times New Roman",serif;}
+a{color:var(--tq-accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+header.hero{background:linear-gradient(180deg,var(--tq-surface) 0%,var(--tq-bg) 100%);border-bottom:1px solid var(--tq-line);padding:56px 0 40px}
+.hero .kicker{color:var(--tq-accent-2);font-size:13px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:12px}
+.hero h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin-bottom:14px}
+.hero p.lead{color:var(--tq-muted);font-size:18px;max-width:680px}
+.badge{display:inline-block;background:var(--tq-surface-2);border:1px solid var(--tq-line);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--tq-muted);margin-top:18px}
+nav.toc{position:sticky;top:0;background:rgba(22,22,20,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--tq-line);z-index:10}
+nav.toc ul{display:flex;gap:18px;list-style:none;overflow-x:auto;padding:12px 0}
+nav.toc a{color:var(--tq-muted);font-size:13px;white-space:nowrap}
+nav.toc a:hover{color:var(--tq-accent);text-decoration:none}
+.backlink{display:inline-block;border:1px solid var(--tq-line);background:#161614;color:var(--tq-accent);padding:9px 13px;margin-bottom:22px;font-family:"Courier New",Courier,monospace;font-size:11px;letter-spacing:.09em;text-transform:uppercase;text-decoration:none}
+.backlink:hover{filter:brightness(1.25);text-decoration:none}
+section{padding:44px 0;border-bottom:1px solid var(--tq-line)}
+section h2{font-size:26px;margin-bottom:6px}
+section h2 .num{color:var(--tq-accent);margin-right:10px}
+section h3{font-size:18px;margin:26px 0 10px;color:var(--tq-accent-2)}
+section p{margin:12px 0;color:var(--tq-text)}
+section ul,section ol{margin:12px 0 12px 22px}
+section li{margin:6px 0}
+.tablewrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:480px}
+th,td{border:1px solid var(--tq-line);padding:9px 12px;text-align:left}
+th{background:var(--tq-surface-2);color:var(--tq-accent-2);font-weight:600}
+td{background:var(--tq-surface)}
+code{background:var(--tq-code-bg);border:1px solid var(--tq-line);border-radius:4px;padding:1px 6px;font-size:13.5px;font-family:"Courier New",Courier,monospace}
+pre{background:var(--tq-code-bg);border:1px solid var(--tq-line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:14px 0}
+pre code{border:none;background:none;padding:0}
+.callout{background:var(--tq-surface);border-left:3px solid var(--tq-accent);border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0}
+.callout.warn{border-left-color:var(--tq-accent-2)}
+.callout .tag{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--tq-accent-2);margin-bottom:6px}
+.callout.warn .tag{color:var(--tq-accent-2)}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:16px 0}
+.card{background:var(--tq-surface);border:1px solid var(--tq-line);border-radius:10px;padding:18px}
+.card h4{color:var(--tq-accent);margin-bottom:8px;font-size:15px}
+.card p,.card li{font-size:14.5px;color:var(--tq-muted)}
+.step{display:flex;gap:14px;margin:14px 0}
+.step .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--tq-accent);color:#111110;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.step .body{flex:1}
+.step .body strong{color:var(--tq-accent-2)}
+footer{padding:36px 0 56px;color:var(--tq-muted);font-size:14px}
+footer .ver{font-size:12px;color:var(--tq-muted);opacity:.75;margin-top:10px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <a class="backlink" href="https://sites.hellominds.ai/b1/biotic-model/kEngram7.html">Back to kEngram 7</a>
+    <div class="kicker">TerraQuest · Open Science Hardware</div>
+    <h1>Construct your own TerraScope</h1>
+    <p class="lead">A homemade Raspberry Pi camera microscope that records video and image stacks (time-lapse) while robotically scanning a 70 × 70 mm² area. Everything you need: parts list, fabrication, assembly, pin maps, software.</p>
+    <span class="badge">Player build guide · generated from the TerraScope Construction Manual v0.2</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <ul>
+      <li><a href="#build">What you build</a></li>
+      <li><a href="#bom">Bill of materials</a></li>
+      <li><a href="#fabricate">Fabricate</a></li>
+      <li><a href="#assemble">Assembly</a></li>
+      <li><a href="#pins">Pin maps</a></li>
+      <li><a href="#software">Software</a></li>
+      <li><a href="#firstlight">First light</a></li>
+      <li><a href="#gotchas">Gotchas</a></li>
+      <li><a href="#gaps">Known gaps</a></li>
+      <li><a href="#links">Links</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<section id="build">
+  <h2><span class="num">01</span>What you're building</h2>
+  <p>Three subsystems, one instrument:</p>
+  <div class="grid-2">
+    <div class="card">
+      <h4>XY stage (OpenStage)</h4>
+      <p>Two 180° micro servos driving a 3D-printed PlotterBot gear mechanism. Servo angle range maps to 70 mm of linear travel; at boot both servos go to 90° = center. The optics and illumination stay stationary — the stage moves the sample underneath them.</p>
+    </div>
+    <div class="card">
+      <h4>Focus (Z)</h4>
+      <p>One Nema 17 stepper (200 steps) turning a lead screw between two smooth rods, with a flexible shaft coupler. One step per actuation cycle — the finest focus resolution possible.</p>
+    </div>
+    <div class="card">
+      <h4>Two Arduino controllers, by design</h4>
+      <p>Arduino XY (servos, joystick, LCD) and Arduino Z (stepper, buttons) are separate so stage code and focus code can evolve independently. They tell the Raspberry Pi they are busy over pin 12.</p>
+    </div>
+    <div class="card">
+      <h4>Raspberry Pi 3B + RaspiCAM</h4>
+      <p>Runs the camera, the GUI apps, and sends movement wishes to the Arduinos through logic-level converters. Illumination is one white LED under the sample, dimmed by a potentiometer from the Pi's PWM pin.</p>
+    </div>
+  </div>
+  <div class="callout">
+    <span class="tag">Frame rule — the site's own words</span>
+    All vertical axes need to have freedom of motion in 2D at every level. That is what the loose-bolt discipline and the local XY adjustments are for.
+  </div>
+</section>
+
+<section id="bom">
+  <h2><span class="num">02</span>Bill of Materials</h2>
+
+  <h3>Frame — OpenBeam beams</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Length</th><th>Qty</th><th>Where it goes</th></tr>
+    <tr><td>300 mm</td><td>10</td><td>5 in the top frame, 5 in the bottom frame</td></tr>
+    <tr><td>270 mm</td><td>4</td><td>vertical corner beams joining top and bottom frames</td></tr>
+    <tr><td>210 mm</td><td>5</td><td>the stage</td></tr>
+    <tr><td>150 mm</td><td>6</td><td>rod-clamp beams (top + bottom) + the donor piece you cut down for the 125 mm optical-clamp beam</td></tr>
+    <tr><td>135 mm</td><td>1</td><td>appears in the materials table; no role described in the text — verify before cutting</td></tr>
+  </table></div>
+  <div class="callout warn">
+    <span class="tag">Discrepancy flagged</span>
+    The overview page says the frames are held by "four 300 mm beams," but the Materials table totals (4× 270 mm) and the frame page agree on <strong>270 mm</strong>. Order to the table.
+  </div>
+
+  <h3>Brackets and clamps (OpenBeam)</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Part</th><th>Top frame</th><th>Bottom frame</th><th>Stage</th><th>Total</th></tr>
+    <tr><td>Nema-17 bracket</td><td>—</td><td>1 (holds the motor)</td><td>1 (no motor — lead-screw interface, rotated 90°)</td><td>2</td></tr>
+    <tr><td>T-bracket</td><td>8</td><td>12</td><td>2</td><td>22</td></tr>
+    <tr><td>L-bracket</td><td>8</td><td>6</td><td>8</td><td>22</td></tr>
+    <tr><td>Shaft clamps</td><td>4 (two pairs, upper rails)</td><td>4 (two pairs, lower rails)</td><td>—</td><td>8</td></tr>
+  </table></div>
+
+  <h3>Motion and mechanics</h3>
+  <ul>
+    <li>Smooth rods (linear rails): <strong>2</strong></li>
+    <li>Lead screw + nut: <strong>1</strong></li>
+    <li>Flexible shaft coupler: <strong>1</strong> (Nema 17 ↔ lead screw)</li>
+    <li>Linear platform bearings: <strong>2</strong> (stage rides the rods)</li>
+    <li>Nema 17 stepper, 200 steps: <strong>1</strong> (Z/focus)</li>
+    <li>Micro servos 9 g: <strong>2</strong> (X and Y)</li>
+    <li>Z end-stop switches: <strong>2</strong> — optional to boot, required for real protection (pins D6/D7)</li>
+    <li>Custom-made: lead-screw-to-Nema-bracket adaptor</li>
+    <li>Custom-made: laser-cut acrylic stage board</li>
+  </ul>
+
+  <h3>3D-printed parts</h3>
+  <ul>
+    <li>PlotterBot pieces: <strong>6</strong> — print the <strong>OLD version with 2 servos</strong> (not the 3-servo version)</li>
+    <li>Cambridge OpenLabTools optical clamp: <strong>1</strong></li>
+    <li>Cambridge OpenLabTools RaspiCAM holder: <strong>1</strong></li>
+    <li>Optical tube: <strong>1</strong> (printed alternative to the Edmund metal tubes — Comunicaciones Especulativas version, .stl files linked from the Optics page)</li>
+  </ul>
+
+  <h3>Optics</h3>
+  <ul>
+    <li><strong>Objectives (CNScopes or cheap Chinese-market):</strong> the build uses 4× and 10×; the live Optics page states 4×, 10×, 20× and even 40× work with the system.</li>
+    <li><strong>Focal lens:</strong> Comar Optics <strong>50VB25</strong> — bi-convex, 50 mm focal length, 25 mm diameter, AR coating passing 450–900 nm (protects the sensor under blue/UV illumination). Cheaper uncoated variant: 50VQ25.</li>
+    <li><strong>Optical tube, two options:</strong> metal (Edmund Optics, five parts: DIN/C-mount adapter 03-627, C-mount 40 mm tube 54-631, lens mount 56-353, C-mount 10 mm tube 54-629, adjustable tube 58-756) or 3D-printed (cheap, recommended by the site).</li>
+  </ul>
+
+  <h3>Electronics</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Part</th><th>Qty</th><th>Notes</th></tr>
+    <tr><td>Raspberry Pi 3B</td><td>1</td><td>—</td></tr>
+    <tr><td>RaspiCAM</td><td>1</td><td>—</td></tr>
+    <tr><td>Arduino UNO</td><td>2</td><td>breadboard route; PCB route uses 2× Arduino Nano instead (section 2.7 of the manual)</td></tr>
+    <tr><td>Easy Driver (stepper driver)</td><td>1</td><td>—</td></tr>
+    <tr><td>Logic-level converters</td><td>3</td><td>do not skip — 5 V vs 3.3 V</td></tr>
+    <tr><td>Joystick module</td><td>1</td><td>—</td></tr>
+    <tr><td>i2c 16×2 LCD</td><td>1</td><td>address 0x27</td></tr>
+    <tr><td>Breadboards</td><td>3× + 3×</td><td>per source page; PCB route drops these</td></tr>
+    <tr><td>Cobbler Pi PIN cable</td><td>1</td><td>—</td></tr>
+    <tr><td>Push buttons</td><td>2</td><td>external pull-ups — press = LOW</td></tr>
+    <tr><td>White LED</td><td>1</td><td>under the sample</td></tr>
+    <tr><td>Potentiometer</td><td>1</td><td>light intensity, from the Pi's PWM pin</td></tr>
+    <tr><td>Nuts & bolts for OpenBeam</td><td>"lots"</td><td>source page does not specify sizes</td></tr>
+  </table></div>
+
+  <h3>The PCB route</h3>
+  <p>The <strong>get a PCB</strong> page offers three custom boards that replace the breadboard wiring:</p>
+  <ul>
+    <li><strong>Z control board</strong> — Arduino Nano, state LED, one logic-level converter; socket clusters for the EasyDriver (GND / Step / Dir), a <strong>Range</strong> header for the two Z end-stops, push-button cluster, RBPi link, LV rail.</li>
+    <li><strong>Motor control board</strong> — EasyDriver, two power plugs for a 12 V line, two logic-level converters; motor-phase socket + Z-control pass-through.</li>
+    <li><strong>XY control board</strong> — Arduino Nano, two logic-level shifters, state LED; servo headers, RBPi socket, user cluster (LCD i2c + joystick).</li>
+    <li><strong>Mounting:</strong> laser-cut universal PCB holder and RBPi holder (pdf / dxf / svg files linked on the page).</li>
+    <li><strong>BOM delta:</strong> 2× Arduino Nano instead of 2× UNO, no breadboards or cobbler; everything else unchanged.</li>
+  </ul>
+</section>
+
+<section id="fabricate">
+  <h2><span class="num">03</span>Fabricate before you assemble</h2>
+  <div class="step"><div class="n">1</div><div class="body">3D print: 6× PlotterBot pieces (old 2-servo version), optical clamp, RaspiCAM holder, optical tube.</div></div>
+  <div class="step"><div class="n">2</div><div class="body">Laser-cut: acrylic stage board.</div></div>
+  <div class="step"><div class="n">3</div><div class="body">Make: the lead-screw-to-Nema-bracket adaptor.</div></div>
+  <div class="step"><div class="n">4</div><div class="body">Cut: the 125 mm beam from a 150 mm piece (it carries the optical clamp).</div></div>
+  <div class="step"><div class="n">5</div><div class="body"><strong>PCB route only:</strong> laser-cut the universal PCB holder and the RBPi holder from the get-a-PCB files.</div></div>
+  <div class="callout warn">
+    <span class="tag">Gap</span>
+    No dimensions are published for the two custom parts — source them from the OpenLabTools/PlotterBot reference builds or from an existing TerraScope.
+  </div>
+</section>
+
+<section id="assemble">
+  <h2><span class="num">04</span>Assembly order</h2>
+  <div class="step"><div class="n">1</div><div class="body"><strong>Stage:</strong> five 210 mm beams — four L-brackets form the rectangle, two T-brackets join, four side L-brackets carry the linear platform bearings. Bolt the Nema-17 bracket (no motor, rotated 90°) as the lead-screw interface. Add the acrylic board, the PlotterBot mechanism with both servos, and the dish holder.</div></div>
+  <div class="step"><div class="n">2</div><div class="body"><strong>Top frame:</strong> five 300 mm beams + two 150 mm beams holding two pairs of shaft clamps for the smooth rods. Cut and fit the 125 mm beam for the optical clamp. Eight T-brackets inside, eight L-brackets on the corners.</div></div>
+  <div class="step"><div class="n">3</div><div class="body"><strong>Bottom frame:</strong> five 300 mm beams + an extra pair of 150 mm beams carrying the lower shaft clamps and the Nema-17 bracket <strong>with</strong> the motor. Twelve T-brackets, six L-brackets.</div></div>
+  <div class="step"><div class="n">4</div><div class="body"><strong>Join:</strong> stand top on bottom with the four 270 mm vertical beams (six L-brackets for the union). Keep every alignment-critical attachment <strong>loose</strong> at this stage.</div></div>
+  <div class="step"><div class="n">5</div><div class="body"><strong>Z axis:</strong> drop the smooth rods through the top clamps → stage bearings → bottom clamps. Lead screw down the center, coupled to the Nema 17 with the flexible coupler.</div></div>
+  <div class="step"><div class="n">6</div><div class="body"><strong>Align, then tighten:</strong> the left/right rod-clamp pairs, the optical system, the center lead screw, and the Nema bracket all slide locally in XY by design. Use that play to align top, bottom, and stage, then tighten. The documentation calls this the critical design feature for easy assembly.</div></div>
+  <div class="step"><div class="n">7</div><div class="body"><strong>Optics head:</strong> optical clamp on the 125 mm beam → optical tube + focal lens + objective; RaspiCAM into its holder.</div></div>
+  <div class="step"><div class="n">8</div><div class="body"><strong>Illumination:</strong> white LED under the sample position; potentiometer for intensity, powered from the Pi's PWM pin.</div></div>
+  <div class="step"><div class="n">9</div><div class="body"><strong>Electronics:</strong> both Arduinos, Easy Driver, LCD, joystick, buttons, and the three logic-level converters on the breadboards (or the three PCBs), per the pin maps below.</div></div>
+</section>
+
+<section id="pins">
+  <h2><span class="num">05</span>Electronics pin maps</h2>
+
+  <h3>Arduino XY</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Function</th><th>Pin</th></tr>
+    <tr><td>Pi message, X up / X down</td><td>D2 / D3</td></tr>
+    <tr><td>Pi message, Y up / Y down</td><td>D4 / D5</td></tr>
+    <tr><td>Joystick X / Y</td><td>A0 / A1 (center ≈ 512; threshold ±64)</td></tr>
+    <tr><td>Servo X / Servo Y</td><td>D9 / D10 (PWM)</td></tr>
+    <tr><td>Busy signal to Pi</td><td>D12</td></tr>
+    <tr><td>LCD over i2c</td><td>A4 = SDA, A5 = SCL (address 0x27)</td></tr>
+  </table></div>
+  <p>Servo angles track 0–180° and are displayed live on the LCD. Boot message in the current published code: <strong>"HomeScope / by Biotexturas"</strong> (the v1.0 docs print "OpenStage" — same slot, different text).</p>
+
+  <h3>Arduino Z</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Function</th><th>Pin</th></tr>
+    <tr><td>Push buttons up / down</td><td>D2 / D3 (external pull-ups; a press reads LOW)</td></tr>
+    <tr><td>Pi message, Z up / Z down</td><td>D4 / D5</td></tr>
+    <tr><td>Z end-stop, top / bottom</td><td>D6 / D7 (internal pull-ups; stage moves only while both read HIGH; serial prints "Stage out of range" otherwise)</td></tr>
+    <tr><td>Easy Driver: direction / step</td><td><strong>D8 / D9</strong></td></tr>
+    <tr><td>Busy signal to Pi</td><td>D12</td></tr>
+  </table></div>
+  <p>One step per actuation cycle (DISTANCE = 1) — finest possible focus resolution.</p>
+  <div class="callout warn">
+    <span class="tag">Flagged conflict on the live site</span>
+    The Arduino overview prose says the stepper is driven over "pins 7 and 8," but the Z code page itself defines driver_dir = 8 and driver_stp = 9. This guide follows the <strong>code (D8/D9)</strong> — same as v1.0.
+  </div>
+
+  <h3>Raspberry Pi side</h3>
+  <ul>
+    <li>Six GPIO outputs carry the movement protocol, two bits per axis (WiringPi pins 1, 2, 3, 4, 24, 29), through the logic-level converters: (0,0) stay-put, (1,0) move up, (0,1) move down.</li>
+    <li>LED on the Pi's PWM-capable pin via the potentiometer (pin 23 in WiringPi numbering, per the TerraScope-as-a-Network diagram).</li>
+    <li>Pi reads each Arduino's busy state on its side of pin 12 (present in the wiring; the current code ignores it — reserved for autofocus and tracking).</li>
+    <li>Pi numbering on these pages is <strong>WiringPi</strong> notation, used by the <code>gpio</code> utility.</li>
+    <li>Both Arduinos are two-state automata (listening / executing), reflected on pin 12.</li>
+  </ul>
+</section>
+
+<section id="software">
+  <h2><span class="num">06</span>Software setup</h2>
+  <ol>
+    <li><strong>Arduinos:</strong> from <code>XYZ.tar</code> (Keymer Lab Supporting Files page — the live site's own "get codes" tar and .ino links are 404 as of 2026-10-02), upload <code>Arduino_XY.ino</code> to one controller and <code>Arduino_Z.ino</code> to the other.</li>
+    <li><strong>Raspberry Pi:</strong> extract <code>open_stage.tar</code> and <code>open_scope.tar</code>; in each expanded directory (<code>Stage_code</code>, <code>Scope_code</code>) run <code>make</code>.</li>
+    <li><strong>OpenStage</strong> (stage control + image/video capture) and <strong>OpenScope</strong> (focus + illumination) from the desktop. Shell control also works: <code>gpio</code>, <code>raspivid</code>, <code>raspistill</code>, <code>v4l2</code>.</li>
+    <li><strong>The app suite named on the live site</strong> — the direction the software is documented to grow:
+      <ul>
+        <li><strong>HomeScope_core</strong> — focus, illumination and image/video capture; the hub the other two connect to.</li>
+        <li><strong>HomeScope_stage</strong> — CNC scanning with G-code capabilities; takes commands from core and oracle to track patterns of activity in the culture.</li>
+        <li><strong>HomeScope_oracle</strong> — reads time-lapse data with machine vision and learning, and issues game commands through the Oracle field (the optical-flow field at a given scale, extracted by a Python/OpenCV collection).</li>
+      </ul>
+    </li>
+  </ol>
+</section>
+
+<section id="firstlight">
+  <h2><span class="num">07</span>First light — test sequence</h2>
+  <div class="step"><div class="n">1</div><div class="body">Power up: LCD prints its boot message and both servos center to (90,90).</div></div>
+  <div class="step"><div class="n">2</div><div class="body">Move XY with the joystick — deflection beyond the threshold actuates, LCD tracks the angles.</div></div>
+  <div class="step"><div class="n">3</div><div class="body">Focus with the two push buttons — one step per press. If the end-stop switches are fitted, the stage refuses to move past either limit and the serial monitor reports "Stage out of range".</div></div>
+  <div class="step"><div class="n">4</div><div class="body">Set illumination with the potentiometer.</div></div>
+  <div class="step"><div class="n">5</div><div class="body"><code>raspistill</code> a test frame; check focus at 4×, then 10×.</div></div>
+  <div class="step"><div class="n">6</div><div class="body">Drive the same axes from the GUI buttons — the Pi speaks the identical two-bit protocol.</div></div>
+  <div class="step"><div class="n">7</div><div class="body">Run a short time-lapse; the site's own examples scan the stage while a Paenibacillus swarm moves underneath (10-minute-interval time-lapse at 4×).</div></div>
+</section>
+
+<section id="gotchas">
+  <h2><span class="num">08</span>Gotchas from the source documentation</h2>
+  <ul>
+    <li><strong>Frame rule:</strong> every vertical axis needs freedom of motion in 2D at every level until the final alignment pass.</li>
+    <li><strong>Two Arduinos is the design</strong>, not redundancy — the split keeps stage and focus development independent.</li>
+    <li>Print the <strong>old 2-servo PlotterBot</strong> parts, not the 3-servo revision.</li>
+    <li>The viewing area is a <strong>small square inside</strong> the 70 × 70 mm scan range; its size depends on objective magnification.</li>
+    <li>Buttons need their <strong>external pull-ups</strong> — press = LOW.</li>
+    <li>The Z end-stops use internal pull-ups, so the machine boots and moves with no switches fitted; fit them before trusting long unattended focus runs.</li>
+    <li>Do not skip the <strong>logic-level converters</strong> between Pi and Arduinos (5 V vs 3.3 V).</li>
+    <li>The coated focal lens <strong>protects the RaspiCAM</strong> from UV/blue LED damage — it also makes fluorescence microscopy possible later.</li>
+    <li>Leave alignment-critical bolts loose until the final alignment pass.</li>
+    <li><strong>Two names, one machine:</strong> the source pages alternate HomeScope and TerraScope; per Juan's rule, TerraScope.</li>
+  </ul>
+</section>
+
+<section id="gaps">
+  <h2><span class="num">09</span>Known gaps in this guide</h2>
+  <ul>
+    <li>All downloads under homescope.biotexturas.org/docs/ are dead right now (404) — use the Keymer Lab Supporting Files page until the hosting lands.</li>
+    <li>The "3D print an optical tube" page on the live site is empty (title only) — the Optics page carries the actual tube information.</li>
+    <li>Site prose/code conflict on the Z step pins (prose 7/8, code 8/9) — this guide follows the code.</li>
+    <li>Nut and bolt <strong>sizes unspecified</strong> on the source pages.</li>
+    <li><strong>No dimensions</strong> published for the two custom parts (lead-screw adaptor, acrylic stage board).</li>
+    <li><strong>No cost figures</strong> anywhere on the source pages.</li>
+    <li>This documents the <strong>published design plus what the live tree adds</strong> (PCB route, optics specs, end-stops, app suite).</li>
+  </ul>
+</section>
+
+<section id="links">
+  <h2><span class="num">10</span>Reference links</h2>
+  <h3>Live site — Biotexturas TerraScope tree (verified 2026-10-02)</h3>
+  <ul>
+    <li><a href="https://biotexturas.org/www/?page_id=55">TerraScope landing</a></li>
+    <li><a href="https://biotexturas.org/www/?page_id=83">Hardware overview</a> · <a href="https://biotexturas.org/www/?page_id=97">Robotics/Computing</a> · <a href="https://biotexturas.org/www/?page_id=320">Imaging</a> · <a href="https://biotexturas.org/www/?page_id=132">Optics</a> · <a href="https://biotexturas.org/www/?page_id=124">Aluminum Frame</a></li>
+    <li><a href="https://biotexturas.org/www/?page_id=154">Build it!</a> · <a href="https://biotexturas.org/www/?page_id=419">Assemble a frame</a> · <a href="https://biotexturas.org/www/?page_id=219">Get a PCB</a> · <a href="https://biotexturas.org/www/?page_id=226">3D print an optical tube</a> (empty)</li>
+    <li><a href="https://biotexturas.org/www/?page_id=117">Wetware</a> · <a href="https://biotexturas.org/www/?page_id=281">Microbial Swarm</a> · <a href="https://biotexturas.org/www/?page_id=404">Grow chamber</a> · <a href="https://biotexturas.org/www/?page_id=169">Grow it!</a></li>
+    <li><a href="https://biotexturas.org/www/?page_id=115">Software</a> · <a href="https://biotexturas.org/www/?page_id=286">Arduino</a> · <a href="https://biotexturas.org/www/?page_id=350">Arduino Z</a> · <a href="https://biotexturas.org/www/?page_id=353">Arduino XY</a> · <a href="https://biotexturas.org/www/?page_id=469">Linux shell</a> · <a href="https://biotexturas.org/www/?page_id=284">Linux apps</a></li>
+    <li><a href="https://biotexturas.org/www/?page_id=356">core</a> · <a href="https://biotexturas.org/www/?page_id=359">stage</a> · <a href="https://biotexturas.org/www/?page_id=363">oracle</a> · <a href="https://biotexturas.org/www/?page_id=275">Machine Vision</a> · <a href="https://biotexturas.org/www/?page_id=376">Oracle field</a> · <a href="https://biotexturas.org/www/?page_id=159">Hack it!</a></li>
+  </ul>
+  <h3>Keymer Lab build docs (verified 2026-10-01)</h3>
+  <ul>
+    <li><a href="https://keymerlab.nl/www/?page_id=3041">Home Scope overview</a> · <a href="https://keymerlab.nl/www/?page_id=4259">Materials (BOM)</a> · <a href="https://keymerlab.nl/www/?page_id=3031">Illumination system</a> · <a href="https://keymerlab.nl/www/?page_id=3880">Aluminium frame</a> · <a href="https://keymerlab.nl/www/?page_id=4322">Electronic system</a></li>
+    <li><a href="https://keymerlab.nl/www/?page_id=4325">Arduino XY</a> · <a href="https://keymerlab.nl/www/?page_id=4327">Arduino Z</a> · <a href="https://keymerlab.nl/www/?page_id=4329">Controlling the TerraScope</a> · <a href="https://keymerlab.nl/www/?page_id=4337">Supporting files (code tars)</a></li>
+    <li><a href="https://keymerlab.nl/www/wp-content/uploads/2017/09/OpenFiesta_microscope_hackaton.pdf">OpenFIESTA step-by-step guide (PDF)</a> · <a href="https://keymerlab.nl/www/wp-content/uploads/2017/09/InstallationManual_OpenFIESTAscope.pdf">OpenFIESTA installation manual (PDF)</a></li>
+  </ul>
+  <h3>External</h3>
+  <ul>
+    <li><a href="http://openlabtools.eng.cam.ac.uk/Instruments/Microscope/">Cambridge OpenLabTools microscope</a></li>
+    <li><a href="http://plotterbot.com/robots/tiny-cnc/">PlotterBot tiny-CNC</a></li>
+  </ul>
+</section>
+
+<footer>
+  <p>Built from the <strong>TerraScope Construction Manual — Player Build (v0.2)</strong>, compiled 2026-10-02 from the live Biotexturas TerraScope tree (26 pages) and Keymer Lab's published build documentation. Per the naming rule this machine is the TerraScope; source pages may still say HomeScope.</p>
+  <p class="ver">Page generated from manual v0.2 · palette applied 2026-10-03 (Family A, b1's measured values) · draft v0.2 — pending steward content check</p>
+</footer>
+
+</div>
+</body>
+</html>

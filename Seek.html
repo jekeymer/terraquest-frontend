@@ -1,0 +1,3448 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seek & track</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0f12;
+      --panel: #14171b;
+      --cream: #eee2cf;
+      --muted: #aa9f8e;
+      --amber: #d9a441;
+      --line: rgba(238, 226, 207, 0.18);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        linear-gradient(rgba(217, 164, 65, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(217, 164, 65, 0.035) 1px, transparent 1px),
+        var(--bg);
+      background-size: 32px 32px;
+      color: var(--cream);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+      padding: 46px 0 28px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(38px, 7vw, 72px);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+      font-weight: 760;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin: 17px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .entry {
+      margin-top: 7px;
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-decoration: none;
+    }
+
+    .entry:hover,
+    .entry:focus-visible { text-decoration: underline; }
+
+    .header-tools {
+      display: flex;
+      flex: 0 0 auto;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .header-nav {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .header-nav .entry { margin-top: 0; }
+
+    .console-chip{width:270px;height:103px;flex:none;border:1px solid var(--line);background-image:url(terrascope_card_expanded.png);background-repeat:no-repeat;background-size:704px 320px;background-position:-413.5px -108.5px}
+
+    main { padding: 14px 0 56px; }
+
+    section {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+    }
+
+    .canvas-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 480px));
+      gap: 22px;
+      align-items: start;
+    }
+
+    .slot { min-width: 0; }
+
+    .slot-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 34px;
+      margin-bottom: 8px;
+    }
+
+    .slot-label h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .result-label {
+      min-height: 34px;
+      margin: 0 0 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.45;
+      letter-spacing: 0.06em;
+    }
+    .view-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:34px;margin:0 0 8px}
+    #annotNote{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      height: auto;
+      aspect-ratio: 4 / 3;
+      background: var(--bg);
+      border: 1px solid rgba(238, 226, 207, 0.24);
+    }
+
+    .file-control {
+      position: relative;
+      display: inline-flex;
+      flex: 0 0 auto;
+      cursor: pointer;
+      color: var(--amber);
+      border-bottom: 1px solid currentColor;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .file-control:focus-within {
+      outline: 2px solid var(--amber);
+      outline-offset: 4px;
+    }
+
+    .file-control input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .slot-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cam-control {
+      padding: 0;
+      border: 0;
+      border-bottom: 1px solid var(--amber);
+      background: none;
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+
+    .cam-control:focus-visible {
+      outline: 2px solid var(--amber);
+      outline-offset: 4px;
+    }
+
+    .cam-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(13, 15, 18, 0.93);
+    }
+
+    .cam-modal[hidden] { display: none; }
+
+    .cam-box {
+      width: min(560px, 100%);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 16px;
+    }
+
+    .cam-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    #camVideo {
+      display: block;
+      width: 100%;
+      max-height: 58vh;
+      aspect-ratio: 4 / 3;
+      background: #000;
+      object-fit: contain;
+    }
+
+    .cam-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    #camCapture {
+      min-height: 38px;
+      padding: 9px 18px;
+      cursor: pointer;
+      border: 1px solid var(--amber);
+      border-radius: 0;
+      background: var(--amber);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+
+    #camCancel {
+      cursor: pointer;
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      border-bottom: 1px solid currentColor;
+      padding: 0;
+    }
+
+    .cam-note {
+      margin: 11px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .provenance,
+    .demo-caption,
+    .status,
+    .hash-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .provenance {
+      min-height: 38px;
+      margin: 9px 0 0;
+    }
+
+    .demo-caption { margin: 15px 0 0; }
+
+    .run-zone {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    #runButton {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 146px;
+      min-height: 44px;
+      padding: 11px 20px;
+      cursor: pointer;
+      border: 1px solid var(--amber);
+      border-radius: 0;
+      background: var(--amber);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+
+    #runButton:disabled {
+      cursor: wait;
+      opacity: 0.58;
+    }
+
+    .spinner {
+      display: none;
+      width: 13px;
+      height: 13px;
+      border: 2px solid rgba(13, 15, 18, 0.35);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    #runButton.running .spinner { display: inline-block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status {
+      min-height: 19px;
+      margin: 0;
+      font-family: var(--mono);
+    }
+
+    .hash-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      background: rgba(20, 23, 27, 0.82);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+    }
+
+    tr:last-child th,
+    tr:last-child td { border-bottom: 0; }
+
+    th {
+      width: 190px;
+      color: var(--cream);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    td {
+      color: var(--amber);
+      overflow-wrap: anywhere;
+    }
+
+    .hash-note { margin: 13px 0 0; }
+
+    .keep-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+    #actionStatus{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+    .pipeline-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .pipeline-head .section-title { margin: 0; }
+
+    .tab-strip{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+    .tab-btn{padding:8px 13px;border:1px solid var(--line);background:rgba(20,23,27,.82);color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+    .tab-btn[aria-selected="true"]{border-color:var(--amber);color:var(--amber);background:rgba(217,164,65,.10)}
+    .tab-btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+    .tab-btn:disabled{opacity:.45;cursor:not-allowed}
+
+    #resetDefaults {
+      padding: 0;
+      border: 0;
+      border-bottom: 1px solid var(--amber);
+      background: none;
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+
+    #resetDefaults:focus-visible {
+      outline: 2px solid var(--amber);
+      outline-offset: 4px;
+    }
+
+    .pipeline-chain {
+      display: grid;
+      gap: 9px;
+      max-width: 920px;
+    }
+
+    .pipeline-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: rgba(20, 23, 27, 0.82);
+    }
+
+    .pipeline-stage-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .pipeline-card h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .pipeline-card p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .stage-fixed {
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .pipeline-arrow {
+      color: var(--amber);
+      font-family: var(--mono);
+      font-size: 18px;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .parameter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .parameter-control {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+      color: var(--cream);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .parameter-control input {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 9px;
+      border: 1px solid rgba(238, 226, 207, 0.28);
+      border-radius: 0;
+      background: var(--bg);
+      color: var(--cream);
+      font: inherit;
+    }
+
+    .parameter-control input:focus-visible {
+      outline: 2px solid var(--amber);
+      outline-offset: 2px;
+    }
+
+    .parameter-control input.parameter-adjusted {
+      border-color: var(--amber);
+      background: rgba(217, 164, 65, 0.10);
+    }
+
+    .parameter-control small {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.35;
+    }
+
+    .pipeline-note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .pick-handoff {
+      margin: 0 0 16px;
+      border: 1px solid var(--amber);
+      background: rgba(217, 164, 65, 0.06);
+      padding: 11px 13px;
+    }
+
+    .pick-handoff[hidden] { display: none; }
+
+    .pick-handoff .pick-intro {
+      margin: 0 0 8px;
+      color: var(--cream);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.5;
+      letter-spacing: 0.03em;
+    }
+
+    .pick-handoff .pick-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    footer {
+      padding: 22px 0 38px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 820px) {
+      .canvas-grid { grid-template-columns: 1fr; }
+      .slot { width: min(100%, 480px); }
+    }
+
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 20px, 1080px); }
+      header { padding-top: 28px; }
+      .slot-label { align-items: flex-start; }
+      .pipeline-head { align-items: flex-start; }
+      th { width: 142px; white-space: normal; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation-duration: 1.8s; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.0/lib/index.iife.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Seek & track</h1>
+        <p class="subtitle">compute runs in your browser - SHA-256 hashes anchor on-chain after program setup</p>
+      </div>
+      <div class="header-tools">
+        <nav class="header-nav" aria-label="Site">
+          <a class="entry" href="index.html">RISE OF MICROBES</a>
+          <a class="entry" href="collections.html">COLLECTIONS</a>
+          <a href="vault.html#cv-vault">My workbench</a>
+        </nav>
+        <div class="console-chip" role="img" aria-label="TerraScope console render"></div>
+      </div>
+    </header>
+
+    <main>
+      <section aria-labelledby="input-title">
+        <h2 class="section-title" id="input-title">TerraScope observations: pick three consecutive input frames from a collection</h2>
+        <div class="pick-handoff" id="pickHandoff" hidden>
+          <p class="pick-intro">stored pick from the collection browser (this browser only) - load the consecutive triple into slots A / B / C</p>
+          <div id="pickHandoffRows"></div>
+        </div>
+        <div class="canvas-grid">
+          <article class="slot">
+            <div class="slot-label">
+              <h3>frame A (t)</h3>
+              <div class="slot-controls">
+                <label class="file-control" style="display:none">load frame
+                  <input id="fileA" type="file" accept="image/*" style="display:none">
+                </label>
+                <button type="button" class="cam-control" data-slot="A" style="display:none">camera</button>
+              </div>
+            </div>
+            <canvas id="frameA" class="input-canvas" width="480" height="360" aria-label="frame A input"></canvas>
+            <p class="provenance" id="provenanceA">built-in demo frame A - seeded in-page mini swarm, not the registered sim engine</p>
+          </article>
+
+          <article class="slot">
+            <div class="slot-label">
+              <h3>frame B (t + delta)</h3>
+              <div class="slot-controls">
+                <label class="file-control" style="display:none">load frame
+                  <input id="fileB" type="file" accept="image/*" style="display:none">
+                </label>
+                <button type="button" class="cam-control" data-slot="B" style="display:none">camera</button>
+              </div>
+            </div>
+            <canvas id="frameB" class="input-canvas" width="480" height="360" aria-label="frame B input"></canvas>
+            <p class="provenance" id="provenanceB">built-in demo frame B - seeded in-page mini swarm, not the registered sim engine</p>
+          </article>
+
+          <article class="slot">
+            <div class="slot-label">
+              <h3>frame C (t + 2 delta)</h3>
+              <div class="slot-controls">
+                <label class="file-control" style="display:none">load frame
+                  <input id="fileC" type="file" accept="image/*" style="display:none">
+                </label>
+                <button type="button" class="cam-control" data-slot="C" style="display:none">camera</button>
+              </div>
+            </div>
+            <canvas id="frameC" class="input-canvas" width="480" height="360" aria-label="frame C input"></canvas>
+            <p class="provenance" id="provenanceC">built-in demo frame C - seeded in-page mini swarm, not the registered sim engine</p>
+          </article>
+        </div>
+        <p class="demo-caption">demo trio: seeded vortex swarm rendered in-page (seed 0xC0FFEE, 40 ticks apart) - not the registered sim engine; load your own frames with the buttons, from the collections</p>
+      </section>
+
+      <section aria-labelledby="pipeline-title">
+        <div class="pipeline-head">
+          <h2 class="section-title" id="pipeline-title">Computer Vision (CV) pipelines</h2>
+          <button id="resetDefaults" type="button">reset defaults</button>
+        </div>
+        <div class="tab-strip" role="tablist" aria-label="Computer Vision (CV) pipelines">
+          <button type="button" class="tab-btn" data-pipeline="frame-diff-blob" role="tab">Frame diff - blob</button>
+          <button type="button" class="tab-btn" data-pipeline="lk-flow-cluster" role="tab">Optical flow - clustering</button>
+        </div>
+        <p class="pipeline-note" id="pipelineMeta"></p>
+        <div class="pipeline-chain">
+          <article class="pipeline-card" id="stageInput">
+            <div class="pipeline-stage-head">
+              <h3>Input frames</h3>
+              <span class="stage-fixed">fixed</span>
+            </div>
+            <p>3 slots · built-in demo seed 0xC0FFEE</p>
+          </article>
+          <div class="pipeline-arrow" id="arrowGray" aria-hidden="true">↓</div>
+          <article class="pipeline-card" id="stageGray">
+            <div class="pipeline-stage-head">
+              <h3>Grayscale</h3>
+              <span class="stage-fixed">fixed</span>
+            </div>
+            <p>color input converted to luma</p>
+          </article>
+          <div class="pipeline-arrow" id="arrowDiff" aria-hidden="true">↓</div>
+          <article class="pipeline-card" id="stageDiff">
+            <div class="pipeline-stage-head">
+              <h3>Frame diff</h3>
+            </div>
+            <div class="parameter-grid">
+              <label class="parameter-control" for="paramDiffBlur"><span>blur</span><input id="paramDiffBlur" type="number" min="0" max="51" step="1" value="11"><small>0..51 px · box blur</small></label>
+              <label class="parameter-control" for="paramDiffAmp"><span>amp</span><input id="paramDiffAmp" type="number" min="1" max="32" step="1" value="3"><small>1..32 · gain</small></label>
+              <label class="parameter-control" for="paramDiffThreshold"><span>threshold</span><input id="paramDiffThreshold" type="number" min="0" max="255" step="1" value="30"><small>0..255</small></label>
+              <label class="parameter-control" for="paramDiffMinArea"><span>min area radius</span><input id="paramDiffMinArea" type="number" min="1" max="100" step="1" value="15"><small>1..100 px</small></label>
+            </div>
+            <p>absdiff consecutive frames -&gt; blur -&gt; gain -&gt; threshold -&gt; contours at min area. Note: amp and threshold are one lever - effective cut = threshold / amp (defaults 3 / 30 == cut 10).</p>
+          </article>
+          <div class="pipeline-arrow" id="arrowDenoise" aria-hidden="true">↓</div>
+          <article class="pipeline-card" id="stageDenoise">
+            <div class="pipeline-stage-head">
+              <h3>Three-frame denoise</h3>
+              <span class="stage-fixed">fixed</span>
+            </div>
+            <p>three-frame angle denoise: per-cell circular mean across both intervals (demo implementation)</p>
+          </article>
+          <div class="pipeline-arrow" id="arrowFlow" aria-hidden="true">↓</div>
+          <article class="pipeline-card" id="stageFlow">
+            <div class="pipeline-stage-head">
+              <h3>Optical flow</h3>
+            </div>
+            <div class="parameter-grid">
+              <label class="parameter-control" for="paramWindow">
+                <span>window</span>
+                <input id="paramWindow" type="number" min="3" max="31" step="2" value="15">
+                <small>odd · 3..31</small>
+              </label>
+              <label class="parameter-control" for="paramGrid">
+                <span>grid</span>
+                <input id="paramGrid" type="number" min="4" max="64" step="1" value="16">
+                <small>4..64 · integer</small>
+              </label>
+              <label class="parameter-control" for="paramVmin">
+                <span>VMIN</span>
+                <input id="paramVmin" type="number" min="0" max="10" step="0.01" value="0.50">
+                <small>0..10</small>
+              </label>
+              <label class="parameter-control" for="paramClamp">
+                <span>clamp</span>
+                <input id="paramClamp" type="number" min="1" max="200" step="1" value="40">
+                <small>1..200</small>
+              </label>
+              <label class="parameter-control" for="paramRefinement">
+                <span>refinement</span>
+                <input id="paramRefinement" type="number" min="0" max="5" step="1" value="1">
+                <small>0..5 · integer</small>
+              </label>
+            </div>
+          </article>
+          <div class="pipeline-arrow" id="arrowCluster" aria-hidden="true">↓</div>
+          <article class="pipeline-card" id="stageCluster">
+            <div class="pipeline-stage-head">
+              <h3>Clustering</h3>
+            </div>
+            <div class="parameter-grid">
+              <label class="parameter-control" for="paramTheta">
+                <span>theta</span>
+                <input id="paramTheta" type="number" min="0.01" max="3.14" step="0.01" value="0.20">
+                <small>0.01..3.14</small>
+              </label>
+              <label class="parameter-control" for="paramMinCluster">
+                <span>min cluster</span>
+                <input id="paramMinCluster" type="number" min="1" max="50" step="1" value="2">
+                <small>1..50 · integer</small>
+              </label>
+              <label class="parameter-control" for="paramNeighborhood">
+                <span>neighborhood</span>
+                <input id="paramNeighborhood" type="number" min="4" max="8" step="4" value="4">
+                <small>4 or 8</small>
+              </label>
+            </div>
+          </article>
+          <div class="pipeline-arrow" id="arrowRender" aria-hidden="true">↓</div>
+          <article class="pipeline-card" id="stageRender">
+            <div class="pipeline-stage-head">
+              <h3>Render + hash</h3>
+              <span class="stage-fixed">fixed</span>
+            </div>
+            <p id="renderCardText">3 inputs · 2 flow fields · 2 output renders · combined capture hash</p>
+          </article>
+        </div>
+        <p class="pipeline-note">Values are read when RUN CV is pressed. Empty or adjusted values are reset or clamped and marked.</p>
+      </section>
+
+      <section class="run-zone" aria-label="Run computer vision">
+        <button id="runButton" type="button" disabled>
+          <span class="spinner" aria-hidden="true"></span>
+          <span>RUN CV</span>
+        </button>
+        <p class="status" id="runStatus" aria-live="polite">building deterministic demo trio...</p>
+      </section>
+
+      <section aria-labelledby="results-title">
+        <h2 class="section-title" id="results-title">RESULTS</h2>
+        <div class="view-row"><button id="annotToggle" type="button" class="tab-btn" aria-pressed="false">ANNOTATIONS: OFF</button><span id="annotNote">simple view - as shipped</span></div>
+        <div class="canvas-grid">
+          <article class="slot">
+            <h3 class="result-label" id="resultLabel1">DENOISED THREE-FRAME FIELD - ARROWED VECTOR FIELD</h3>
+            <canvas id="flowCanvas" class="result-canvas" width="480" height="360" aria-label="optical flow result"></canvas>
+          </article>
+          <article class="slot">
+            <h3 class="result-label" id="resultLabel2">CLUSTER OUTPUT</h3>
+            <canvas id="clusterCanvas" class="result-canvas" width="480" height="360" aria-label="cluster result"></canvas>
+          </article>
+        </div>
+        <div class="keep-row">
+          <button id="keepButton" type="button" class="tab-btn" disabled>KEEP</button>
+          <button id="mintButton" type="button" class="tab-btn" disabled>MINT</button>
+          <button id="cvVaultButton" type="button" class="tab-btn" onclick="location.href='vault.html'">CV VAULT</button>
+          <span id="actionStatus">run CV first - KEEP stores the run in this browser, MINT signs a real devnet mint</span>
+        </div>
+      </section>
+
+      <section aria-labelledby="hashes-title">
+        <h2 class="section-title" id="hashes-title">HASHES</h2>
+        <div class="hash-wrap">
+          <table>
+            <tbody>
+              <tr><th scope="row">input frame A</th><td id="hashA">not run</td></tr>
+              <tr><th scope="row">input frame B</th><td id="hashB">not run</td></tr>
+              <tr><th scope="row">input frame C</th><td id="hashC">not run</td></tr>
+              <tr><th scope="row" id="thMid1">flow A-B</th><td id="hashFlowAB">not run</td></tr>
+              <tr><th scope="row" id="thMid2">flow B-C</th><td id="hashFlowBC">not run</td></tr>
+              <tr><th scope="row" id="thMid3">denoised field render</th><td id="hashDenoised">not run</td></tr>
+              <tr><th scope="row" id="thMid4">cluster output render</th><td id="hashCluster">not run</td></tr>
+              <tr><th scope="row">combined capture hash</th><td id="hashCapture">not run</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="hash-note">computed in your browser. These are the values that anchor on-chain through the capture-hash path - program setup verified on devnet (2026-09-30); these values anchor when a mint runs.</p>
+      </section>
+    </main>
+
+    <footer>KEEP is browser-local (this browser only). MINT is live on devnet: the connected wallet pays the fee, the registered demo device co-signs, ~0.0188 SOL rent comes off the device key per mint - score is passed as 0 until the score formula lands (pending). CV runs in your browser; nothing here touches mainnet.</footer>
+  </div>
+
+    <div class="cam-modal" id="camModal" hidden>
+      <div class="cam-box">
+        <div class="cam-head"><span id="camTitle">camera</span></div>
+        <video id="camVideo" autoplay playsinline muted></video>
+        <div class="cam-actions">
+          <button id="camCapture" type="button">CAPTURE</button>
+          <button id="camCancel" type="button">cancel</button>
+        </div>
+        <p class="cam-note">browser-local - the live stream never leaves this page, nothing uploads; frames need real motion between captures or the flow comes out empty (correct, not broken)</p>
+      </div>
+    </div>
+
+  <script>
+    "use strict";
+
+    const WIDTH = 480;
+    const HEIGHT = 360;
+    const PARAMS = {
+      window: 15,
+      grid: 16,
+      VMIN: 0.50,
+      clamp: 40,
+      refinement: 1,
+      theta: 0.20,
+      minCluster: 2,
+      neighborhood: 4
+    };
+    const PIPELINE_TABS = {
+      "frame-diff-blob": {
+        id: "frame-diff-blob",
+        label: "Frame diff - blob",
+        stages: { grayscale: true, denoise: false, diff: { blur: 11, amp: 3, threshold: 30, minAreaRadius: 15 }, flow: null, cluster: null },
+        source: "CE_Player src/ofApp.cpp (verified 2026-10-02)",
+        pipeline_version: "cv-pipeline v0.2",
+        score_formula: "PENDING",
+        knobs: { diffBlur: 11, diffAmp: 3, diffThreshold: 30, diffMinArea: 15 }
+      },
+      "lk-flow-cluster": {
+        id: "lk-flow-cluster",
+        label: "Optical flow - clustering",
+        stages: { grayscale: true, denoise: true, diff: null, flow: "lk", cluster: "angle" },
+        source: "in-page pipeline (Lucas-Kanade flow + angle clustering)",
+        pipeline_version: "cv-pipeline v0.2",
+        score_formula: "PENDING",
+        knobs: { window: 15, grid: 16, VMIN: 0.50, clamp: 40, refinement: 1, theta: 0.20, minCluster: 2, neighborhood: 4 }
+      }
+    };
+    let activePipelineId = "frame-diff-blob";   // first tab = default active
+    const RUNS_KEY = "tq_seek_runs_v1";
+    const RUNS_CAP = 200;
+    let lastRunRecord = null;
+    let lastOutputs = null; let annotOn = false; const annotBtn = document.getElementById("annotToggle"); const annotNote = document.getElementById("annotNote");
+    Object.defineProperties(PARAMS, {
+      defaults: {
+        value: Object.freeze({ ...PARAMS }),
+        enumerable: false
+      },
+      halfWindow: {
+        get() {
+          return (this.window - 1) / 2;
+        },
+        enumerable: false
+      },
+      offsets: {
+        get() {
+          if (this.neighborhood === 8) {
+            return [
+              [-1, 0], [1, 0], [0, -1], [0, 1],
+              [-1, -1], [1, -1], [-1, 1], [1, 1]
+            ];
+          }
+          return [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        },
+        enumerable: false
+      }
+    });
+    const DEMO_SEED = 0xC0FFEE;
+    const DEMO_TICKS = 40;
+    const AGENT_COUNT = 160;
+    const BG = "#0d0f12";
+    const CREAM = "#eee4cf";
+    const AMBER = "#d9a441";
+    const CLUSTER_PALETTE = [
+      "#d9a441", "#eee2cf", "#71b7a8", "#d97855",
+      "#8e83c7", "#b5c95a", "#5f91d8", "#d16f9e"
+    ];
+
+    const frameA = document.getElementById("frameA");
+    const frameB = document.getElementById("frameB");
+    const frameC = document.getElementById("frameC");
+    const flowCanvas = document.getElementById("flowCanvas");
+    const clusterCanvas = document.getElementById("clusterCanvas");
+    const fileA = document.getElementById("fileA");
+    const fileB = document.getElementById("fileB");
+    const fileC = document.getElementById("fileC");
+    const provenanceA = document.getElementById("provenanceA");
+    const provenanceB = document.getElementById("provenanceB");
+    const provenanceC = document.getElementById("provenanceC");
+    const runButton = document.getElementById("runButton");
+    const runStatus = document.getElementById("runStatus");
+    const resetDefaultsButton = document.getElementById("resetDefaults");
+    const pipelineMeta = document.getElementById("pipelineMeta");
+    const tabButtons = Array.from(document.querySelectorAll(".tab-btn[data-pipeline]"));
+    const stageDiff = document.getElementById("stageDiff");
+    const arrowDiff = document.getElementById("arrowDiff");
+    const stageDenoise = document.getElementById("stageDenoise");
+    const arrowDenoise = document.getElementById("arrowDenoise");
+    const stageFlow = document.getElementById("stageFlow");
+    const arrowFlow = document.getElementById("arrowFlow");
+    const stageCluster = document.getElementById("stageCluster");
+    const arrowCluster = document.getElementById("arrowCluster");
+    const renderCardText = document.getElementById("renderCardText");
+    const resultLabel1 = document.getElementById("resultLabel1");
+    const resultLabel2 = document.getElementById("resultLabel2");
+    const thMid1 = document.getElementById("thMid1");
+    const thMid2 = document.getElementById("thMid2");
+    const thMid3 = document.getElementById("thMid3");
+    const thMid4 = document.getElementById("thMid4");
+    const keepButton = document.getElementById("keepButton");
+    const mintButton = document.getElementById("mintButton");
+    const actionStatus = document.getElementById("actionStatus");
+    const parameterInputs = {
+      diffBlur: document.getElementById("paramDiffBlur"),
+      diffAmp: document.getElementById("paramDiffAmp"),
+      diffThreshold: document.getElementById("paramDiffThreshold"),
+      diffMinArea: document.getElementById("paramDiffMinArea"),
+      window: document.getElementById("paramWindow"),
+      grid: document.getElementById("paramGrid"),
+      VMIN: document.getElementById("paramVmin"),
+      clamp: document.getElementById("paramClamp"),
+      refinement: document.getElementById("paramRefinement"),
+      theta: document.getElementById("paramTheta"),
+      minCluster: document.getElementById("paramMinCluster"),
+      neighborhood: document.getElementById("paramNeighborhood")
+    };
+
+    const hashCells = {
+      A: document.getElementById("hashA"),
+      B: document.getElementById("hashB"),
+      C: document.getElementById("hashC"),
+      flowAB: document.getElementById("hashFlowAB"),
+      flowBC: document.getElementById("hashFlowBC"),
+      denoised: document.getElementById("hashDenoised"),
+      cluster: document.getElementById("hashCluster"),
+      capture: document.getElementById("hashCapture")
+    };
+
+    const sources = {
+      A: { kind: "demo", src: "demo trio", bytes: null, present: false },
+      B: { kind: "demo", src: "demo trio", bytes: null, present: false },
+      C: { kind: "demo", src: "demo trio", bytes: null, present: false }
+    };
+
+    let loadingCount = 0;
+    let running = false;
+
+    function mulberry32(seed) {
+      let state = seed >>> 0;
+      return function next() {
+        state = (state + 0x6D2B79F5) >>> 0;
+        let t = state;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function clamp(value, low, high) {
+      return Math.max(low, Math.min(high, value));
+    }
+
+    function markParameterInput(input, adjusted) {
+      input.classList.toggle("parameter-adjusted", adjusted);
+      input.setAttribute("aria-invalid", adjusted ? "true" : "false");
+      input.title = adjusted ? "Adjusted to a valid pipeline value" : "";
+    }
+
+    function normalizePipelineValue(name, input) {
+      const fallback =
+        name === "diffBlur" ? 11 :
+        name === "diffAmp" ? 3 :
+        name === "diffThreshold" ? 30 :
+        name === "diffMinArea" ? 15 :
+        PARAMS.defaults[name];
+      const raw = input.value.trim();
+      let value = Number(raw);
+      let adjusted = false;
+
+      if (raw === "" || !Number.isFinite(value)) {
+        value = fallback;
+        adjusted = true;
+      } else if (name === "diffBlur") {
+        value = clamp(Math.round(value), 0, 51);
+        adjusted = value !== Number(raw);
+      } else if (name === "diffAmp") {
+        value = clamp(Math.round(value), 1, 32);
+        adjusted = value !== Number(raw);
+      } else if (name === "diffThreshold") {
+        value = clamp(Math.round(value), 0, 255);
+        adjusted = value !== Number(raw);
+      } else if (name === "diffMinArea") {
+        value = clamp(Math.round(value), 1, 100);
+        adjusted = value !== Number(raw);
+      } else if (name === "window") {
+        const rounded = Math.round(value);
+        value = clamp(rounded, 3, 31);
+        if (value % 2 === 0) value += value < 31 ? 1 : -1;
+        adjusted = value !== Number(raw);
+      } else if (name === "grid") {
+        value = clamp(Math.round(value), 4, 64);
+        adjusted = value !== Number(raw);
+      } else if (name === "VMIN") {
+        value = clamp(value, 0, 10);
+        adjusted = value !== Number(raw);
+      } else if (name === "clamp") {
+        value = clamp(value, 1, 200);
+        adjusted = value !== Number(raw);
+      } else if (name === "refinement") {
+        value = clamp(Math.round(value), 0, 5);
+        adjusted = value !== Number(raw);
+      } else if (name === "theta") {
+        value = clamp(value, 0.01, 3.14);
+        adjusted = value !== Number(raw);
+      } else if (name === "minCluster") {
+        value = clamp(Math.round(value), 1, 50);
+        adjusted = value !== Number(raw);
+      } else if (name === "neighborhood") {
+        if (value !== 4 && value !== 8) {
+          value = PARAMS.defaults.neighborhood;
+          adjusted = true;
+        }
+      }
+
+      input.value = String(value);
+      markParameterInput(input, adjusted);
+      return value;
+    }
+
+    function readPipelineParams() {
+      for (const [name, input] of Object.entries(parameterInputs)) {
+        PARAMS[name] = normalizePipelineValue(name, input);
+      }
+    }
+
+    function resetPipelineControls() {
+      const defaults = activePipelineId === "frame-diff-blob"
+        ? { diffBlur: 11, diffAmp: 3, diffThreshold: 30, diffMinArea: 15 }
+        : PARAMS.defaults;
+      for (const key of Object.keys(PIPELINE_TABS[activePipelineId].knobs)) {
+        const input = parameterInputs[key];
+        input.value = String(defaults[key]);
+        markParameterInput(input, false);
+      }
+    }
+
+    function activeKnobValues() {
+      const values = {};
+      for (const key of Object.keys(PIPELINE_TABS[activePipelineId].knobs)) {
+        values[key] = normalizePipelineValue(key, parameterInputs[key]);
+      }
+      return values;
+    }
+
+    function applyPipeline(id) {
+      const currentTab = PIPELINE_TABS[activePipelineId];
+      for (const key of Object.keys(currentTab.knobs)) {
+        currentTab.knobs[key] = normalizePipelineValue(key, parameterInputs[key]);
+      }
+
+      activePipelineId = id;
+      const tab = PIPELINE_TABS[id];
+      for (const button of tabButtons) {
+        button.setAttribute("aria-selected", button.dataset.pipeline === id ? "true" : "false");
+      }
+
+      const frameDiffActive = id === "frame-diff-blob";
+      stageDiff.style.display = frameDiffActive ? "" : "none";
+      arrowDiff.style.display = frameDiffActive ? "" : "none";
+      stageDenoise.style.display = frameDiffActive ? "none" : "";
+      arrowDenoise.style.display = frameDiffActive ? "none" : "";
+      stageFlow.style.display = frameDiffActive ? "none" : "";
+      arrowFlow.style.display = frameDiffActive ? "none" : "";
+      stageCluster.style.display = frameDiffActive ? "none" : "";
+      arrowCluster.style.display = frameDiffActive ? "none" : "";
+
+      for (const key of Object.keys(tab.knobs)) {
+        const input = parameterInputs[key];
+        input.value = String(tab.knobs[key]);
+        markParameterInput(input, false);
+      }
+
+      if (frameDiffActive) {
+        thMid1.textContent = "diff A-B";
+        thMid2.textContent = "diff B-C";
+        thMid3.textContent = "threshold mask render";
+        thMid4.textContent = "blob output render";
+        resultLabel1.textContent = "THRESHOLD MASK - DIFF A-B";
+        resultLabel2.textContent = "BLOB OUTPUT - BOTH INTERVALS";
+        renderCardText.textContent = "3 inputs · 2 diff fields · 2 output renders · combined capture hash";
+      } else {
+        thMid1.textContent = "flow A-B";
+        thMid2.textContent = "flow B-C";
+        thMid3.textContent = "denoised field render";
+        thMid4.textContent = "cluster output render";
+        resultLabel1.textContent = "DENOISED THREE-FRAME FIELD - ARROWED VECTOR FIELD";
+        resultLabel2.textContent = "CLUSTER OUTPUT";
+        renderCardText.textContent = "3 inputs · 2 flow fields · 2 output renders · combined capture hash";
+      }
+
+      const stagesDescriptor = frameDiffActive
+        ? "grayscale -> frame diff"
+        : "grayscale -> denoise -> LK flow -> clustering";
+      pipelineMeta.textContent = `tab config: ${stagesDescriptor} - source: ${tab.source} - pipeline_version: ${tab.pipeline_version} - score_formula: ${tab.score_formula}`;
+      if (!running) {
+        runStatus.textContent = `pipeline: ${tab.label} - knobs live, press RUN CV`;
+      }
+    }
+
+    function generateDemoAgents() {
+      const random = mulberry32(DEMO_SEED);
+      const centers = [{ x: 150, y: 180 }, { x: 330, y: 180 }];
+      const frameAAgents = [];
+      const frameBAgents = [];
+      const frameCAgents = [];
+      const motion = [];
+
+      for (let i = 0; i < AGENT_COUNT; i += 1) {
+        const radius = 3.5 + random() * 2;
+        const x = radius + random() * (WIDTH - radius * 2);
+        const y = radius + random() * (HEIGHT - radius * 2);
+        const color = random() < 0.68 ? CREAM : AMBER;
+        const centerIndex = x < WIDTH / 2 ? 0 : 1;
+        const center = centers[centerIndex];
+        const direction = centerIndex === 0 ? 1 : -1;
+        const relX = x - center.x;
+        const relY = y - center.y;
+        const orbitRadius = Math.hypot(relX, relY);
+        const omega = direction * (3 / (Math.max(orbitRadius, 24) * DEMO_TICKS));
+        const angle = omega * DEMO_TICKS;
+        const cosAngle = Math.cos(angle);
+        const sinAngle = Math.sin(angle);
+        const jitterX = (random() * 2 - 1) * 0.3;
+        const jitterY = (random() * 2 - 1) * 0.3;
+        const movedX = center.x + relX * cosAngle - relY * sinAngle + jitterX;
+        const movedY = center.y + relX * sinAngle + relY * cosAngle + jitterY;
+
+        frameAAgents.push({ x, y, radius, color });
+        frameBAgents.push({
+          x: clamp(movedX, radius, WIDTH - radius),
+          y: clamp(movedY, radius, HEIGHT - radius),
+          radius,
+          color
+        });
+        motion.push({ center, cosAngle, sinAngle });
+      }
+
+      for (let i = 0; i < frameBAgents.length; i += 1) {
+        const agent = frameBAgents[i];
+        const model = motion[i];
+        const relX = agent.x - model.center.x;
+        const relY = agent.y - model.center.y;
+        const jitterX = (random() * 2 - 1) * 0.3;
+        const jitterY = (random() * 2 - 1) * 0.3;
+        const movedX = model.center.x + relX * model.cosAngle - relY * model.sinAngle + jitterX;
+        const movedY = model.center.y + relX * model.sinAngle + relY * model.cosAngle + jitterY;
+
+        frameCAgents.push({
+          x: clamp(movedX, agent.radius, WIDTH - agent.radius),
+          y: clamp(movedY, agent.radius, HEIGHT - agent.radius),
+          radius: agent.radius,
+          color: agent.color
+        });
+      }
+
+      return { frameAAgents, frameBAgents, frameCAgents };
+    }
+
+    function renderAgents(canvas, agents) {
+      const context = canvas.getContext("2d", { alpha: false });
+      context.save();
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.globalAlpha = 1;
+      context.fillStyle = BG;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+
+      for (const agent of agents) {
+        context.beginPath();
+        context.arc(agent.x, agent.y, agent.radius, 0, Math.PI * 2);
+        context.fillStyle = agent.color;
+        context.fill();
+      }
+
+      context.restore();
+    }
+
+    let defaultTrioFilled = false;
+
+    function buildDemoTrio() {
+      if (defaultTrioFilled) return false;
+      defaultTrioFilled = true;
+      const trio = generateDemoAgents();
+      renderAgents(frameA, trio.frameAAgents);
+      renderAgents(frameB, trio.frameBAgents);
+      renderAgents(frameC, trio.frameCAgents);
+      sources.A = { kind: "demo", src: "demo trio", bytes: null, present: true };
+      sources.B = { kind: "demo", src: "demo trio", bytes: null, present: true };
+      sources.C = { kind: "demo", src: "demo trio", bytes: null, present: true };
+      updateRunEnabled();
+      return true;
+    }
+
+
+    function drawPlaceholder(canvas, text) {
+      const context = canvas.getContext("2d", { alpha: false });
+      context.fillStyle = BG;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+      context.fillStyle = "rgba(238, 226, 207, 0.55)";
+      context.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(text, WIDTH / 2, HEIGHT / 2);
+    }
+
+    function updateRunEnabled() {
+      runButton.disabled = running || loadingCount > 0 || !sources.A.present || !sources.B.present || !sources.C.present;
+    }
+
+    function nextPaint() {
+      return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    async function decodeImageFile(file) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const objectUrl = URL.createObjectURL(file);
+      try {
+        const image = new Image();
+        image.decoding = "async";
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = () => reject(new Error("image decode failed"));
+          image.src = objectUrl;
+        });
+        return { image, bytes };
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    }
+
+    function drawLetterboxed(canvas, image) {
+      const context = canvas.getContext("2d", { alpha: false });
+      const imageWidth = image.naturalWidth || image.width;
+      const imageHeight = image.naturalHeight || image.height;
+      const scale = Math.min(WIDTH / imageWidth, HEIGHT / imageHeight);
+      const drawWidth = imageWidth * scale;
+      const drawHeight = imageHeight * scale;
+      const drawX = (WIDTH - drawWidth) / 2;
+      const drawY = (HEIGHT - drawHeight) / 2;
+
+      context.fillStyle = BG;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+      context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+      return { imageWidth, imageHeight };
+    }
+
+    async function loadFrame(slot, file) {
+      if (!file) return;
+
+      const canvases = { A: frameA, B: frameB, C: frameC };
+      const captions = { A: provenanceA, B: provenanceB, C: provenanceC };
+      const canvas = canvases[slot];
+      const caption = captions[slot];
+      const previousSource = sources[slot];
+      const previousCaption = caption.textContent;
+      loadingCount += 1;
+      updateRunEnabled();
+      caption.textContent = `loading ${file.name}...`;
+      runStatus.textContent = `loading frame ${slot}...`;
+
+      try {
+        const loaded = await decodeImageFile(file);
+        const dimensions = drawLetterboxed(canvas, loaded.image);
+        sources[slot] = { kind: "file", bytes: loaded.bytes, present: true, src: file.name };
+        caption.textContent = `loaded file: ${file.name} (${dimensions.imageWidth}x${dimensions.imageHeight}) - uniform-scale letterbox, original bytes hashed`;
+        runStatus.textContent = "ready - press RUN CV";
+      } catch (error) {
+        sources[slot] = previousSource;
+        caption.textContent = previousCaption;
+        runStatus.textContent = `load failed: ${error.message}`;
+      } finally {
+        loadingCount -= 1;
+        updateRunEnabled();
+      }
+    }
+
+    function grayscaleFromCanvas(canvas) {
+      const image = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, WIDTH, HEIGHT);
+      const gray = new Float32Array(WIDTH * HEIGHT);
+
+      for (let sourceIndex = 0, grayIndex = 0; sourceIndex < image.data.length; sourceIndex += 4, grayIndex += 1) {
+        gray[grayIndex] =
+          image.data[sourceIndex] * 0.299 +
+          image.data[sourceIndex + 1] * 0.587 +
+          image.data[sourceIndex + 2] * 0.114;
+      }
+
+      return gray;
+    }
+
+    function boxBlurGray(gray, radius) {
+      // box blur approximation of CE_Player blur radius
+      radius = Math.round(radius);
+      if (radius < 1) return new Float32Array(gray);
+
+      const horizontal = new Float32Array(WIDTH * HEIGHT);
+      const output = new Float32Array(WIDTH * HEIGHT);
+      const diameter = radius * 2 + 1;
+
+      for (let y = 0; y < HEIGHT; y += 1) {
+        const rowOffset = y * WIDTH;
+        let sum = 0;
+        for (let x = -radius; x <= radius; x += 1) {
+          sum += gray[rowOffset + clamp(x, 0, WIDTH - 1)];
+        }
+        horizontal[rowOffset] = sum / diameter;
+        for (let x = 1; x < WIDTH; x += 1) {
+          sum += gray[rowOffset + clamp(x + radius, 0, WIDTH - 1)];
+          sum -= gray[rowOffset + clamp(x - radius - 1, 0, WIDTH - 1)];
+          horizontal[rowOffset + x] = sum / diameter;
+        }
+      }
+
+      for (let x = 0; x < WIDTH; x += 1) {
+        let sum = 0;
+        for (let y = -radius; y <= radius; y += 1) {
+          sum += horizontal[clamp(y, 0, HEIGHT - 1) * WIDTH + x];
+        }
+        output[x] = sum / diameter;
+        for (let y = 1; y < HEIGHT; y += 1) {
+          sum += horizontal[clamp(y + radius, 0, HEIGHT - 1) * WIDTH + x];
+          sum -= horizontal[clamp(y - radius - 1, 0, HEIGHT - 1) * WIDTH + x];
+          output[y * WIDTH + x] = sum / diameter;
+        }
+      }
+
+      return output;
+    }
+
+    function diffPair(grayA, grayB) {
+      const raw = new Float32Array(WIDTH * HEIGHT);
+      for (let index = 0; index < raw.length; index += 1) {
+        raw[index] = Math.abs(grayA[index] - grayB[index]);
+      }
+      const blurred = boxBlurGray(raw, PARAMS.diffBlur);
+      const gain = new Float32Array(WIDTH * HEIGHT);
+      const mask = new Uint8Array(WIDTH * HEIGHT);
+      for (let index = 0; index < gain.length; index += 1) {
+        gain[index] = Math.min(255, blurred[index] * PARAMS.diffAmp);
+        mask[index] = gain[index] >= PARAMS.diffThreshold ? 1 : 0;
+      }
+      return { mask, gain };
+    }
+
+    function findBlobs(mask) {
+      const visited = new Uint8Array(WIDTH * HEIGHT);
+      const stack = new Int32Array(WIDTH * HEIGHT);
+      const minimumArea = Math.max(1, Math.round(Math.PI * PARAMS.diffMinArea * PARAMS.diffMinArea));
+      const blobs = [];
+
+      for (let start = 0; start < mask.length; start += 1) {
+        if (!mask[start] || visited[start]) continue;
+        let stackLength = 1;
+        stack[0] = start;
+        visited[start] = 1;
+        let minX = start % WIDTH;
+        let maxX = minX;
+        let minY = Math.floor(start / WIDTH);
+        let maxY = minY;
+        let area = 0;
+
+        while (stackLength > 0) {
+          const index = stack[--stackLength];
+          const x = index % WIDTH;
+          const y = Math.floor(index / WIDTH);
+          area += 1;
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+
+          for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
+            const neighborY = y + deltaY;
+            if (neighborY < 0 || neighborY >= HEIGHT) continue;
+            for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
+              if (deltaX === 0 && deltaY === 0) continue;
+              const neighborX = x + deltaX;
+              if (neighborX < 0 || neighborX >= WIDTH) continue;
+              const neighborIndex = neighborY * WIDTH + neighborX;
+              if (!mask[neighborIndex] || visited[neighborIndex]) continue;
+              visited[neighborIndex] = 1;
+              stack[stackLength] = neighborIndex;
+              stackLength += 1;
+            }
+          }
+        }
+
+        if (area >= minimumArea) blobs.push({ minX, minY, maxX, maxY, area });
+      }
+
+      return blobs;
+    }
+
+    function pixel(gray, x, y) {
+      const safeX = clamp(x, 0, WIDTH - 1);
+      const safeY = clamp(y, 0, HEIGHT - 1);
+      return gray[safeY * WIDTH + safeX];
+    }
+
+    function bilinear(gray, x, y) {
+      const safeX = clamp(x, 0, WIDTH - 1);
+      const safeY = clamp(y, 0, HEIGHT - 1);
+      const x0 = Math.floor(safeX);
+      const y0 = Math.floor(safeY);
+      const x1 = Math.min(WIDTH - 1, x0 + 1);
+      const y1 = Math.min(HEIGHT - 1, y0 + 1);
+      const tx = safeX - x0;
+      const ty = safeY - y0;
+      const top = gray[y0 * WIDTH + x0] * (1 - tx) + gray[y0 * WIDTH + x1] * tx;
+      const bottom = gray[y1 * WIDTH + x0] * (1 - tx) + gray[y1 * WIDTH + x1] * tx;
+      return top * (1 - ty) + bottom * ty;
+    }
+
+    function lucasKanadeAt(grayA, grayB, centerX, centerY) {
+      let u = 0;
+      let v = 0;
+
+      for (let iteration = 0; iteration < PARAMS.refinement; iteration += 1) {
+        let sumIx2 = 0;
+        let sumIxIy = 0;
+        let sumIy2 = 0;
+        let sumIxIt = 0;
+        let sumIyIt = 0;
+        let sumI = 0;
+        let sumI2 = 0;
+        let count = 0;
+
+        for (let offsetY = -PARAMS.halfWindow; offsetY <= PARAMS.halfWindow; offsetY += 1) {
+          const y = centerY + offsetY;
+          for (let offsetX = -PARAMS.halfWindow; offsetX <= PARAMS.halfWindow; offsetX += 1) {
+            const x = centerX + offsetX;
+            const intensityA = pixel(grayA, x, y);
+            const ix = (pixel(grayA, x + 1, y) - pixel(grayA, x - 1, y)) * 0.5;
+            const iy = (pixel(grayA, x, y + 1) - pixel(grayA, x, y - 1)) * 0.5;
+            const it = bilinear(grayB, x + u, y + v) - intensityA;
+
+            sumIx2 += ix * ix;
+            sumIxIy += ix * iy;
+            sumIy2 += iy * iy;
+            sumIxIt += ix * it;
+            sumIyIt += iy * it;
+            sumI += intensityA;
+            sumI2 += intensityA * intensityA;
+            count += 1;
+          }
+        }
+
+        const mean = sumI / count;
+        const variance = sumI2 / count - mean * mean;
+        const determinant = sumIx2 * sumIy2 - sumIxIy * sumIxIy;
+
+        if (variance < 1e-4 || determinant < 1e-3) {
+          return { u: 0, v: 0, speed: 0, valid: false };
+        }
+
+        const rightX = -sumIxIt;
+        const rightY = -sumIyIt;
+        const deltaU = (rightX * sumIy2 - rightY * sumIxIy) / determinant;
+        const deltaV = (sumIx2 * rightY - sumIxIy * rightX) / determinant;
+        u += deltaU;
+        v += deltaV;
+      }
+
+      const magnitude = Math.hypot(u, v);
+      if (magnitude > PARAMS.clamp) {
+        const scale = PARAMS.clamp / magnitude;
+        u *= scale;
+        v *= scale;
+      }
+
+      return { u, v, speed: Math.hypot(u, v), valid: true };
+    }
+
+    function computeFlow(grayA, grayB) {
+      const samplesX = [];
+      const samplesY = [];
+
+      for (let x = PARAMS.grid / 2; x < WIDTH; x += PARAMS.grid) samplesX.push(x);
+      for (let y = PARAMS.grid / 2; y < HEIGHT; y += PARAMS.grid) samplesY.push(y);
+
+      const cells = new Array(samplesX.length * samplesY.length);
+      let activeCount = 0;
+
+      for (let row = 0; row < samplesY.length; row += 1) {
+        for (let column = 0; column < samplesX.length; column += 1) {
+          const index = row * samplesX.length + column;
+          const result = lucasKanadeAt(grayA, grayB, samplesX[column], samplesY[row]);
+          const active = result.valid && result.speed >= PARAMS.VMIN;
+          if (active) activeCount += 1;
+          cells[index] = {
+            x: samplesX[column],
+            y: samplesY[row],
+            u: result.u,
+            v: result.v,
+            speed: result.speed,
+            valid: result.valid,
+            active
+          };
+        }
+      }
+
+      return {
+        columns: samplesX.length,
+        rows: samplesY.length,
+        cells,
+        activeCount
+      };
+    }
+
+    function denoiseThreeFrame(flowAB, flowBC) {
+      if (
+        flowAB.columns !== flowBC.columns ||
+        flowAB.rows !== flowBC.rows ||
+        flowAB.cells.length !== flowBC.cells.length
+      ) {
+        throw new Error("flow grids do not match");
+      }
+
+      const cells = new Array(flowAB.cells.length);
+      let activeCount = 0;
+
+      for (let index = 0; index < flowAB.cells.length; index += 1) {
+        const cellAB = flowAB.cells[index];
+        const cellBC = flowBC.cells[index];
+        let sineSum = 0;
+        let cosineSum = 0;
+        let magnitudeSum = 0;
+        let validIntervals = 0;
+
+        if (cellAB.valid) {
+          const angleAB = Math.atan2(cellAB.v, cellAB.u);
+          sineSum += Math.sin(angleAB);
+          cosineSum += Math.cos(angleAB);
+          magnitudeSum += cellAB.speed;
+          validIntervals += 1;
+        }
+
+        if (cellBC.valid) {
+          const angleBC = Math.atan2(cellBC.v, cellBC.u);
+          sineSum += Math.sin(angleBC);
+          cosineSum += Math.cos(angleBC);
+          magnitudeSum += cellBC.speed;
+          validIntervals += 1;
+        }
+
+        if (validIntervals === 0) {
+          cells[index] = {
+            x: cellAB.x,
+            y: cellAB.y,
+            u: 0,
+            v: 0,
+            speed: 0,
+            valid: false,
+            active: false,
+            validIntervals: 0
+          };
+          continue;
+        }
+
+        const angle = Math.atan2(sineSum, cosineSum);
+        const magnitude = magnitudeSum / validIntervals;
+        const active = magnitude >= PARAMS.VMIN;
+        if (active) activeCount += 1;
+
+        cells[index] = {
+          x: cellAB.x,
+          y: cellAB.y,
+          u: Math.cos(angle) * magnitude,
+          v: Math.sin(angle) * magnitude,
+          speed: magnitude,
+          valid: true,
+          active,
+          validIntervals
+        };
+      }
+
+      return {
+        columns: flowAB.columns,
+        rows: flowAB.rows,
+        cells,
+        activeCount
+      };
+    }
+
+    function normalizedAngleDifference(angleA, angleB) {
+      let difference = angleA - angleB;
+      while (difference > Math.PI) difference -= Math.PI * 2;
+      while (difference < -Math.PI) difference += Math.PI * 2;
+      return Math.abs(difference);
+    }
+
+    function clusterFlow(flow) {
+      const visited = new Uint8Array(flow.cells.length);
+      const labels = new Int32Array(flow.cells.length);
+      const offsets = PARAMS.offsets;
+      let clusterCount = 0;
+      let singletonTally = 0;
+
+      for (let start = 0; start < flow.cells.length; start += 1) {
+        if (visited[start] || !flow.cells[start].active) continue;
+
+        visited[start] = 1;
+        const queue = [start];
+        const members = [];
+        let head = 0;
+
+        while (head < queue.length) {
+          const currentIndex = queue[head];
+          head += 1;
+          members.push(currentIndex);
+
+          const currentRow = Math.floor(currentIndex / flow.columns);
+          const currentColumn = currentIndex % flow.columns;
+          const current = flow.cells[currentIndex];
+          const currentAngle = Math.atan2(current.v, current.u);
+
+          for (const [deltaColumn, deltaRow] of offsets) {
+            const neighborColumn = currentColumn + deltaColumn;
+            const neighborRow = currentRow + deltaRow;
+            if (
+              neighborColumn < 0 ||
+              neighborColumn >= flow.columns ||
+              neighborRow < 0 ||
+              neighborRow >= flow.rows
+            ) {
+              continue;
+            }
+
+            const neighborIndex = neighborRow * flow.columns + neighborColumn;
+            const neighbor = flow.cells[neighborIndex];
+            if (visited[neighborIndex] || !neighbor.active) continue;
+
+            const neighborAngle = Math.atan2(neighbor.v, neighbor.u);
+            if (normalizedAngleDifference(currentAngle, neighborAngle) <= PARAMS.theta) {
+              visited[neighborIndex] = 1;
+              queue.push(neighborIndex);
+            }
+          }
+        }
+
+        if (members.length >= PARAMS.minCluster) {
+          clusterCount += 1;
+          for (const member of members) labels[member] = clusterCount;
+        } else {
+          singletonTally += members.length;
+        }
+      }
+
+      return { labels, clusterCount, singletonTally };
+    }
+
+    function dimFrame(context, sourceCanvas, brightness) {
+      context.globalAlpha = 1;
+      context.drawImage(sourceCanvas, 0, 0, WIDTH, HEIGHT);
+      context.fillStyle = `rgba(0, 0, 0, ${1 - brightness})`;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+    }
+
+    function drawLegend(context, text, width) {
+      context.save();
+      context.font = "11px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      context.textAlign = "left";
+      context.textBaseline = "middle";
+      context.fillStyle = "rgba(13, 15, 18, 0.84)";
+      context.fillRect(10, HEIGHT - 31, width, 21);
+      context.fillStyle = "#eee2cf";
+      context.fillText(text, 16, HEIGHT - 20);
+      context.restore();
+    }
+
+    function drawMaskResult(targetCanvas, mask) {
+      const context = targetCanvas.getContext("2d", { alpha: false });
+      context.fillStyle = BG;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+      context.fillStyle = CREAM;
+      let onCount = 0;
+
+      for (let y = 0; y < HEIGHT; y += 1) {
+        let runStart = -1;
+        for (let x = 0; x <= WIDTH; x += 1) {
+          const on = x < WIDTH && mask[y * WIDTH + x] !== 0;
+          if (on) {
+            onCount += 1;
+            if (runStart < 0) runStart = x;
+          } else if (runStart >= 0) {
+            context.fillRect(runStart, y, x - runStart, 1);
+            runStart = -1;
+          }
+        }
+      }
+
+      drawLegend(context, `mask A-B - ${onCount} px on`, 190);
+      return onCount;
+    }
+
+    function drawBlobResult(targetCanvas, blobsAB, blobsBC) {
+      const context = targetCanvas.getContext("2d", { alpha: false });
+      dimFrame(context, frameA, 0.25);
+      context.save();
+      context.lineWidth = 2;
+
+      context.strokeStyle = "#d9a441";
+      context.fillStyle = "rgba(217,164,65,0.18)";
+      for (const blob of blobsAB) {
+        const width = blob.maxX - blob.minX + 1;
+        const height = blob.maxY - blob.minY + 1;
+        context.fillRect(blob.minX, blob.minY, width, height);
+        context.strokeRect(blob.minX, blob.minY, width, height);
+      }
+
+      context.strokeStyle = "#71b7a8";
+      context.fillStyle = "rgba(113,183,168,0.18)";
+      for (const blob of blobsBC) {
+        const width = blob.maxX - blob.minX + 1;
+        const height = blob.maxY - blob.minY + 1;
+        context.fillRect(blob.minX, blob.minY, width, height);
+        context.strokeRect(blob.minX, blob.minY, width, height);
+      }
+
+      context.restore();
+      const legend = `blobs ${blobsAB.length} A-B / ${blobsBC.length} B-C - min radius ${PARAMS.diffMinArea}px`;
+      drawLegend(context, legend, Math.min(WIDTH - 20, Math.max(300, legend.length * 6.8)));
+    }
+
+    function drawFlowResult(targetCanvas, flow) {
+      const context = targetCanvas.getContext("2d", { alpha: false });
+      dimFrame(context, frameA, 0.40);
+      context.save();
+      context.strokeStyle = AMBER;
+      context.lineWidth = 1.5;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+
+      for (const cell of flow.cells) {
+        if (!cell.active) continue;
+
+        let drawX = cell.u * 3;
+        let drawY = cell.v * 3;
+        let shaftLength = Math.hypot(drawX, drawY);
+        if (shaftLength < 3) continue;
+
+        if (shaftLength < 4) {
+          const extension = 4 / shaftLength;
+          drawX *= extension;
+          drawY *= extension;
+          shaftLength = 4;
+        }
+
+        const startX = cell.x;
+        const startY = cell.y;
+        const endX = startX + drawX;
+        const endY = startY + drawY;
+        const angle = Math.atan2(drawY, drawX);
+        const headLength = Math.min(5, Math.max(3.5, shaftLength * 0.34));
+
+        context.beginPath();
+        context.moveTo(startX, startY);
+        context.lineTo(endX, endY);
+        context.moveTo(endX, endY);
+        context.lineTo(
+          endX - headLength * Math.cos(angle - Math.PI / 6),
+          endY - headLength * Math.sin(angle - Math.PI / 6)
+        );
+        context.moveTo(endX, endY);
+        context.lineTo(
+          endX - headLength * Math.cos(angle + Math.PI / 6),
+          endY - headLength * Math.sin(angle + Math.PI / 6)
+        );
+        context.stroke();
+      }
+
+      context.restore();
+      drawLegend(context, "denoised three-frame field - arrows x3", 275);
+    }
+
+    function drawClusterResult(targetCanvas, flow, clustering) {
+      const context = targetCanvas.getContext("2d", { alpha: false });
+      dimFrame(context, frameA, 0.25);
+      context.save();
+      context.globalAlpha = 0.75;
+
+      for (let index = 0; index < clustering.labels.length; index += 1) {
+        const clusterId = clustering.labels[index];
+        if (clusterId === 0) continue;
+        const cell = flow.cells[index];
+        context.fillStyle = CLUSTER_PALETTE[(clusterId - 1) % CLUSTER_PALETTE.length];
+        context.fillRect(cell.x - PARAMS.grid / 2, cell.y - PARAMS.grid / 2, PARAMS.grid, PARAMS.grid);
+      }
+
+      context.restore();
+      const legend = `${clustering.clusterCount} clusters - cells < VMIN excluded`;
+      const legendWidth = Math.min(WIDTH - 20, Math.max(220, context.measureText(legend).width + 18));
+      drawLegend(context, legend, legendWidth);
+    }
+
+    function makeCanvas() {
+      const canvas = document.createElement("canvas");
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+      return canvas;
+    }
+
+    function canvasPngBytes(canvas) {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            reject(new Error("PNG encoding failed"));
+            return;
+          }
+          resolve(new Uint8Array(await blob.arrayBuffer()));
+        }, "image/png");
+      });
+    }
+
+    async function sha256(bytes) {
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      return new Uint8Array(digest);
+    }
+
+    function hex(bytes) {
+      let value = "";
+      for (const byte of bytes) value += byte.toString(16).padStart(2, "0");
+      return value;
+    }
+
+    function concatenate(parts) {
+      let totalLength = 0;
+      for (const part of parts) totalLength += part.length;
+      const output = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const part of parts) {
+        output.set(part, offset);
+        offset += part.length;
+      }
+      return output;
+    }
+
+    function extractFeatures(gray) {
+      const size = 64;
+      const grid = new Float64Array(size * size);
+      let sum = 0;
+      let sumSquares = 0;
+
+      for (let y = 0; y < size; y += 1) {
+        for (let x = 0; x < size; x += 1) {
+          const srcIdx = Math.floor(y * HEIGHT / 64) * WIDTH + Math.floor(x * WIDTH / 64);
+          const value = gray[srcIdx];
+          grid[y * size + x] = value;
+          sum += value;
+          sumSquares += value * value;
+        }
+      }
+
+      function gradientEnergies(values, width, height) {
+        let squared = 0;
+        let magnitude = 0;
+        let count = 0;
+        for (let y = 0; y < height - 1; y += 1) {
+          for (let x = 0; x < width - 1; x += 1) {
+            const index = y * width + x;
+            const dx = values[index + 1] - values[index];
+            const dy = values[index + width] - values[index];
+            squared += dx * dx + dy * dy;
+            magnitude += Math.hypot(dx, dy);
+            count += 1;
+          }
+        }
+        return { squared: count ? squared / count : 0, magnitude: count ? magnitude / count : 0 };
+      }
+
+      function downsample2x(values, width, height) {
+        const nextWidth = width / 2;
+        const nextHeight = height / 2;
+        const output = new Float64Array(nextWidth * nextHeight);
+        for (let y = 0; y < nextHeight; y += 1) {
+          for (let x = 0; x < nextWidth; x += 1) {
+            const source = y * 2 * width + x * 2;
+            output[y * nextWidth + x] = (
+              values[source] +
+              values[source + 1] +
+              values[source + width] +
+              values[source + width + 1]
+            ) / 4;
+          }
+        }
+        return output;
+      }
+
+      const count = size * size;
+      const mean = sum / count;
+      const variance = sumSquares / count - mean * mean;
+      const energy64 = gradientEnergies(grid, 64, 64);
+      const grid32 = downsample2x(grid, 64, 64);
+      const energy32 = gradientEnergies(grid32, 32, 32);
+      const grid16 = downsample2x(grid32, 32, 32);
+      const energy16 = gradientEnergies(grid16, 16, 16);
+      const roundSix = (value) => Number(value.toFixed(6));
+
+      return {
+        mean: roundSix(mean),
+        variance: roundSix(variance),
+        grad: roundSix(energy64.squared),
+        pyr32: roundSix(energy32.magnitude / (energy64.magnitude + 1e-6)),
+        pyr16: roundSix(energy16.magnitude / (energy64.magnitude + 1e-6))
+      };
+    }
+
+    function readRunLog() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(RUNS_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function writeRunLog(records) {
+      try {
+        localStorage.setItem(RUNS_KEY, JSON.stringify(records));
+      } catch (error) { /* browser-local log unavailable */ }
+    }
+
+    function appendRunRecord(record) {
+      try {
+        const records = readRunLog();
+        records.push(record);
+        if (records.length > RUNS_CAP) records.splice(0, records.length - RUNS_CAP);
+        localStorage.setItem(RUNS_KEY, JSON.stringify(records));
+      } catch (error) { /* browser-local log unavailable */ }
+    }
+
+    async function runAttestationBytes(hashes, activeKnobs, pipelineId, outputHashHex) {
+      const attestationPayload = JSON.stringify([
+        hashes.A,
+        hashes.B,
+        hashes.C,
+        Object.keys(activeKnobs).sort().map((key) => [key, activeKnobs[key]]),
+        PIPELINE_TABS[pipelineId].pipeline_version,
+        outputHashHex
+      ]);
+      return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(attestationPayload)));
+    }
+
+    /* ===== CV vault linkage - browser-local IndexedDB store tq_cv_vault / cv_runs ===== */
+    let cvStash = null;
+    function canvasToBlob(c){ return new Promise((res)=> c.toBlob((b)=> res(b), "image/png")); }
+    function cvVaultOpen(){ return new Promise((res, rej)=>{ const r = indexedDB.open("tq_cv_vault", 1); r.onupgradeneeded = ()=> r.result.createObjectStore("cv_runs", { keyPath: "runHash" }); r.onsuccess = ()=> res(r.result); r.onerror = ()=> rej(r.error); }); }
+    async function cvVaultUpsert(signal, signature){
+      try{
+        if (!lastRunRecord || !lastRunRecord.runHash) return;
+        const img = (cvStash && cvStash.runHash === lastRunRecord.runHash) ? cvStash.imageBlob : null;
+        const db = await cvVaultOpen();
+        const out = await new Promise((res)=>{ const tx = db.transaction("cv_runs","readonly").objectStore("cv_runs").get(lastRunRecord.runHash); tx.onsuccess = ()=> res(tx.result || null); tx.onerror = ()=> res(null); });
+        const rec = out || { runHash: lastRunRecord.runHash, t: lastRunRecord.t, pipeline: lastRunRecord.pipeline, version: lastRunRecord.version, params: lastRunRecord.params, frameHashes: lastRunRecord.hashes, outputHash: (cvStash && cvStash.runHash === lastRunRecord.runHash) ? cvStash.outputHash : "", imageBlob: null, outcome: "", mintRef: null };
+        const flags = new Set(String(rec.outcome || "").split("+").filter(Boolean));
+        flags.add(signal);
+        rec.outcome = Array.from(flags).sort().join("+");
+        if (img && !rec.imageBlob) rec.imageBlob = img;
+        if (signal === "minted" && signature) rec.mintRef = { signature: signature, ts: Date.now() };
+        await new Promise((res, rej)=>{ const tx = db.transaction("cv_runs","readwrite").objectStore("cv_runs").put(rec); tx.onsuccess = ()=> res(); tx.onerror = ()=> rej(tx.error); });
+      }catch(e){ /* best-effort: never break KEEP or MINT */ }
+    }
+
+    async function recordSuccessfulRun(grayA, hashes) {
+      if (!hashes) return;
+      const activeKnobs = activeKnobValues();
+      const pipelineId = activePipelineId;
+      const outputHashHex = hashCells.cluster.textContent;
+      const runHashBytes = await runAttestationBytes(hashes, activeKnobs, pipelineId, outputHashHex);
+      lastRunRecord = {
+        t: Date.now(),
+        pipeline: pipelineId,
+        version: PIPELINE_TABS[pipelineId].pipeline_version,
+        params: activeKnobs,
+        features: extractFeatures(grayA),
+        hashes: { A: hashes.A, B: hashes.B, C: hashes.C, capture: hashes.capture },
+        runHash: hex(runHashBytes),
+        kept: false
+      };
+      appendRunRecord(lastRunRecord);
+      cvStash = { runHash: lastRunRecord.runHash, t: lastRunRecord.t, outputHash: outputHashHex, imageBlob: await canvasToBlob(document.getElementById("clusterCanvas")) };
+      keepButton.disabled = false;
+      mintButton.disabled = false;
+      actionStatus.textContent = "run ready - KEEP stores this run in this browser, MINT signs a devnet mint (score 0 pending)";
+    }
+
+    function serializeFlow(flow) {
+      const bytesPerCell = 42;
+      const bytes = new Uint8Array(8 + flow.cells.length * bytesPerCell);
+      const view = new DataView(bytes.buffer);
+      view.setUint32(0, flow.columns, true);
+      view.setUint32(4, flow.rows, true);
+      let offset = 8;
+
+      for (const cell of flow.cells) {
+        view.setFloat64(offset, cell.x, true);
+        offset += 8;
+        view.setFloat64(offset, cell.y, true);
+        offset += 8;
+        view.setFloat64(offset, cell.u, true);
+        offset += 8;
+        view.setFloat64(offset, cell.v, true);
+        offset += 8;
+        view.setFloat64(offset, cell.speed, true);
+        offset += 8;
+        view.setUint8(offset, cell.valid ? 1 : 0);
+        offset += 1;
+        view.setUint8(offset, cell.active ? 1 : 0);
+        offset += 1;
+      }
+
+      return bytes;
+    }
+
+    async function computeHashes(flowAB, flowBC, denoisedOutput, clusterOutput) {
+      if (!window.crypto || !window.crypto.subtle) return null;
+
+      const encoder = new TextEncoder();
+      const flowABBytes = serializeFlow(flowAB);
+      const flowBCBytes = serializeFlow(flowBC);
+      const [inputABytes, inputBBytes, inputCBytes, denoisedBytes, clusterBytes] = await Promise.all([
+        sources.A.bytes ? sources.A.bytes : canvasPngBytes(frameA),
+        sources.B.bytes ? sources.B.bytes : canvasPngBytes(frameB),
+        sources.C.bytes ? sources.C.bytes : canvasPngBytes(frameC),
+        canvasPngBytes(denoisedOutput),
+        canvasPngBytes(clusterOutput)
+      ]);
+
+      const [
+        digestA,
+        digestB,
+        digestC,
+        digestFlowAB,
+        digestFlowBC,
+        digestDenoised,
+        digestCluster
+      ] = await Promise.all([
+        sha256(inputABytes),
+        sha256(inputBBytes),
+        sha256(inputCBytes),
+        sha256(flowABBytes),
+        sha256(flowBCBytes),
+        sha256(denoisedBytes),
+        sha256(clusterBytes)
+      ]);
+
+      const captureBytes = concatenate([
+        encoder.encode("A"),
+        digestA,
+        encoder.encode("B"),
+        digestB,
+        encoder.encode("C"),
+        digestC,
+        encoder.encode("DENOISED"),
+        digestDenoised,
+        encoder.encode("CLUSTER"),
+        digestCluster
+      ]);
+      const digestCapture = await sha256(captureBytes);
+
+      return {
+        A: hex(digestA),
+        B: hex(digestB),
+        C: hex(digestC),
+        flowAB: hex(digestFlowAB),
+        flowBC: hex(digestFlowBC),
+        denoised: hex(digestDenoised),
+        cluster: hex(digestCluster),
+        capture: hex(digestCapture)
+      };
+    }
+
+    async function computeHashesDiff(maskAB, maskBC, maskOutput, blobOutput, grayA) {
+      if (!window.crypto || !window.crypto.subtle) return null;
+
+      const encoder = new TextEncoder();
+      const maskABBytes = new Uint8Array(maskAB);
+      const maskBCBytes = new Uint8Array(maskBC);
+      const [inputABytes, inputBBytes, inputCBytes, maskRenderBytes, blobRenderBytes] = await Promise.all([
+        sources.A.bytes ? sources.A.bytes : canvasPngBytes(frameA),
+        sources.B.bytes ? sources.B.bytes : canvasPngBytes(frameB),
+        sources.C.bytes ? sources.C.bytes : canvasPngBytes(frameC),
+        canvasPngBytes(maskOutput),
+        canvasPngBytes(blobOutput)
+      ]);
+
+      const [
+        digestA,
+        digestB,
+        digestC,
+        digestMaskAB,
+        digestMaskBC,
+        digestMaskRender,
+        digestBlobRender
+      ] = await Promise.all([
+        sha256(inputABytes),
+        sha256(inputBBytes),
+        sha256(inputCBytes),
+        sha256(maskABBytes),
+        sha256(maskBCBytes),
+        sha256(maskRenderBytes),
+        sha256(blobRenderBytes)
+      ]);
+
+      const captureBytes = concatenate([
+        encoder.encode("A"),
+        digestA,
+        encoder.encode("B"),
+        digestB,
+        encoder.encode("C"),
+        digestC,
+        encoder.encode("MASK"),
+        digestMaskAB,
+        encoder.encode("BLOB"),
+        digestBlobRender
+      ]);
+      const digestCapture = await sha256(captureBytes);
+
+      return {
+        A: hex(digestA),
+        B: hex(digestB),
+        C: hex(digestC),
+        flowAB: hex(digestMaskAB),
+        flowBC: hex(digestMaskBC),
+        denoised: hex(digestMaskRender),
+        cluster: hex(digestBlobRender),
+        capture: hex(digestCapture)
+      };
+    }
+
+
+    function clearDisplayFromBase() {
+      if (!lastOutputs) return;
+      const c1 = lastOutputs.d1.getContext("2d", { alpha: false });
+      const c2 = lastOutputs.d2.getContext("2d", { alpha: false });
+      c1.drawImage(lastOutputs.base1, 0, 0);
+      c2.drawImage(lastOutputs.base2, 0, 0);
+    }
+    function applyAnnotOverlay() {
+      if (!lastOutputs || !annotOn) return;
+      const d = lastOutputs.data;
+      const ctx2 = lastOutputs.d2.getContext("2d", { alpha: false });
+      ctx2.save();
+      ctx2.font = "10px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx2.textBaseline = "top";
+      const WHITE = "#f5f5f5", GRAY = "#aaaaaa", CYAN = "#c8ffff";
+      function framesLine() {
+        return "frames: " + d.frames.map(function(s){ return (s.match(/[^\s:]+\.(?:jpg|jpeg|png)|demo frame [ABC]/) || ["?"])[0]; }).join(" | ");
+      }
+      function chip(rows) {
+        let w = 0;
+        for (const r of rows) w = Math.max(w, ctx2.measureText(r[0]).width);
+        const width = Math.ceil(w) + 12, height = 8 + rows.length * 13;
+        ctx2.fillStyle = "rgba(13,15,18,0.86)";
+        ctx2.fillRect(8, 8, width, height);
+        rows.forEach((r, i) => { ctx2.fillStyle = r[1]; ctx2.fillText(r[0], 14, 13 + i * 13); });
+      }
+      if (lastOutputs.tab === "frame-diff-blob") {
+        const shown = Math.min(d.blobsAB.length, 40);
+        for (let i = 0; i < shown; i++) {
+          const b = d.blobsAB[i];
+          const cx = (b.minX + b.maxX) / 2, cy = (b.minY + b.maxY) / 2;
+          ctx2.fillStyle = WHITE;
+          ctx2.beginPath(); ctx2.arc(cx, cy, 5, 0, 6.283185); ctx2.fill();
+          ctx2.fillText(String(i + 1), cx + 6, cy - 4);
+          const block = [
+            "[n]: " + (i + 1),
+            "[x]: " + cx.toFixed(1) + "    [y]: " + cy.toFixed(1),
+            "[$]: " + b.area
+          ];
+          let by = b.maxY + 6;
+          if (by + block.length * 13 > ctx2.canvas.height) by = Math.max(0, b.minY - 6 - block.length * 13);
+          block.forEach((t, j) => ctx2.fillText(t, b.minX, by + j * 13));
+        }
+        chip([
+          ["CE_Player output" + (d.src ? " - " + d.src : "") + " | absdiff -> blur " + d.blur + " -> x" + d.amp + " -> thr " + d.cut + " (en_SimpleBlob)", WHITE],
+          ["white = thresholded pixel clusters | amber rect = A-B blobs | teal rect = B-C blobs | [n] [x y] [$] = blob stats", GRAY],
+          ["blobs " + d.blobsAB.length + " A-B / " + d.blobsBC.length + " B-C | mask " + d.onCount + " px | min r " + d.minR + " px | callouts " + shown + (d.blobsAB.length > 40 ? " of " + d.blobsAB.length + " (cap 40)" : ""), CYAN],
+          [framesLine(), WHITE]
+        ]);
+      } else {
+        chip([
+          ["LK -> three-frame denoise -> cluster | win " + d.win + " -> grid " + d.grid + " -> VMIN " + d.vmin + " -> clamp " + d.clamp + " -> theta " + d.theta, WHITE],
+          ["active " + d.activeAB + " A-B / " + d.activeBC + " B-C | denoised " + d.denoised + " | clusters " + d.clusters + " | singletons dropped " + d.singletons, CYAN],
+          [framesLine(), WHITE]
+        ]);
+      }
+      ctx2.restore();
+    }
+    function redrawResults() {
+      if (!lastOutputs) return;
+      clearDisplayFromBase();
+      applyAnnotOverlay();
+    }
+    annotBtn.addEventListener("click", () => {
+      annotOn = !annotOn;
+      annotBtn.textContent = annotOn ? "ANNOTATIONS: ON" : "ANNOTATIONS: OFF";
+      annotBtn.setAttribute("aria-pressed", annotOn ? "true" : "false");
+      annotNote.textContent = annotOn
+        ? "annotated view - CE_Player-style labels: chain echo, [n][x y][$] stats, frame ids - hashes were computed on the clean render and do not change"
+        : "simple view - as shipped";
+      redrawResults();
+    });
+    function commitResults(flowOutput, clusterOutput, hashes) {
+      const flowContext = flowCanvas.getContext("2d", { alpha: false });
+      const clusterContext = clusterCanvas.getContext("2d", { alpha: false });
+      flowContext.drawImage(flowOutput, 0, 0);
+      clusterContext.drawImage(clusterOutput, 0, 0);
+
+      if (hashes) {
+        hashCells.A.textContent = hashes.A;
+        hashCells.B.textContent = hashes.B;
+        hashCells.C.textContent = hashes.C;
+        hashCells.flowAB.textContent = hashes.flowAB;
+        hashCells.flowBC.textContent = hashes.flowBC;
+        hashCells.denoised.textContent = hashes.denoised;
+        hashCells.cluster.textContent = hashes.cluster;
+        hashCells.capture.textContent = hashes.capture;
+      } else {
+        const unavailable = "unavailable - open over https";
+        hashCells.A.textContent = unavailable;
+        hashCells.B.textContent = unavailable;
+        hashCells.C.textContent = unavailable;
+        hashCells.flowAB.textContent = unavailable;
+        hashCells.flowBC.textContent = unavailable;
+        hashCells.denoised.textContent = unavailable;
+        hashCells.cluster.textContent = unavailable;
+        hashCells.capture.textContent = unavailable;
+      }
+
+    }
+
+
+    async function runComputerVision() {
+      if (running || !sources.A.present || !sources.B.present || !sources.C.present) return;
+
+      readPipelineParams();
+      running = true;
+      runButton.classList.add("running");
+      for (const button of tabButtons) button.disabled = true;
+      updateRunEnabled();
+
+      try {
+        if (activePipelineId === "frame-diff-blob") {
+          runStatus.textContent = `diff A-B - box blur ${PARAMS.diffBlur}, amp ${PARAMS.diffAmp}, cut ${PARAMS.diffThreshold}/${PARAMS.diffAmp}`;
+          await nextPaint();
+          const grayA = grayscaleFromCanvas(frameA);
+          const grayB = grayscaleFromCanvas(frameB);
+          const grayC = grayscaleFromCanvas(frameC);
+          const diffAB = diffPair(grayA, grayB);
+          const diffBC = diffPair(grayB, grayC);
+
+          runStatus.textContent = `contours - min radius ${PARAMS.diffMinArea}px`;
+          await nextPaint();
+          const blobsAB = findBlobs(diffAB.mask);
+          const blobsBC = findBlobs(diffBC.mask);
+          const maskCanvas = makeCanvas();
+          const blobCanvas = makeCanvas();
+          const onCount = drawMaskResult(maskCanvas, diffAB.mask);
+          drawBlobResult(blobCanvas, blobsAB, blobsBC);
+          lastOutputs = { tab: "frame-diff-blob", base1: maskCanvas, base2: blobCanvas, d1: flowCanvas, d2: clusterCanvas, data: { blobsAB, blobsBC, onCount, cut: PARAMS.diffThreshold, amp: PARAMS.diffAmp, blur: PARAMS.diffBlur, minR: PARAMS.diffMinArea, src: (sources.A.src && sources.A.src === sources.B.src && sources.B.src === sources.C.src) ? sources.A.src : "mixed sources", frames: [provenanceA.textContent, provenanceB.textContent, provenanceC.textContent] } };
+          const hashes = await computeHashesDiff(diffAB.mask, diffBC.mask, maskCanvas, blobCanvas, grayA);
+
+          commitResults(maskCanvas, blobCanvas, hashes);
+          if (annotOn) redrawResults();
+          await recordSuccessfulRun(grayA, hashes);
+          runStatus.textContent = `complete - ${blobsAB.length} blobs A-B, ${blobsBC.length} blobs B-C, mask ${onCount} px on`;
+        }
+
+        if (activePipelineId !== "frame-diff-blob") {
+        runStatus.textContent = `preparing - 3 frames at ${WIDTH}x${HEIGHT}`;
+        await nextPaint();
+        const grayA = grayscaleFromCanvas(frameA);
+        const grayB = grayscaleFromCanvas(frameB);
+        const grayC = grayscaleFromCanvas(frameC);
+        const gridCellCount = Math.ceil((WIDTH - PARAMS.grid / 2) / PARAMS.grid) * Math.ceil((HEIGHT - PARAMS.grid / 2) / PARAMS.grid);
+
+        runStatus.textContent = `flow A-B - ${gridCellCount} grid cells`;
+        await nextPaint();
+        const flowAB = computeFlow(grayA, grayB);
+
+        runStatus.textContent = `flow B-C - ${gridCellCount} grid cells, A-B ${flowAB.activeCount} active`;
+        await nextPaint();
+        const flowBC = computeFlow(grayB, grayC);
+
+        runStatus.textContent = `denoise 3-frame - A-B ${flowAB.activeCount} active, B-C ${flowBC.activeCount} active`;
+        await nextPaint();
+        const denoisedFlow = denoiseThreeFrame(flowAB, flowBC);
+
+        runStatus.textContent = `clustering - ${denoisedFlow.activeCount} denoised active cells`;
+        await nextPaint();
+        const clustering = clusterFlow(denoisedFlow);
+
+        runStatus.textContent = `rendering - ${denoisedFlow.activeCount} denoised active cells, ${clustering.clusterCount} clusters`;
+        await nextPaint();
+        const denoisedOutput = makeCanvas();
+        const clusterOutput = makeCanvas();
+        drawFlowResult(denoisedOutput, denoisedFlow);
+        drawClusterResult(clusterOutput, denoisedFlow, clustering);
+        lastOutputs = { tab: "lk", base1: denoisedOutput, base2: clusterOutput, d1: flowCanvas, d2: clusterCanvas, data: { activeAB: flowAB.activeCount, activeBC: flowBC.activeCount, denoised: denoisedFlow.activeCount, clusters: clustering.clusterCount, singletons: clustering.singletonTally, win: PARAMS.window, grid: PARAMS.grid, vmin: PARAMS.VMIN, clamp: PARAMS.clamp, theta: PARAMS.theta, minC: PARAMS.minCluster, frames: [provenanceA.textContent, provenanceB.textContent, provenanceC.textContent] } };
+
+        runStatus.textContent = "hashing - 3 inputs, 2 flow fields, 2 outputs";
+        await nextPaint();
+        const hashes = await computeHashes(flowAB, flowBC, denoisedOutput, clusterOutput);
+
+        commitResults(denoisedOutput, clusterOutput, hashes);
+        if (annotOn) redrawResults();
+        await recordSuccessfulRun(grayA, hashes);
+        const singletonWord = clustering.singletonTally === 1 ? "cell" : "cells";
+        runStatus.textContent = `complete - A-B ${flowAB.activeCount} active, B-C ${flowBC.activeCount} active, denoised ${denoisedFlow.activeCount} active, ${clustering.clusterCount} clusters, ${clustering.singletonTally} singleton ${singletonWord} dropped`;
+        }
+      } catch (error) {
+        runStatus.textContent = `error: ${error.message}`;
+      } finally {
+        running = false;
+        runButton.classList.remove("running");
+        for (const button of tabButtons) button.disabled = false;
+        updateRunEnabled();
+      }
+    }
+
+
+    var PROGRAM_STR='CurN8UWQwD1pifo9rhzKLbVrJxNt5jiGDTtpT8h6KskS';
+    var RPC='https://api.devnet.solana.com';
+    var DEVICE_PUBKEY='2Y8pzHzP3vKGm2Gix7Z9SbuAVx4Vwc8JBEXd5LBpCLKG';
+    var DEVICE_SECRET=[137,128,201,223,161,162,5,44,96,142,166,183,247,247,236,248,19,168,1,195,96,17,40,22,170,247,233,113,198,97,146,35,22,213,138,222,0,21,9,199,14,12,158,77,72,104,237,118,16,87,82,210,122,12,124,196,29,33,118,172,111,248,32,119];
+    var DISC_MINT=[209,179,131,7,38,42,155,254];
+    var TOKEN_PROGRAM='TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+    var ATA_PROGRAM='ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
+    var METAPLEX='metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s';
+    var DESC_TEXT='TerraQuest demo capture';
+    var web3=window.solanaWeb3;
+    var conn=null,provider=null,deviceKp=null,programKey=null,wallet=null;
+    var env={cfgPda:null,devRecPda:null};
+
+    function enc(value) {
+      return new TextEncoder().encode(value);
+    }
+
+    function le(value, length) {
+      const bytes = new Uint8Array(length);
+      let remaining = BigInt(value);
+      for (let index = 0; index < length; index += 1) {
+        bytes[index] = Number(remaining & 255n);
+        remaining >>= 8n;
+      }
+      return bytes;
+    }
+
+    function cat() {
+      let length = 0;
+      for (let index = 0; index < arguments.length; index += 1) length += arguments[index].length;
+      const output = new Uint8Array(length);
+      let offset = 0;
+      for (let index = 0; index < arguments.length; index += 1) {
+        output.set(arguments[index], offset);
+        offset += arguments[index].length;
+      }
+      return output;
+    }
+
+    function getProvider(){
+      if(window.phantom&&window.phantom.solana)return window.phantom.solana;
+      if(window.solflare)return window.solflare;
+      if(window.solana)return window.solana;
+      return null;
+    }
+    function ataSync(mint,owner){return web3.PublicKey.findProgramAddressSync([owner.toBuffer(),new web3.PublicKey(TOKEN_PROGRAM).toBuffer(),mint.toBuffer()],new web3.PublicKey(ATA_PROGRAM))[0]}
+
+    function initMintPort() {
+      if (!web3) throw new Error("web3.js did not load");
+      if (conn) return;
+      conn=new web3.Connection(RPC,'confirmed');
+      programKey=new web3.PublicKey(PROGRAM_STR);
+      deviceKp=web3.Keypair.fromSecretKey(Uint8Array.from(DEVICE_SECRET));
+      if (deviceKp.publicKey.toString() !== DEVICE_PUBKEY) {
+        throw new Error("demo device public key mismatch");
+      }
+      env.cfgPda=web3.PublicKey.findProgramAddressSync([enc('global_config')],programKey)[0];
+      env.devRecPda=web3.PublicKey.findProgramAddressSync([enc('device'),deviceKp.publicKey.toBytes()],programKey)[0];
+    }
+
+    async function connectWallet() {
+      provider=getProvider();
+      if (!provider) throw new Error("Phantom or Solflare wallet not found");
+      const response=await provider.connect();
+      wallet=(response&&response.publicKey)||provider.publicKey;
+      if (!wallet) throw new Error("wallet connect returned no public key");
+      const address=wallet.toString();
+      actionStatus.textContent = `wallet connected - ${address.slice(0,4)}...${address.slice(-4)} - devnet`;
+      return wallet;
+    }
+
+        function mintIx(captureHash,ts,sigBytes,sessionRef,mintDescText){
+      var dat=web3.PublicKey.findProgramAddressSync([enc('capture'),captureHash],programKey)[0];
+      var capMint=web3.PublicKey.findProgramAddressSync([enc('capture_mint'),captureHash],programKey)[0];
+      var holderAta=ataSync(capMint,deviceKp.publicKey);
+      var META=new web3.PublicKey(METAPLEX);
+      var meta=web3.PublicKey.findProgramAddressSync([enc('metadata'),META.toBytes(),capMint.toBytes()],META)[0];
+      var desc=enc(mintDescText||DESC_TEXT);
+      var data=cat(Uint8Array.from(DISC_MINT),captureHash,le(ts,8),le(0,2),sessionRef,Uint8Array.from([0]),Uint8Array.from([1]),le(desc.length,4),desc,sigBytes);
+      return new web3.TransactionInstruction({
+        programId:programKey,
+        keys:[
+          {pubkey:deviceKp.publicKey,isSigner:true,isWritable:true},
+          {pubkey:env.cfgPda,isSigner:false,isWritable:true},
+          {pubkey:env.devRecPda,isSigner:false,isWritable:true},
+          {pubkey:dat,isSigner:false,isWritable:true},
+          {pubkey:capMint,isSigner:false,isWritable:true},
+          {pubkey:holderAta,isSigner:false,isWritable:true},
+          {pubkey:meta,isSigner:false,isWritable:true},
+          {pubkey:new web3.PublicKey(TOKEN_PROGRAM),isSigner:false,isWritable:false},
+          {pubkey:new web3.PublicKey(ATA_PROGRAM),isSigner:false,isWritable:false},
+          {pubkey:META,isSigner:false,isWritable:false},
+          {pubkey:web3.SystemProgram.programId,isSigner:false,isWritable:false},
+          {pubkey:web3.SYSVAR_RENT_PUBKEY,isSigner:false,isWritable:false},
+          {pubkey:web3.SYSVAR_INSTRUCTIONS_PUBKEY,isSigner:false,isWritable:false}
+        ],
+        data:data
+      })
+    }
+
+    async function confirmMintTransaction(blockhash, signature) {
+      return conn.confirmTransaction({signature:signature,blockhash:blockhash.blockhash,lastValidBlockHeight:blockhash.lastValidBlockHeight},'confirmed').then(function(result){
+        if(result.value.err)throw new Error('confirmed with error '+JSON.stringify(result.value.err));
+        return signature;
+      });
+    }
+
+    async function sendMint(captureHash, score) {
+      initMintPort();
+      const timestamp = Math.floor(Date.now() / 1000);
+      const nonce = new Uint8Array(8);
+      crypto.getRandomValues(nonce);
+      const sessionRef = await sha256(cat(enc("tq-demo-session|"), le(timestamp, 8), nonce));
+      const message = cat(captureHash, le(timestamp, 8), le(score, 2));
+      const edIx = web3.Ed25519Program.createInstructionWithPrivateKey({
+        privateKey: deviceKp.secretKey,
+        message
+      });
+      const sigBytes = edIx.data.slice(50, 114);
+      const blockhash = await conn.getLatestBlockhash();
+      const transaction = new web3.Transaction({
+        feePayer: wallet,
+        recentBlockhash: blockhash.blockhash
+      });
+      transaction.add(edIx);
+      transaction.add(mintIx(captureHash, timestamp, sigBytes, sessionRef, DESC_TEXT));
+      const signed = await provider.signTransaction(transaction);
+      signed.partialSign(deviceKp);
+      const signature = await conn.sendRawTransaction(signed.serialize());
+      return confirmMintTransaction(blockhash, signature);
+    }
+
+    keepButton.addEventListener("click", () => {
+      if (!lastRunRecord) return;
+      const records = readRunLog();
+      const existing = records.find((record) => record.t === lastRunRecord.t);
+      if (existing) {
+        existing.kept = true;
+      } else {
+        records.push({ ...lastRunRecord, kept: true });
+        if (records.length > RUNS_CAP) records.splice(0, records.length - RUNS_CAP);
+      }
+      writeRunLog(records);
+      lastRunRecord.kept = true;
+      cvVaultUpsert("kept");
+      actionStatus.textContent = "run kept - browser-local (tq_seek_runs_v1) · saved to CV vault";
+    });
+
+    mintButton.addEventListener("click", async () => {
+      try {
+        if (!wallet) {
+          actionStatus.textContent = "connecting wallet...";
+          await connectWallet();
+        }
+        if (!lastRunRecord) throw new Error("run CV first");
+
+        mintButton.disabled = true;
+        actionStatus.textContent = "minting - check wallet...";
+        const activeKnobs = activeKnobValues();
+        const hashes = {
+          A: hashCells.A.textContent,
+          B: hashCells.B.textContent,
+          C: hashCells.C.textContent
+        };
+        const outputHashHex = hashCells.cluster.textContent;
+        const attestationPayload = JSON.stringify([
+          hashes.A,
+          hashes.B,
+          hashes.C,
+          Object.keys(activeKnobs).sort().map((key) => [key, activeKnobs[key]]),
+          PIPELINE_TABS[activePipelineId].pipeline_version,
+          outputHashHex
+        ]);
+        const runHashBytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(attestationPayload)));
+        lastRunRecord.runHash = hex(runHashBytes);
+        const signature = await sendMint(runHashBytes, 0);
+        actionStatus.textContent = `minted - ${signature.slice(0,8)}...${signature.slice(-8)}`;
+
+        const records = readRunLog();
+        const existing = records.find((record) => record.t === lastRunRecord.t);
+        if (existing) {
+          existing.runHash = lastRunRecord.runHash;
+          existing.minted = signature;
+          writeRunLog(records);
+        }
+        lastRunRecord.minted = signature;
+        cvVaultUpsert("minted", signature);
+      } catch (error) {
+        actionStatus.textContent = `mint failed: ${error.message}`;
+      } finally {
+        mintButton.disabled = !lastRunRecord;
+      }
+    });
+
+    const camModal = document.getElementById("camModal");
+    const camVideo = document.getElementById("camVideo");
+    const camTitle = document.getElementById("camTitle");
+    const camCapture = document.getElementById("camCapture");
+    const camCancel = document.getElementById("camCancel");
+    let camStream = null;
+    let camSlot = null;
+
+    async function openCamera(slot) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        runStatus.textContent = "camera needs https - unavailable here";
+        return;
+      }
+      camSlot = slot;
+      camTitle.textContent = `camera - frame ${slot}`;
+      camModal.hidden = false;
+      try {
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+        } catch (error) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
+        camStream = stream;
+        camVideo.srcObject = stream;
+        runStatus.textContent = `camera open - frame ${slot} - press CAPTURE`;
+      } catch (error) {
+        closeCamera();
+        runStatus.textContent = `camera unavailable: ${error.message}`;
+      }
+    }
+
+    function closeCamera() {
+      if (camStream) {
+        for (const track of camStream.getTracks()) track.stop();
+        camStream = null;
+      }
+      camVideo.srcObject = null;
+      camModal.hidden = true;
+      camSlot = null;
+    }
+
+    function captureCameraFrame() {
+      if (!camStream || !camSlot) return;
+      const slot = camSlot;
+      const canvases = { A: frameA, B: frameB, C: frameC };
+      const captions = { A: provenanceA, B: provenanceB, C: provenanceC };
+      const canvas = canvases[slot];
+      const caption = captions[slot];
+      const videoWidth = camVideo.videoWidth;
+      const videoHeight = camVideo.videoHeight;
+      if (!videoWidth || !videoHeight) {
+        runStatus.textContent = "camera frame not ready - try again in a moment";
+        return;
+      }
+      const context = canvas.getContext("2d", { alpha: false });
+      const scale = Math.min(WIDTH / videoWidth, HEIGHT / videoHeight);
+      const drawWidth = videoWidth * scale;
+      const drawHeight = videoHeight * scale;
+      context.fillStyle = BG;
+      context.fillRect(0, 0, WIDTH, HEIGHT);
+      context.drawImage(camVideo, (WIDTH - drawWidth) / 2, (HEIGHT - drawHeight) / 2, drawWidth, drawHeight);
+      closeCamera();
+      canvasPngBytes(canvas).then((bytes) => {
+        sources[slot] = { kind: "camera", src: "camera", bytes, present: true };
+        caption.textContent = `camera capture (${videoWidth}x${videoHeight}) - browser-local, uniform-scale letterbox, PNG bytes hashed`;
+        runStatus.textContent = `frame ${slot} captured from camera - press RUN CV`;
+        updateRunEnabled();
+      }).catch((error) => {
+        runStatus.textContent = `capture failed: ${error.message}`;
+      });
+    }
+
+    document.querySelectorAll(".cam-control").forEach((button) => {
+      button.addEventListener("click", () => openCamera(button.dataset.slot));
+    });
+    camCapture.addEventListener("click", captureCameraFrame);
+    camCancel.addEventListener("click", closeCamera);
+
+    fileA.addEventListener("change", () => loadFrame("A", fileA.files[0]));
+    fileB.addEventListener("change", () => loadFrame("B", fileB.files[0]));
+    fileC.addEventListener("change", () => loadFrame("C", fileC.files[0]));
+    runButton.addEventListener("click", runComputerVision);
+    resetDefaultsButton.addEventListener("click", resetPipelineControls);
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => applyPipeline(button.dataset.pipeline));
+    });
+
+    /* ===== collections handoff - reads the window pick stored by collections.html (key cb_pick_*) ===== */
+    const PICK_SOURCES = [
+      { key: "c1", label: "collection 1 (video1)", frames: [
+        ["image0009.jpg", "1_MOHs3TMhT3oZKr27joL6ZSdwVhjHd-w"],
+        ["image0010.jpg", "1NkvVeGZUFlzVpjhGkNyEuQrLBjublqCq"],
+        ["image0011.jpg", "1EeyFzlfOvKa93yizSSMV3M2meWG7A5TB"],
+        ["image0012.jpg", "1597QZ4G54qHFT55HZZb2fgToXjZ4eFvo"],
+        ["image0013.jpg", "1Wr6CQ-KFGmccg6RI7QLLt1T3tFzraS1N"],
+        ["image0014.jpg", "1afhFnsn4v8rcynnolK-RXrFfeK9EowXV"],
+        ["image0015.jpg", "139mMXZhPePOj1-_S9iC9mYd6gDfxIM5e"],
+        ["image0016.jpg", "1yCdVuS6ePcq_zAG65SMnumevjFu77wlV"],
+        ["image0017.jpg", "1TdmtVu8iOJ_LvStVGMoKkW4k54fDV3mw"],
+        ["image0018.jpg", "1N5rpdfa6Rg_ol031tTecJUZCNkxAOaMt"],
+        ["image0019.jpg", "1rQLnx0KPbwrw88-xNRMcpjH0zB1InzHm"],
+        ["image0020.jpg", "1ayjTrAfGVp2nD-0cGeAVkc-_V4T8O5Tz"]
+      ] },
+      { key: "c2", label: "collection 2 (video2)", frames: [
+        ["image0024.jpg", "1cUsmYSL0y9zt4JTMaiPpL5qJBQwlcYXQ"],
+        ["image0025.jpg", "1quySrAt-9Kya45jAU_kx7F_HNZhIAOok"],
+        ["image0026.jpg", "1h2r2KKRp_dL6HCDx5PQbQIoqEjVl8ZcL"],
+        ["image0027.jpg", "1il9IsMaOdv9bWcrwZr9JjRahCktSqY7C"],
+        ["image0028.jpg", "12HW7L72_FvgBZbP9BrOa90rdX_adk8e6"],
+        ["image0029.jpg", "1907RWtPwvL3gLzA9dU1I6k6w5QqRuM4R"],
+        ["image0030.jpg", "1lbudnXqWjmkHvtqnzEk5K5rSAfqUxb9p"],
+        ["image0031.jpg", "1beCaQbi7C-HfE6z9NmM81iXmQo83Ovii"],
+        ["image0032.jpg", "1WJ-A-keKc6aPayy7H2QGNuiHga-fJaS-"],
+        ["image0033.jpg", "1Glbzoz_wTpKKTx6wvlCYCVIVNIfaLWco"],
+        ["image0034.jpg", "1yKZIi5v4bCDf0sgvpKfSnLJIlmhAyroH"],
+        ["image0035.jpg", "1jZ8F4DLVqmwCkAwFGmsJA6ozLpVBYBJz"]
+      ] },
+      { key: "t121", label: "12-1", frames: [
+        ["image0000.jpg", "1uCdhUWzd7qy4azurIq9rClGXNpBlD4bF"],
+        ["image0001.jpg", "1TxKlgBk3hqT6gfWE0A78fmUIUS9qJ6F1"],
+        ["image0002.jpg", "1FxKHUi-oT35Gra2_IyqBt5yLGZKWT-Or"],
+        ["image0003.jpg", "1LluJOFZOBdih02mDCsCxNNR2DkkombSi"],
+        ["image0004.jpg", "15GPtu5VEpm3iuvAx83ak3BYtZgVglebs"],
+        ["image0005.jpg", "1nKMmAgbQZJrp2EdsTXlwe-eAiXQJgLLH"],
+        ["image0006.jpg", "19fF5aDp_o83h8y7ut2Y9pKw4J2EMku8S"],
+        ["image0007.jpg", "1-aN5EirMCK-i_qAvKP_16-y9KJgrZozF"],
+        ["image0008.jpg", "16buk_XDZgtsjIXTBStCK4iuGUWUu-sk_"],
+        ["image0009.jpg", "1ehR5zetRukphmJ_rgo6XqERnKY3cse6q"],
+        ["image0010.jpg", "1BPhM4Pjx0I7ZjEPte7bL1poTS668oBEe"],
+        ["image0011.jpg", "18_8sP-PiPUCUQyHd0Y3kPyRGdGbo1Nva"],
+        ["image0012.jpg", "1L2wvE5up1cA-eEu45Ob8U3dQQo2ZY4mw"],
+        ["image0013.jpg", "1KJ8oIxxPqJgHvNmA07T08E-StZmUE6oc"],
+        ["image0014.jpg", "12Xwfm2uJC8rwDU2_WrxViYiTnB9szSZf"],
+        ["image0015.jpg", "10esq7EeaAjHeHd1_EDWVJvXOsf1G5Msw"],
+        ["image0016.jpg", "1PAy4kzsMvM7OJw64ja9URnKW3Bhdj0Ts"],
+        ["image0017.jpg", "1K8POqcqdnhgGNdCgY3lltaq3Sx49XWLg"],
+        ["image0018.jpg", "17WLw_XQQFSoIHezGEW3ZxeJLnj7Ck9Qp"],
+        ["image0019.jpg", "1AcRTWE_C0euF_JEVPs_bd46IBE4WqClk"],
+        ["image0020.jpg", "1nOP6P9xHh1lCC3FIqbSGgfwjtjyVvIrK"],
+        ["image0021.jpg", "1pt9YliInDCrWB9c2FrEEaGWCCdgOYr1U"],
+        ["image0022.jpg", "1tvwlTh3DlsjVwKUVxR9TedgON12uYPpB"],
+        ["image0023.jpg", "14-l_qzKZqMfbkDNxqcYws-vI9DPMuqnc"],
+        ["image0024.jpg", "1vOa2ETReEynvV69y71zRtWwJpZ8apJSP"],
+        ["image0025.jpg", "15BDnFZ4FHaTvXFGhg0wpqb6dVIUA-jQF"],
+        ["image0026.jpg", "1EvSiMSsCQOxlVZfRO6V62piW2CFcnKHo"],
+        ["image0027.jpg", "1w7kX__FA4iu4azsEWfREEWHTjwMAluHu"],
+        ["image0028.jpg", "1RIX2sqm7HrY57OZ_XGc6r-URPi-oaI37"],
+        ["image0029.jpg", "1e3vAgtDyVn8vNMu_Ynw5jgCDqzVBCe4b"],
+        ["image0030.jpg", "17TVcrd7_WT-Di_u3Gs3Zh29iwjCURY_q"],
+        ["image0031.jpg", "1bxfjrWloIVV3NjL-7VM_o6kiwEiGMYjd"],
+        ["image0032.jpg", "1kOOLnN56Mef0CKpU7R2esEKNpAKOOyud"],
+        ["image0033.jpg", "1iq6EIz9Jf9D7GpE2KkzDWXeJJjHk2oHD"],
+        ["image0034.jpg", "1R6Ka0tWE86L2rm1RLpJsJV2jh-PNF98D"],
+        ["image0035.jpg", "1bDgQHEta1wKz4l9l7aSqhxZySqwWUyGN"]
+      ] },
+      { key: "t122", label: "12-2", frames: [
+        ["image0000.jpg", "1Lu0wCusr6woMDtUjtwCcmHKEfzdWdLFK"],
+        ["image0001.jpg", "1trOd_W8rUC5vz2jRQ653NfRfpB8W0SEb"],
+        ["image0002.jpg", "1MTBiSbC-IM5mWZMKmYf2EJKmPOh73hfA"],
+        ["image0003.jpg", "1nuoRMcL9o21QJF77VNZbmoYQ02qQq9sb"],
+        ["image0004.jpg", "1omIn2mWXuEheXykeNTCAtW5_HodbLoH8"],
+        ["image0005.jpg", "1M6VtvFCMF1dqkbilXhb6izRy1OcIB6Q0"],
+        ["image0006.jpg", "1HavoWSX2Kdov7Ii39alYcWLRaz-scBIR"],
+        ["image0007.jpg", "1uEOs1Waha-IBMgYBfW4mDc6M4GYLeV75"],
+        ["image0008.jpg", "1x09OvyoNhzAtH8fZMQokd9AVRAC4E1vi"],
+        ["image0009.jpg", "1qTVLmVusIxEwQrw4EyHghLCSTy24SqCR"],
+        ["image0010.jpg", "1Ihuzi0-9pArlr5HhDgqvK_5ud8hCHRCg"],
+        ["image0011.jpg", "1rEvEdsbnIa0fqX4mo-1FtB0kPAzSWIf6"],
+        ["image0012.jpg", "1T-3Jd_VtuadQFny3id5L-nhBr2mO-xLF"],
+        ["image0013.jpg", "1-_wwQANC9sNqFhw-Q2LyrYzENXkjtP8F"],
+        ["image0014.jpg", "1jNGkVOsjwI7ZZ27iAJtGrfDDzKQhRc5R"],
+        ["image0015.jpg", "1A-VhrdReqH8BAHeji4ly8168E8uvlUuE"],
+        ["image0016.jpg", "1Rtcw2YbMGIxZWpC2rqpY3cQqD9jVl3Tn"],
+        ["image0017.jpg", "1ClaLrwjb390NaWtNYO-1WCYrMiLpYNVt"],
+        ["image0018.jpg", "13rvKQOj10b9KUK8KpOuza1e_osLpSL4I"],
+        ["image0019.jpg", "1O9lokGSRde5qqyZfKS21oDrMMYLNPYh_"],
+        ["image0020.jpg", "1oxD-_4I1JjrDSr_nCx--XgTkw94lyP9h"],
+        ["image0021.jpg", "1Jrk2B4fN1HpFaLVBNA_y9fJjYopKCmw7"],
+        ["image0022.jpg", "19u7srH0dkh8LtE2k_H1-p6w23CSwl-Tc"],
+        ["image0023.jpg", "1uDIeS-9ZDEktV5VIbI_CMFSrZHdRH_xv"],
+        ["image0024.jpg", "1kUI68GUekzm_pZzbjrywIT2t2QZMwxLm"],
+        ["image0025.jpg", "1OmchmiZvPtkOOPKLWfVjx2HbMMKKDTAO"],
+        ["image0026.jpg", "1EoryqZ9UbFDo_DfcHv4pVq_wZVOZ9H9t"],
+        ["image0027.jpg", "1bgNCKvooa5Bv_wocVDLQmbQFi7a_xAlw"],
+        ["image0028.jpg", "1t6AQpFskTjbQqpxIjPI7hOWDruijp5Y4"],
+        ["image0029.jpg", "1pfY2nLeEy6XIMPyS5R-yrGUU0RrC07Td"],
+        ["image0030.jpg", "1PFfq7JZp3tCZMmkb6hEVxGNzBj7puNkq"],
+        ["image0031.jpg", "15cvfE6xVrjS5TVbyop3-QxkVfu4FXXrh"],
+        ["image0032.jpg", "1KibgTCTlHSGscNeUkLeOCSm8dRhFnh-o"],
+        ["image0033.jpg", "1Zp399qVNkKlLYu_6QMHr0RGQOOfzRrBq"],
+        ["image0034.jpg", "10dscTPWr79MtN241VJRg7ahkJPvA49az"],
+        ["image0035.jpg", "12yIFR6oFaX_61XjJcsjREgEH2CJEukPs"],
+        ["image0036.jpg", "1j5-kpX1YXWXtogzxKHptdb1nOvPNp1Qf"],
+        ["image0037.jpg", "1Yg3fRdBSN5ldCug5Xe5qGJ4ANzzms-z4"],
+        ["image0038.jpg", "1MiU1u-9VGkn7AuyAi9wcugsh8V1ycMc0"],
+        ["image0039.jpg", "10B0K6_ZiWCr1u6yNsLfYIB1bTFbGgcaL"],
+        ["image0040.jpg", "1eiUGdu3Kg7iZX16UpJ3gZFRqbVUNu_PA"],
+        ["image0041.jpg", "1tZ1tnFBeem60FFLMIlCYvmTGP1jGjYME"],
+        ["image0042.jpg", "1OO41E1QmKxDiCpLXfrpN2Q5ahjex0a_r"],
+        ["image0043.jpg", "1n9VxiNelLG80emPn4RIN9de8M7fmQ8kH"],
+        ["image0044.jpg", "1wz7NWsLhcQF7Ps9Yy-BE0aLh2OVqDb8S"],
+        ["image0045.jpg", "1XvJ6ZUima51mIcnaNI5EwqsAbUaQl8vj"],
+        ["image0046.jpg", "1GErBjlvU6YZLlTjFflnt-ehIuoba44UY"]
+      ] },
+      { key: "t135", label: "13-5", frames: [
+        ["image20000.jpg", "1MzzNPe3WSo3Kuo1EaWem7l7m7-U4ygjj"],
+        ["image20001.jpg", "1hmHwQ0jVmzCoUe1MziJLN8W4HXlMjIxL"],
+        ["image20002.jpg", "189kc05iIR--GzZepdt7khSt2-syvGPDp"],
+        ["image20003.jpg", "1JNWDrK_cV1ufBsUlF1pZeTNVDfQo-N5P"],
+        ["image20004.jpg", "1mk2sE0ctOY7bU7Xsv8m6mJNtZSS6Nn1M"],
+        ["image20005.jpg", "1BCIdGKi9ZUQnc5Tp2XJtRnhFmlNk8M5X"],
+        ["image20006.jpg", "18fO514wTL7mqoi6-icZ-iNUCBTZc1uAD"],
+        ["image20007.jpg", "16T8Cw5QYDiYnbKH-VKITGIMDKHGME8f7"],
+        ["image20008.jpg", "1p7x0HiwI4fNz6EPX2lQHrmNa1qkdLIlJ"],
+        ["image20009.jpg", "1kuFHkysNz8dTsuugFx4k0dBM0Ni3q-04"],
+        ["image20010.jpg", "1M_ocyUnNSUg3J03-HkczeXxHsXeH3NT3"],
+        ["image20011.jpg", "1DJQbAdYHgSuEsV93HAHAOfkb3U-x5XkB"],
+        ["image20012.jpg", "1S7TmZsTjxKgfyNQTDzLxWRZP-uBqwPFh"],
+        ["image20013.jpg", "1rMFGDH5dZZ-9LGwbaxA1-iq9eUMA13ya"],
+        ["image20014.jpg", "1WD2vW7l3mEa6E8gI1ORl3QxFfZgTGnuI"],
+        ["image20015.jpg", "1JrjCiYpYb2IVAd-0-iCAYSHw0ya6SRDE"],
+        ["image20016.jpg", "1_q42TY93tfQjA_xUJgO9TDckdELUA2qn"],
+        ["image20017.jpg", "1yBBET6hk1oMaMCize1Ih_9zZc2ddfuZt"],
+        ["image20018.jpg", "1zLdrFn4g1k6j07D_as-ibaDUahtytkWF"],
+        ["image20019.jpg", "1BoQiJN0bM2JgSxviPY_C5OkmEdDmIgZg"],
+        ["image20020.jpg", "1si8Ir3ICnkmEmSh6cnnBNTh1Lv0uGKuX"],
+        ["image20021.jpg", "14P-MSuT0ewXuVRcPd5LdYqVM9TxAoDcF"],
+        ["image20022.jpg", "11cyh4wt79oJQF9pDBTYYdyWqU_PuS9sK"],
+        ["image20023.jpg", "1CYi2kzYwkuOf9gkjywm7tJLXpbuqREo0"],
+        ["image20024.jpg", "1c5IbBSv6KEHIZm7Yv9hxoOAIc_XHmPAr"],
+        ["image20025.jpg", "1FAg1xga-X3kxs-XWsoeaBXTkjdTzTl_v"],
+        ["image20026.jpg", "173CM3vM9nS3JZApB0t4cELJig81r6KHy"],
+        ["image20027.jpg", "1BMG1FLmN_QiAmO8CEPXoD7E1LvisdC47"],
+        ["image20028.jpg", "1y_iYtJ7W5vKb6LFPa3agYMkZx3AdSXFP"],
+        ["image20029.jpg", "1IvWdTnmi-D5DldZ7X2rkAODcp4pw58tK"],
+        ["image20030.jpg", "1yyTDyOspOzToydpSdbJPfPjT7ZowB5PL"],
+        ["image20031.jpg", "1ho34ydqVncz3HZIUwvLj9c3PZ6AszUkR"],
+        ["image20032.jpg", "1CS_97g-85SXJ8sLZ44I6ijnrRTDjbyE3"],
+        ["image20033.jpg", "1Pig4CBpXsONsfNUnjaw0kmItoao-JbGU"],
+        ["image20034.jpg", "1oMFmdCX5Ehp1AC6y1iPzm-dGGkpnGWzV"],
+        ["image20035.jpg", "16oWPCqXcMG5lof2xPmizztIxoiS76hdI"],
+        ["image20036.jpg", "1x7MdkEimpKIHW7UK_EWTHcI0d7_5JgBg"],
+        ["image20037.jpg", "1fWrWVEtWX9doqZdgnGfDKdOLO3oPQG9B"],
+        ["image20038.jpg", "1X8jOEKosteItQRMb_p9uoHuOMVqxUEhO"],
+        ["image20039.jpg", "17CyaU9kv2x13AlnbAJtzV9zS9nQhbdb5"],
+        ["image20040.jpg", "1XH7nsz8W_DpeaGi9Me_giVxbs5YCliR4"],
+        ["image20041.jpg", "1jdVcmxJO6t4taFGb2KbjZh6rUZZYorX9"],
+        ["image20042.jpg", "16T7DMFrDXb1sMjetagpFIuXSNgwLSSRl"],
+        ["image20043.jpg", "1qi88Vz-PE1h3yRWQm7FgVi_ZaQnLXQ7j"],
+        ["image20044.jpg", "1cahIAzkxufX7l2RbyVaZvZd4NGE9PeKk"],
+        ["image20045.jpg", "1NwEbY1wLHdNjrZTzTWWrbDFYkLX-qZZP"],
+        ["image20046.jpg", "1wSgAUWpSg7r3iRc1Px4c_6Kjoe_hzZZ-"],
+        ["image20047.jpg", "1pDBk5qv64wz6dTv9EYZ5gvXZoZUxF5Sg"],
+        ["image20048.jpg", "1FjFGXqZsUK1CbVt5SEp2Av3wZvTixkIu"],
+        ["image20049.jpg", "1Z7aDmY9Pkr3ivv5VSAzP-jM8qKX2NlGd"],
+        ["image20050.jpg", "1GHAca2yYcn0qTRWcsFqmuAJTVjznWSLC"]
+      ] },
+      { key: "t202", label: "20-2", frames: [
+        ["image20000.jpg", "1P5JM8OI8MuF5HeS8xLksAIGbVsKK0dz_"],
+        ["image20001.jpg", "1Uhs2VXEHhtB33K_L1lyvJA4bvfjGNInA"],
+        ["image20002.jpg", "1cnzOj2Gc9rOr0Wp4t2bQinGQtC6V6KGD"],
+        ["image20003.jpg", "1-sGdhknkmDOZfxZNUf1QlxnNf2qdEt5n"],
+        ["image20004.jpg", "1MNJztq0b9OsbugLGbI9ef_MPbqYpRJZs"],
+        ["image20005.jpg", "1Knm9VHOrS4VE1x26PsJ8OdkHmFFXJFud"],
+        ["image20006.jpg", "1lmBlK3phh1yYZMUV7Ncft_7ZF82a-LL0"],
+        ["image20007.jpg", "1NNNbroGM7OgMi4w9eH8nycMIG87zSq3h"],
+        ["image20008.jpg", "1FmpIuM9mDeXhHT6CqCsWG4vDMdxzBBLd"],
+        ["image20009.jpg", "10ZoF_WT1ImItsg9eSwEk0gLD1Wal5L6V"],
+        ["image20010.jpg", "1m7kKivmPihtI_POiMzCooo5_WBWpbjG_"],
+        ["image20011.jpg", "1SF-Igk-nyBOuBIHbwlCqMCPZDbOrapgC"],
+        ["image20012.jpg", "1dlQF6EY0mmnG-qW00ivWu0umcu5PU-4b"],
+        ["image20013.jpg", "1zeDZnjNqd_3OiroB1uBXVLGAd1sbNHQh"],
+        ["image20014.jpg", "1wAhOVRQyPgnW7lM219RvDC9qW1MKiO9P"],
+        ["image20015.jpg", "19WYvqGsZ8akF9KX3-DQMDxwjt8zDqQs2"],
+        ["image20016.jpg", "1xG8m6gxs8IS50ed0ho0KXRTEyJSmBZYj"],
+        ["image20017.jpg", "1DgQEo-GFmfg4Qu-bBf1XxdGm9a1PXlD6"],
+        ["image20018.jpg", "1XCWQ5hkCYIeKmcU2WRTzX4GcWAhswUmy"],
+        ["image20019.jpg", "1fhsJIsCLZTubal0v1yUyJUfYQ1rWNk49"],
+        ["image20020.jpg", "1CCf4tW6LO8ri08x1HcT2_yHERdFU4n7A"],
+        ["image20021.jpg", "1IS19KO6GEl_nAnx-VBaziLCAO0wsMXWI"],
+        ["image20022.jpg", "141o1GGnfJz46USUNbCn3U_k25gUF-z_-"],
+        ["image20023.jpg", "1a9jukma8e2wZNZCKq1EO6neLMU77ILSe"],
+        ["image20024.jpg", "1jDrg8s-ugXTszmqmWaWZSKJtHBUMdzQ1"],
+        ["image20025.jpg", "1z0EQMYaz3V21z183JeSbvJmskfLV0RGX"],
+        ["image20026.jpg", "1P7YfVlK6PzpLeqVn--5lEOib9CTww5w1"],
+        ["image20027.jpg", "12b_8BSzZ9h4u_3cU9nRRUVRuV1_k3R3s"],
+        ["image20028.jpg", "1Mp2aoCaTnM_YPJuWoQEe3L8mdvZ8xC_0"],
+        ["image20029.jpg", "12PkUAcHfkUk4zzIfaQm7AjNaR9_d7Mz3"],
+        ["image20030.jpg", "16Btxnz9BHlbhlNotjPpVITBe3Q1FOLsY"],
+        ["image20031.jpg", "1GdEdsxjpcxln6N_QFcnojeVsFjgWwR9L"]
+      ] },
+      { key: "t264", label: "26-4", frames: [
+        ["img0000.jpg", "1nmeFePR0zukePcyQjJLoKbLDofAUejYi"],
+        ["img0001.jpg", "17RGOOucVd1iaxyK-XI7LYaVQGHucVk5X"],
+        ["img0002.jpg", "1Se4VMu_R7yvnQWhadnv_Lgkf7dJR1bvn"],
+        ["img0003.jpg", "19TDDlc-rZTL6gTvF_Rdfkz4JDgW7J7QZ"],
+        ["img0004.jpg", "1Jb76N9Ib9pFWM69ATsiF3UU-yauRk6wg"],
+        ["img0005.jpg", "1NZrDxMJM-h7W0QwD0L2oQL0QEpSkn_4I"],
+        ["img0006.jpg", "1Zk36ZkmNCpOWtor2M3hJ7kSzY2DXOZBv"],
+        ["img0007.jpg", "1riBznksdOkb7bMYCur7IXX23y4V2DOvb"],
+        ["img0008.jpg", "1KnF7M2TfmMA71JrotY5WL7oqhI__b_-x"],
+        ["img0009.jpg", "13x8WmsWt8mUnN7FwjPVgo6DeUmWJryvS"],
+        ["img0010.jpg", "1KaubOJ8KMGZ-d_jlgLSuc5ZUiX51Xike"],
+        ["img0011.jpg", "1qVCr1sChgEaPlgGi5U6y9k_9dhFUg3rl"],
+        ["img0012.jpg", "1ROhKt6gSyVIVXEJjNNFbGjAqwHCG1m1E"],
+        ["img0013.jpg", "1bOx_1cUhijw7zXS-LocMavGD07t6rvm1"],
+        ["img0014.jpg", "1g6577RLsvZUpqrpQDZ2fqJILRkvLrchv"],
+        ["img0015.jpg", "1fUTj5N-V4rx8Ufj16l83-4fo-OaOvuHQ"],
+        ["img0016.jpg", "10kDKFvkY_JCbSR1nAFx-0U4KN49iQUsn"],
+        ["img0017.jpg", "1zkIh83L19lOswgimTGuM_waLr4jUxMt8"],
+        ["img0018.jpg", "1JB99V3TTD5IW0khqRijuJiB5oUT8vH3l"],
+        ["img0019.jpg", "1DHwfrd81-Ls_7_nvmXfgKxX1QQfvnHee"],
+        ["img0020.jpg", "1bCjBcJSs7MxTYd5SEzrDi1bUBLO3MI80"],
+        ["img0021.jpg", "1ddgWvn6xSC5Jk_dj5h3g4mH1PnaMmkXk"],
+        ["img0022.jpg", "1jLKQb3IYnxL44-WTZExc4ZavVBb4DAw-"],
+        ["img0023.jpg", "1QJj7Pue_SzGZjL9d1nmZizSWD8AKphYW"],
+        ["img0024.jpg", "19OmMw6ADeRhPa94Y_jxoB_7aQsK0PmKd"],
+        ["img0025.jpg", "1w2mFh1RIwp7Ta_WYFCZpw1VSFt_vm7x_"],
+        ["img0026.jpg", "1pw8PcjEabOWroXAZPP6RxjGBwEqSCwIN"],
+        ["img0027.jpg", "1Y71GR36EgHjmhepQYICBkjcce7ZFp06D"],
+        ["img0028.jpg", "101hi-8EiOCsQv3GlOiRsMKA0KsGhSQ2U"],
+        ["img0029.jpg", "1KvUgq94sE1Ih0kcx9I5hLAbEp-6kRvCV"],
+        ["img0030.jpg", "1_ZVLILG-jttN1TsiIbZ3Kip2c7E-LhD-"],
+        ["img0031.jpg", "1hJNxDOlDt5_30UV9BEvOO0YISigIkxec"],
+        ["img0032.jpg", "1A_dAGU4dBVpQ4Gb8jXrK2XpAGjQ_9vI7"],
+        ["img0033.jpg", "1J0PPCUphFfg07WlmKz4rk8KbsdMWVi1W"],
+        ["img0034.jpg", "1p-I7D466bNsjB3Xdk2h5Z52vAmRFNei5"],
+        ["img0035.jpg", "1FGVtpA7MZOWD24I-wLt_TLPzpXoK3EMZ"],
+        ["img0036.jpg", "1ys0kpUzvq5bmz5VLfMz4eXXCpWD_pr15"],
+        ["img0037.jpg", "1baJwy6PlHKzftiA5bOizjDGbIBqQ5CEe"],
+        ["img0038.jpg", "1cQvOIh-E3GIzb7Io8hwy1Bz9p0cXoSRX"],
+        ["img0039.jpg", "1RotkXzdY0nJJLs4Z8LZkach-gZO--Jym"],
+        ["img0040.jpg", "1vxsvcHxG670l9koiRkbtp3M7bSgeoa6c"],
+        ["img0041.jpg", "1myKvUzxLOYUfWa_imuJvkEKbN2jAUU1l"],
+        ["img0042.jpg", "1M-vahKZQKM_BB9sE2mZ1UwyQ2DkdNAIQ"],
+        ["img0043.jpg", "1QRhBKq98s4r0e3EzlczKcuhPv6dgAhjH"],
+        ["img0044.jpg", "1HwObQGsO5iIOIkGVPHcP5dsY4uprgjL5"]
+      ] },
+      { key: "t26o", label: "26-ovni", frames: [
+        ["image10000.jpg", "16EOzD0XOgKz2_-QpHbHnyVZynGP_vqcz"],
+        ["image10001.jpg", "10rfAKHprWhK6besdaUOZC1JBfL3PNc4J"],
+        ["image10002.jpg", "1KpwiFT5z6k49OiLkGKUb37U7jaR6uGdy"],
+        ["image10003.jpg", "17XNlGA1BgF9814tM89dFSwFSUwq9L_Ig"],
+        ["image10004.jpg", "15oCokzvnmhrMBpor1qcVddAQhCneXO8X"],
+        ["image10005.jpg", "1RuLAyS7-dGYD7EaLDO_YXq4mrPw_4mCr"],
+        ["image10006.jpg", "1CzYWAp8wIoNBb3ohjS-K8WcY754G-87M"],
+        ["image10007.jpg", "1WTHI8qrC0hI-FAQjVsMMMzW47AdcHUHR"],
+        ["image10008.jpg", "1oZFcmGja3faYhizEZbDbrtnfnUMr8lYq"],
+        ["image10009.jpg", "1i5GYr0UM_RudN8ZxycdxZ6DeVROCv8c9"],
+        ["image10010.jpg", "1XvAPeZeY5x3twSy_kyMoO5JBhRnUUyZJ"],
+        ["image10011.jpg", "1pCWBLBcwkk8lYGibOi9M34MxIxkCUgFK"],
+        ["image20000.jpg", "1Y6uPcy8QMUGtZOssY71IF6cX43es5QAN"],
+        ["image20001.jpg", "1PXgoKcXTa8A41X3Q7li9G1UWZL7HqDsh"],
+        ["image20002.jpg", "1qs16Csa8IrIyITri7QWv-BiU5ojKVRgc"],
+        ["image20003.jpg", "1KGzSZcQM3VN2lYU3U-sY0KJr_wQptf9K"],
+        ["image20004.jpg", "1BjalSJJyUfoTA1vJk5--kxlLVU_vc92S"],
+        ["image20005.jpg", "1k-U9zEyfcWiOOawr4QkUJRm0bA0W7c8w"],
+        ["image20006.jpg", "1YDqp82dNRoTfJ-X_Rd8jFB20SmhcW4X3"],
+        ["image20007.jpg", "1SalYihZaMlP1nqY60_3mt49Nj65xyefz"],
+        ["image20008.jpg", "1VVd1ZRPcYj1qgJopE9l-cHqQjNSsWcgi"],
+        ["image20009.jpg", "1QSHCVw1vaRnLSEMwPlWIb1fQgj7KH8ov"],
+        ["image20010.jpg", "1JHR-eVypStr_MSNN6z6n-XwUuUsOfyEw"],
+        ["image20011.jpg", "1RL8pX52SQq27QDOWVteukUzcSC5s_xRU"],
+        ["image20012.jpg", "1Z92QYH1TCENkf9jy9hcgRNyNyaBJLa_X"],
+        ["image20013.jpg", "1ueyQK6kQiiYoJzYyN_vXIh45ffoZf2pY"],
+        ["image20014.jpg", "1m_ST9hsfHHOLZmtesb_XgNp36WHSp3lD"],
+        ["image20015.jpg", "1ALHH1ytrDv4mg3r-3q6s0KIfFpHVCeh1"],
+        ["image20016.jpg", "1MoIn8xSNhj0t7NrpKiRzHcmcH-7ilYYI"],
+        ["image20017.jpg", "1C-o-ZZHfPwZ2b1p6ghFQhVwGQ2o3cKH_"],
+        ["image20018.jpg", "1IcaBH7NoOgAtsbMzn6M4gc5GDt5SOPAD"],
+        ["image20019.jpg", "1drV_CFdjp0-mVWSGwCLDfN7e3iW3b3cE"],
+        ["image20020.jpg", "1sXh7d87M7t0-Fl3D5A279AbdYw-KOIZ9"],
+        ["image20021.jpg", "1lCdwbtnudXI0YU0Y__1JYQBlwNjhlcnl"],
+        ["image20022.jpg", "1m7bWxLYbRID4kMLzv2LubL9MY2Z00liR"],
+        ["image20023.jpg", "1V4jv2_2mtx9DALe1FQ0NWI8vhGSV4PyQ"],
+        ["image20024.jpg", "1ZSeVd2OmxnOxf9Eaie96EaT8swupRFqK"],
+        ["image20025.jpg", "1IfoMKeJ0EP-4FutYSKRIyskDZSqZ3vjn"],
+        ["image20026.jpg", "19-qdqauXl9t126XWQx0prHKeLbfDrTed"],
+        ["image20027.jpg", "1iMQ3uQCOZgRDnDaE0bstw7j1PkxqzcbY"],
+        ["image20028.jpg", "1UNJQtFrj0vWBzhZzgDDBmuq7FSQxK8Qx"],
+        ["image20029.jpg", "1x3Oq_X-zn6sNTIQy0Nhw68NZg1L5s5V6"],
+        ["image20030.jpg", "1VGKR2-5hm-OkmpLHicGg2l5xQCTIOrg8"],
+        ["image20031.jpg", "16O58-8lNJX92UtQtUZVbxjTqA6yDKx5X"],
+        ["image20032.jpg", "1OKPyei96mVMcet0Fbo1pp2IO97k-Qel9"],
+        ["image20033.jpg", "15CHMBx7pDWJN7WblHIBUONvMELWHErUG"],
+        ["image20034.jpg", "1NTU8PH9jj5ExuihzQIdt2RESdOZEJOn7"],
+        ["image20035.jpg", "16S2BOxKkQQRMbw9JYGfIwOZjPqpT_9ky"],
+        ["image20036.jpg", "1UzhfOkIFJED7Z5VYT81Os0WVuaQ6HcfO"],
+        ["image20037.jpg", "1C-9yCmHPzvK32VuhcqKIP4Nl2d7WHtba"],
+        ["image20038.jpg", "1Xq5PEObAmmSgZX2nTpR5SCybwVAQLdac"],
+        ["image20039.jpg", "1Qdv24Av6qHgjpp4QGZR_Xl6yYA0hHQgT"],
+        ["image20040.jpg", "1IIuzVjCFO29M5CEDh0x5p4OdJ8G015Ou"],
+        ["image20041.jpg", "1EynMTBeaAs2YUGh7vDbhZOzVrLZfit-4"],
+        ["image20042.jpg", "1mKcNulPQsmCxyE7gjJoMfqtGqYtp99ni"],
+        ["image20043.jpg", "1ejBxapQFeKPA2cslul8rhu96z1B7nxjC"],
+        ["image20044.jpg", "1gYvPAxrN51G-PX18BD94_SRUrfiWgHYg"],
+        ["image20045.jpg", "1NDDYRvK6D3cEXl3AHyHeUCj5TBL8bcvN"],
+        ["image20046.jpg", "1Gzlcr6IPKCuAgvXTqpXQpU3bc_rLC_jY"],
+        ["image20047.jpg", "1VVgrjn70wErLjhpn95clbiPnS3AD-_RH"],
+        ["image20048.jpg", "1xmH9fq5WJlYrKz4B0fWy6iACqmXEB85F"],
+        ["image20049.jpg", "14OLL-qdfMpeSX34SbMyEVwwBPIA9Lc0r"],
+        ["image20050.jpg", "1m0O6e58MacqhEdHmguZBnlIsWjweF-hu"],
+        ["image20051.jpg", "1KQyH7vxqa-aQdQ-uRzC8plNi0JPB1XyD"],
+        ["image20052.jpg", "1jktIcW0f37WyBLGjGlEm_WyZJeLmT_yw"],
+        ["image20053.jpg", "1kjzsaYs9KcuwS5uzZKYyudm1w3zvZhcA"],
+        ["image20054.jpg", "1sGOuvu3KnpMl3yVEkgEQWatlAdUhVhZp"],
+        ["image20055.jpg", "1ClOLi-eFp_MshgQwVeaYjqliOnT2bstL"],
+        ["image20056.jpg", "1UMUw78KbiBpAXLNMK-d66L4RejLS8-6E"],
+        ["image20057.jpg", "1HVyEWVxX4d0qUUTnqVbfCeJcyVX9CBYN"],
+        ["image20058.jpg", "1PuQr8R0_x2_OX3Y2sC28j_Qrl9W50LBy"],
+        ["image20059.jpg", "19WxNjT-z2Gi1AXtnaRQdvOk80h7XuKrm"],
+        ["image20060.jpg", "1Xt0hQBEebhlg7ITljDaUbuM3Frgif13K"],
+        ["image20061.jpg", "1kZr-cyERSbomQgS7T7Yu1-B81vm0K7nR"],
+        ["image20062.jpg", "17HvOsHZcfIwsOYMiP5jYHTPlI0BzvGTC"],
+        ["image20063.jpg", "14PIUTVhTwdkc01TaUqAA007-bBzBVwex"],
+        ["image20064.jpg", "14SGKnsnudfnn6kegRgc9iuVjSC81jc8h"],
+        ["image20065.jpg", "1wvzwbgc5a53Tw7YBvEO_jrGW0-SXggy_"],
+        ["image20066.jpg", "1fGgYlK6eJ3D-ccVbqWCgWzaxtVr0mlri"],
+        ["image20067.jpg", "162ZWVsofCTFXxJjWyVeHmQ02chGGI-8q"],
+        ["image20068.jpg", "1xc9bjv-XE0ydCj0H7GdyFnBHpDb9f8FL"],
+        ["image20069.jpg", "1dsfifkQI-PnAXHK_PZ8zXtBKdKU54-k-"],
+        ["image20070.jpg", "1CTUwrzesvXGXC38b2mKFkbztMHYRWuTs"],
+        ["image20071.jpg", "1FTJrRLK2HoHq456p67hU7IOFdT_h5Wmi"],
+        ["image20072.jpg", "1GnrKzUIOivrDQIR7EvzyZxqdzLg863re"],
+        ["image20073.jpg", "1Mz-2FIr30RS5guY26EE2uCal3WKkKzO-"],
+        ["image20074.jpg", "1h6jy9R-bpLe5kdRzEHdZ0SnUVjEpOxL2"],
+        ["image20075.jpg", "1-VRn5Hx1mgEsi6yWzx3DqSayXfRvOj-K"],
+        ["image20076.jpg", "1FC7CbyBf4lJBt3zUto3xV766-4UQxvqB"],
+        ["image20077.jpg", "1_sXlbYF8d_N9IYRPni5--SStZqE-PLnR"],
+        ["image20078.jpg", "1olTCpWt8sNTU7ir3tUmLLnXElzyuneY2"],
+        ["image20079.jpg", "11RoACH9fohmD_s-262gp9pzdmFWGPNJq"],
+        ["image20080.jpg", "1ZBUkUckNhzpHFk9gor3YaCR-PJ3wBCtj"],
+        ["image20081.jpg", "1ToJ08DLape-i_mcAqHarf5lJ_KQmpHjt"],
+        ["image20082.jpg", "1sjgXDzaeC3tktZRRMDjKCwTeBiFw7jt2"],
+        ["image20083.jpg", "17n6DdROqMNDJmIQr7s66WuYKu1cI4FQv"],
+        ["image20084.jpg", "1B_0-EZyoapBIriE51TLZkaE7NrXhwOQy"],
+        ["image20085.jpg", "1s10VYnq-gl8mkw-4BOOvoqK2LRhThWXs"],
+        ["image20086.jpg", "1-miVEfHR-0nIzGMigJlrQTJlb3QLQX4I"],
+        ["image20087.jpg", "1F7hen9WJRV7RtWvmj04FXCfmkIFaObWa"],
+        ["image20088.jpg", "1aSDtTZFtacHPj-4sNeeZMGi011yC6Lob"],
+        ["image20089.jpg", "1tj5hKUMC-8yMV0LB0zI-EB3Fo0prkVe9"],
+        ["image20090.jpg", "1q6MS6or2M67w7m9ptYqYNS7MSG-WfcGQ"],
+        ["image20091.jpg", "1gVlgPrtFhVEtv8Yk8ZWCHd7nlwKUt5VU"],
+        ["image30000.jpg", "1N-b-B0XRpacj-lHrWYUZOGml3zRW1hc1"],
+        ["image30001.jpg", "1NoLpt0ObHgs6Xw5dnglCsaDxD9y9_747"],
+        ["image30002.jpg", "1-pgNE1NWsoJppenbphXGKrUYpHz_QftR"],
+        ["image30003.jpg", "1iS9HpPJDEXTnVS7i6pOQbDc5KBD7sIyX"],
+        ["image30004.jpg", "1fRMfsdJnuVWqzxZIZ_-77DP-r7cu3Dzr"],
+        ["image30005.jpg", "1ZVwHDWeg5MXWunMDuUK1cp6uuz6KIspA"],
+        ["image30006.jpg", "1Cgk9It-GseWSo-XaQrQAhm6z53ckAce5"],
+        ["image30007.jpg", "18AejEo6L-prh7abyJZM32pF2UVsIH9AE"],
+        ["image30008.jpg", "1l--7CX1ZRhz0EfEp4rv7Z_fHgi5pBc73"],
+        ["image30009.jpg", "1Zt4NhbEEAAqMyi3V2H0-dQ8DX5oDh4p6"],
+        ["image30010.jpg", "1ab6Cn6NtEhfKvrZptNVjvL9ABLXim9VM"],
+        ["image30011.jpg", "1OK8ExPutYAMdbcDc6_jP7folbSg8lhC3"],
+        ["image30012.jpg", "1GIztO033zMsB2JUMXvEgx9OhaPazsSuH"],
+        ["image30013.jpg", "1ljDAB9CJa4rB0Oi54a_1R6fAmdNrW44B"],
+        ["image30014.jpg", "1aZQWUzV9lieo7Xcjmz5wNW1Zfk5ouOcG"],
+        ["image30015.jpg", "1tXKu7Q87J1ZsRRLlddRKp5XS7uFD-8CO"],
+        ["image30016.jpg", "1dg7AyxthkUyfbCKm7H6xeImsZANTlsHF"],
+        ["image30017.jpg", "1_qC_rbLvMKiCRuI7-j023f6-e7HybQwK"],
+        ["image30018.jpg", "1v__vyzoq5xuMCsRNYF4BoWxlCGKgO2LY"],
+        ["image30019.jpg", "1EDDqNHd-mY06ilJbFtnj2rlr6LAYIXyg"],
+        ["image30020.jpg", "1Jq2YqT4JvojHfusiyfFKzVs5auEN9cp9"],
+        ["image30021.jpg", "1U8s732s292DUEPjrhrYA9qTpSvt77Y4j"],
+        ["image30022.jpg", "1bH8iqb7lHTxrC6e8CPwnHxHHRQ89Qp8e"],
+        ["image30023.jpg", "1I9tFVovkNitEnjnGdPVe4PjcUMqoY4Ic"],
+        ["image30024.jpg", "16-Sc0r9KBhwT8qebuw23I83NQKa2O3N-"],
+        ["image30025.jpg", "1N-348_ZOV14P4gXuNvjCXRtuTjo12x6L"]
+      ] },
+      { key: "t274", label: "27-4", frames: [
+        ["img0000.jpg", "1jp9Fqagvab3dAu8ApN-tfcDFtQt3_2QD"],
+        ["img0001.jpg", "1E618LbK3dNl-g3lk40kb2EXr2YOsgANV"],
+        ["img0002.jpg", "1jxo7Jb-eNPmmKc5dcsJihrBO2qShkqS1"],
+        ["img0003.jpg", "1QK_2vKFa-ToeZ-ErfvEUrpmLlXnS_33_"],
+        ["img0004.jpg", "15ssmY9gotd0TY4_I4W21AKpYwYXOThmW"],
+        ["img0005.jpg", "1Tg2fq6cav9eS0mhtuN-MQnwuxFKQU2t5"],
+        ["img0006.jpg", "1INELYJZxTwzeZX_VS8TkkBKZiHJF8YuX"],
+        ["img0007.jpg", "13z757tDSVr0HTTJLOyRPmbnI3xpbTDBU"],
+        ["img0008.jpg", "1JZZD1dUOIBAEMGsZh2aAKwDzYc-DvDlF"],
+        ["img0009.jpg", "1upHuev8Yge2rmL0imnNVQu_ndLomn4A4"],
+        ["img0010.jpg", "1qAckq-vEvNAiNJJkB9kKee5T_zMPx45H"],
+        ["img0011.jpg", "1AR8t3D3gb_8pIve3Lre3mMvy1Nc7Mgtl"],
+        ["img0012.jpg", "1Sz-7EFYrX4sKPR2B2jZhnTlTnz0Xtxwo"],
+        ["img0013.jpg", "1elh2m1Zi6WfoAJ7pxrsWZlmxx6eVa2DX"],
+        ["img0014.jpg", "1eplJNhgGsAU0tb8IMKVaLzA9Fkb9mmEr"],
+        ["img0015.jpg", "1sXZL5AER5e73yTv0txgM_PGUH1yMViPM"],
+        ["img0016.jpg", "1lP38GOGhiLmI-DCYA-KgGU2ePEDt_kpG"],
+        ["img0017.jpg", "1m5R8yuajux0Y7xl1Z7yJrmD3MGwt-Oji"],
+        ["img0018.jpg", "1FylEsLEt8ocBcqr5sst9ZDCjfjQHSfCP"],
+        ["img0019.jpg", "1EoL1szR9TpX8ZLNyOnSnxMIVYTyFd4te"],
+        ["img0020.jpg", "1Ru71YEnJMTUIepflGMsCZLKVYpum6m9l"],
+        ["img0021.jpg", "1knD6d2LnrqWhQou7NJyBt-x2IghhBny9"],
+        ["img0022.jpg", "1w1efrF7MAk8ULOtU_z77Sk1kOcCSms-V"],
+        ["img0023.jpg", "1PuuaTR-sIiw8VBPa0plio32m3L9KuBIH"],
+        ["img0024.jpg", "1j8OlQpnzGPccGiKhz7hhJaxNI6hZ0L9d"],
+        ["img0025.jpg", "1bERd2v0wO7IdmZbIM_pbwEVK10-QnVwF"],
+        ["img0026.jpg", "1W46sR6vhzJY7xLWcZQDgaHE3rwhv6axC"],
+        ["img0027.jpg", "1pR06vrfYPvoGNhc_0cZ0wx51LYXBi1D7"],
+        ["img0028.jpg", "1upKIapGGa_4r1EE6oAKHXdriHpO5jGXr"],
+        ["img0029.jpg", "1-A50c7yCpv9O-tAm5CiBA1smQpg6vaRc"],
+        ["img0030.jpg", "19VPz-eXlyJPCKy76bsGJCZAyj9ZLLDDx"],
+        ["img0031.jpg", "1juz6TNFSt--xel8ycKGuJjfodOHngycO"]
+      ] },
+      { key: "t27o", label: "27-ovni", frames: [
+        ["img0000.jpg", "1fKuqlki9mOR6lSxgyXNAjPhDMF9PxtBi"],
+        ["img0001.jpg", "1EI7LSbRSPVPHZ07nt0hIhljcMLFI0qmt"],
+        ["img0002.jpg", "1en7IGwqpcSRmPcAggI4Naa8FDl1o-WRX"],
+        ["img0003.jpg", "1e5roRJUNdoccXxD-D52RgRfIgdKf0fLK"],
+        ["img0004.jpg", "11TfXRq0ByVqbMnIYHiEOQMoYzkFyUEix"],
+        ["img0005.jpg", "1NfyomnvFBf0QHkLIWt_lUZgSMvletAmP"],
+        ["img0006.jpg", "1se7SplXPUUrKlCPbFtANBoBnVFauhIPI"],
+        ["img0007.jpg", "1nXg0fxRTpReGXl2-bsdUx04GcFtkW3t0"],
+        ["img0008.jpg", "1Wq1QiYIW78JJUw-77xAm2RGbq1kBJjCM"],
+        ["img0009.jpg", "1sS1qtGbtfuRrMHT4BE1kI1eBsebLsU6R"],
+        ["img0010.jpg", "1fzghFUoG51WFwcpWrYAas0GkN4l1sd9y"],
+        ["img0011.jpg", "1sTj4n4tXXhYLu4SSVlm3SDtOXF3BbUoV"],
+        ["img0012.jpg", "1-YUX_GswfX7kYd_Gup7kDX8S063OjKy7"],
+        ["img0013.jpg", "1qL11lpzNJmO0YFA0zf59lRIWOF7ZYHBv"],
+        ["img0014.jpg", "1nGhH5YcHLm5ds2a6ULLAqZzun98d9_MR"],
+        ["img0015.jpg", "1BIA_gBbkP-DoidZZlA7dwLFg3mGgsOWb"],
+        ["img0016.jpg", "1mPBuzAulzZY9tKfEEp54NNmxtmC48eK9"],
+        ["img0017.jpg", "1-vYUGdfI8454YLKNd1GgZsZKcnZOhl-B"],
+        ["img0018.jpg", "168yE27RlgIw-YCEUJsNJPB-ZBUS6qT-0"],
+        ["img0019.jpg", "1rZqZvxdr09Or8UGqUw4-9R8NYopNnheU"],
+        ["img0020.jpg", "1B5yh33sBFX9k5qarqPTrKCNemoqxH3gW"],
+        ["img0021.jpg", "1dGd97aonDQCL59cLIH2S6M2qNp0I1l1u"],
+        ["img0022.jpg", "1ZoyQAZUPbfz5qYmWe-TFWluhWGmZCnFO"],
+        ["img0023.jpg", "1-VxatoIuZl62uGiJ0xL_mUrSxzSPMiam"],
+        ["img0024.jpg", "1fionogd_Vt4knDxXbwOksnKTOOwVofmH"],
+        ["img0025.jpg", "1gknaAafD3nYuFe8QZeRrsSln7tyr5U4p"],
+        ["img0026.jpg", "1lVFdDkkQOY_KObvOZ3cBw3l9yn4yRtux"],
+        ["img0027.jpg", "1KtlEZ94UMqlK7KC76SoUx6m_h7_Pd_SM"],
+        ["img0028.jpg", "1nEKdLsqM4eecy6bhB6Ipfgtw7jwSkT-m"],
+        ["img0029.jpg", "1b6V8gaM7L2jluX4il1FvL_pQZjinRc6I"]
+      ] },
+      { key: "si113", label: "sin-info / 11-3", frames: [
+        ["image00.jpg", "1s9zAQyWAwIzqjOwLdgFrB_7T8YkK3vkq"],
+        ["image01.jpg", "1JZNxgzZT-1PEDco480Lf6XY5vbLfsLyA"],
+        ["image02.jpg", "1qdQl3nCFWTPhDMmi458K1FzdPwXS4hMF"],
+        ["image03.jpg", "1eqQm5ZxG0l38vvfGenk1gscjSwTIPy7b"],
+        ["image04.jpg", "1zmER-F_9RcuPKGu6p6UqhiDAAGWrVvs3"],
+        ["image05.jpg", "1cvZqUevZ_FaWyGP1gpEkSnL25UY6S7Dn"],
+        ["image06.jpg", "1Nsx4sBrjxg7OLjh6h_vQMf2Zll1No26N"],
+        ["image07.jpg", "1SHwkHGMDf9o_IoGnrBLB3PxSYVYQKUug"],
+        ["image08.jpg", "12Etakqduk3_wgceIVs3ZUTJzuUT7hZea"],
+        ["image09.jpg", "1Gx6ws4gT8sExw2TlCiAByZVBMX8baDFi"],
+        ["image10.jpg", "1SublozHgWbGYq9zrZKdYcTtkmHzxA2mH"],
+        ["image11.jpg", "1t4lGKlI9BfbX8cefiKWT43lHpoFUAsP3"],
+        ["image12.jpg", "1MyEJ944psJo6uTbTqmtUPZeoV042_Jwz"],
+        ["image13.jpg", "1Fyi-mFxtoRKKYc1X584N4PhbnYcOxDvO"],
+        ["image14.jpg", "1kxzriocD8QpR2d4-nKlasktCpPkJigRd"],
+        ["image15.jpg", "19VjzanPV34b1ehw1xvk6gRuAbVFWhxJ4"],
+        ["image16.jpg", "1SKJP9gMZAjPEx4Nzu1pgxZDdpm6qCxq8"],
+        ["image17.jpg", "1VVZ31wJ6FqBeyw1y1A6v7Dn_unRH6-ia"],
+        ["image18.jpg", "1T59CFYXcPRfKiRMD7mGEX9oFw2uGi5qL"],
+        ["image19.jpg", "1qdl_SQipCtzVMGbYhL7HsuYKv8eLshWt"],
+        ["image20.jpg", "1daPVkuBv-k4OqbV2VUC-jfd0URfh0ZM1"],
+        ["image21.jpg", "1UoYi9YuhPhJ82WULaR8UBJBez63qXmBm"],
+        ["image22.jpg", "1fmcauPa9kCLKG0NdIx7cRVqKSaHOlZgs"],
+        ["image23.jpg", "1omiDusPjIh2SsFqycQ9l2gUH7qcEcs1T"],
+        ["image24.jpg", "1VeBO4ubuQic2LwgWjnu6zKP2ysBknZGR"],
+        ["image25.jpg", "12l7vBSct8EH5oAF-qJNIXzXDSjFWGO5_"],
+        ["image26.jpg", "1uidBSiPEfwturKMR9kU9vn1FIVsw66NU"],
+        ["image27.jpg", "1IF9aZPg7tyB9x_LRcA5dSWMO1KiGXyNh"],
+        ["image28.jpg", "1xpKVu3mvRvuOdpM9suUEEuFEWdXXPp1g"],
+        ["image29.jpg", "1sRjBRtNQEq5fMcTacnzzsWBqTGognwAv"],
+        ["image30.jpg", "1fLF05YwIUhWOtv0272il9i0dyyaB63Pc"],
+        ["image31.jpg", "11u7PY9WmsKqXuW-cyV0fEqKPd7ITy3ue"],
+        ["image32.jpg", "1G8LD2qdgEt9Gr20pnvSq-foJYjMR_uYB"],
+        ["image33.jpg", "1M3u18R3OUBsW46BtUTax--lpAzqoSXKZ"],
+        ["image34.jpg", "1aC2VDwYH-SPoynHaZOPRRdXvpJJNUjiB"],
+        ["image35.jpg", "1yJaFFFNauImEX3TdDh-xVfS8NtDdnFGn"],
+        ["image36.jpg", "13Qm0DcZHmSuy9E-d2RDbiYBCWv8wLD1e"],
+        ["image37.jpg", "1noHS-KzdcjZFrO4SnFpL1lXyo_5B6mii"],
+        ["image38.jpg", "13EaCGuwMfGYx7hUXsxSqzg_KbDaf8ZUV"],
+        ["image39.jpg", "1xORvkA8YApIVniWCi0DMLJLYvNdtExYk"],
+        ["image40.jpg", "1KlFNZXxZpRcsGta8cqL5M-2SEc4MOFtT"],
+        ["image41.jpg", "1AjfvhChE4uEa-xrYcUQGdEwEAyX7D7pz"],
+        ["image42.jpg", "1g0JkMmEhdrnJH6WHJIKCQIOs-3la7KrY"],
+        ["image43.jpg", "1KYcMeB3704nh8lA6iDEJ4kKMxvu6O86b"],
+        ["image44.jpg", "19tMkxa6el_SLW2cnizXAE8IwZDvKOBbt"],
+        ["image45.jpg", "1oh0k8CXe7I1H6RzhP_zU5AHW15PSZR6Z"],
+        ["image46.jpg", "1_WHgKiKwWkl30R1RAZsZ8GfSZaEYRCiA"],
+        ["image47.jpg", "1Gs41Fx04Xxlq7Bp0lu3hzTIrC8OeIhZi"],
+        ["image48.jpg", "1gwpyUB0T9o2aZ4sd9FtEFeYOrLATNRXA"],
+        ["image49.jpg", "1EmflGcvUfD4biCQs7NOFb10NdhHqG_NB"],
+        ["image50.jpg", "1KjgVp2j4d1_iBExuT_BYHFdvs4a5tcLE"],
+        ["image51.jpg", "1IrA-oY6L6EPmUyGx1DvvL1p0mFBNh8pJ"],
+        ["image52.jpg", "1m5-jdJC-uQhJNUB6OWTfHhHV_niXUuaQ"],
+        ["image53.jpg", "1ZA9vdiMb_EZ9nUkswyVE9z5DlUq3gBgv"],
+        ["image54.jpg", "1XA_2OeIXhdySzeKKhYEdH88zSajdf7GR"],
+        ["image55.jpg", "120VVWzPrRhH81eX_5mSVxHF1xvFFrWej"],
+        ["image56.jpg", "1kDuVMYtGfgnOrY-zgRvuiYU9LLYab0js"],
+        ["image57.jpg", "18l6e6m2Gje-e2uXmH7T_zYTTBugUdQJ_"],
+        ["image58.jpg", "1JJzPb5r_83bts4_TN_LjpDJB73pLrgG7"],
+        ["image59.jpg", "1UMk2ff8apdOcA_xGfNBjQ2RSDWZaPE_x"],
+        ["image60.jpg", "1uqvTyBCS9M9BCNZgSyMe7c5z3ocfb996"]
+      ] },
+      { key: "si184", label: "sin-info / 18-4", frames: [
+        ["imagev400.jpg", "1QhmGg2Us-TPpJgxfINKYU76cQYmfV423"],
+        ["imagev401.jpg", "1F12Y-LBeA_NkjY_sWK8XnV42uPlFUsXG"],
+        ["imagev402.jpg", "1oYeemfZZYo-guKn1cWl_z9uDlu_nLzB6"],
+        ["imagev403.jpg", "16YiITuKKwiNxGfpqZsgC8XDJX7mhUH3I"],
+        ["imagev404.jpg", "1kHVyRnuHrldofLCNI-qAuaeVL3JHh5w3"],
+        ["imagev405.jpg", "1feDsT7H0aqWb_muuGrxTZPXcOn-3RWW5"],
+        ["imagev406.jpg", "15dn33pqsD5ipFZAmeGc-U7m5s-7wDvjv"],
+        ["imagev407.jpg", "1MGD8LrTtFkXqmXgL_2ItcILHzcm1K6MJ"],
+        ["imagev408.jpg", "1WSYnKidtVj6eplUn-I1-gER44DCZAox0"],
+        ["imagev409.jpg", "1lgKnNFv4tjO2efNo8ycLr2TyRF5CR1rO"],
+        ["imagev410.jpg", "1B-MLok9gG_JKHUp_UDeTdkVNQSqt1lkd"],
+        ["imagev411.jpg", "1UYjj4iFbcb5najXFV1S8KkdCHGFXlCfn"],
+        ["imagev412.jpg", "13p-HkQDCUgbWCkwI2NVr8BC9t9l512uI"],
+        ["imagev413.jpg", "1kpnhDiiIWTYMyi2zdgvXgpVuECwKLaNH"],
+        ["imagev414.jpg", "13S2JY82YqgSyTwS8xJRJKqMYfFy3-iqL"],
+        ["imagev415.jpg", "1rjrbp9L1TcdvO0KN_Ur8oCu772QFMLML"],
+        ["imagev416.jpg", "1fWav9FH0P8pT0fMJkf20hq9ldXoNalx5"],
+        ["imagev417.jpg", "1DxXoeNJ46H7w5BZ3UQ5_592dBGY0bDrn"],
+        ["imagev418.jpg", "12rhEDWviPMbwI8ZSKuRGLeQP_teWDGU2"],
+        ["imagev419.jpg", "1IxTbDlBNNtayUUAlHNp2law7qG1Rw6F1"],
+        ["imagev420.jpg", "1Or5-RBCT0SAngZwfTTAyJuO1PG1CI6zG"],
+        ["imagev421.jpg", "1t9-unH8lpoEnAECpurYFvWMaaRhM3WMO"],
+        ["imagev422.jpg", "1unMg72D-XzjBv_It1G2H0UnE1tyId6rN"],
+        ["imagev423.jpg", "1FdrHawRPpED6HOw5nffUMd-7Auol-WDU"],
+        ["imagev424.jpg", "1a6G9my_6eUkHujCbRdEmeV9Bi-2vPN8c"],
+        ["imagev425.jpg", "11aTrh2UB5Gtwy1KRHaYbW9AK4U7iQUCr"],
+        ["imagev426.jpg", "1S265NxUKzJSomjYO92YYyQ_eAdv1nq14"],
+        ["imagev427.jpg", "15-0FTuTvpwYWKpYOm2Jk9HnQkQBYd72m"],
+        ["imagev428.jpg", "1SXgRkkE5Xd8fh623JSjc7hzbC61LbB7H"],
+        ["imagev429.jpg", "1PUS0ABpM5HAIVDTCaciNXNTqPufO8i03"],
+        ["imagev430.jpg", "1a0OSJaS-ERbKm4T_QSeOXoGGJDTLh3Sz"],
+        ["imagev431.jpg", "1XenBQR5GAIn1uUB_23imT3PfWh2BSTAs"],
+        ["imagev432.jpg", "18bnU6tDmoqHQmJ4acP82rCnwRXimz9b4"],
+        ["imagev433.jpg", "1ShDzIL5ANw84kZEl6v1LTWuXICIWe-B3"],
+        ["imagev434.jpg", "12_SX1VLL2lYk73oYBkoOk7OlmPTKlpY0"],
+        ["imagev435.jpg", "1z9jv2H1ieUTERFH8TIH5oCm7SlGlm5ly"],
+        ["imagev436.jpg", "1LWvo7aXjAeyhMuAKYFTkXcB0B2mirNCo"],
+        ["imagev437.jpg", "1UOG5kN5CLmL62k7BKZiS52lYUpC-vLVb"],
+        ["imagev438.jpg", "1xTiNnwnbIq_0WBhY-EwNQBBc6-Y_RBxG"],
+        ["imagev439.jpg", "1KqktxVT9gWQ2HCpA8SH7xxOGf1N3By6X"],
+        ["imagev440.jpg", "1eQXJopo5tVDue9paGVbdMFOr7i7-wuwC"],
+        ["imagev441.jpg", "10Fpjb8minYgAuIuTCQcufWOBek96VBJo"],
+        ["imagev442.jpg", "1tNk3Jf5O44adY6WvinsUikxfNBUs3QEJ"],
+        ["imagev443.jpg", "1e-sNxGLExYUof6eCkOfPsFdDU1Ww-ue5"],
+        ["imagev444.jpg", "1FZzKQTxhLC0CnN-nfYPM_WC4Silq3Z-D"],
+        ["imagev445.jpg", "1v0GCLgOzBX6bg3fCAGIY1rXzvOFr1dtf"],
+        ["imagev446.jpg", "1QmzVcptLg7Q_rLtdH0OgPGgbBrGrRcKx"],
+        ["imagev448.jpg", "183v8HG4SQXdc9bHhaK2HOOEgbGr3Kd2v"],
+        ["imagev449.jpg", "17IBvRNfbFIqLU3QJzow9L9c7eeH_-Kf0"],
+        ["imagev450.jpg", "1tVvXikncEMwc2ScudvA1DRmQWCG-L_nf"],
+        ["imagev451.jpg", "1IzhxrkpRfMrQd8bGVhE_j6PaXp9vfxSX"],
+        ["imagev452.jpg", "1jkDp7HzvfVD7GbiU0WInGzomDZN-Fdpi"],
+        ["imagev453.jpg", "1YaTKIC05j9vXMUWTPCSZKp6OTkcyy3ZA"],
+        ["imagev454.jpg", "1GazVWyEueeB8KqxO6gjeuiqpzHsFNpKe"],
+        ["imagev455.jpg", "1M7xH84MZQyK6hEshhbb9ImothydZTjBe"],
+        ["imagev456.jpg", "10b25rsoOrKdI7U2a07aRNC9-GgUsCNMa"],
+        ["imagev457.jpg", "1gphCAHtUseAzx4jGA8mssoCjftwGOr_J"],
+        ["imagev458.jpg", "1d8-TGE_8LtMd9_K8WplU-_H18bf_FMS_"],
+        ["imagev459.jpg", "1yNW3gZeIXCkoegbNo_pmyvBJr50BJFCF"],
+        ["imagev460.jpg", "1uMIuXdo5F_WgL7Hb6baA1lYzEgVc1_Gg"]
+      ] },
+      { key: "si71", label: "sin-info / 7-1", frames: [
+        ["test00000.jpg", "1es2rmoZRTh3DUugX4npWQrss04Jii-cj"],
+        ["test00001.jpg", "1wxXTRsyC6N6jTo1OkT4-eXjiQXAnRy6T"],
+        ["test00002.jpg", "1sr15SHAPQlVpw4X_iUyyfwRg4ZafcCg9"],
+        ["test00003.jpg", "1KQ9g-77_KbxGcSFlG2n2wDh0EsQnwdN6"],
+        ["test00004.jpg", "1Il92MxJFJpr94uLBqhLI8Rv-sZ9zMLkQ"],
+        ["test00005.jpg", "1GykB2-o4-x81Hj_KPB1xc29AEDJR_o3x"]
+      ] },
+      { key: "si9o", label: "sin-info / 9-ovni", frames: [
+        ["image0000.jpg", "1Ea2TdaTt2s86BytUiTAsY1XRLTRJ3tG4"],
+        ["image0001.jpg", "1eYacmgRpusaQK0ztYOb-RNl816m_VDsf"],
+        ["image0002.jpg", "1WGYxOK3nkHWipZ3BpVSf88pm5jJ-UJq_"],
+        ["image0003.jpg", "1gdjVFJPByfssaBT78fijytd0YCRm8vCT"],
+        ["image0004.jpg", "1fBMT0Iib8Nd_3qDNGfKguW11xhiauYsA"],
+        ["image0005.jpg", "1yuzrbNRC1T_d6DlZHwrnz-gfnM8xgyvL"],
+        ["image0006.jpg", "1ZR_xdismjkBpVOzMouPewIyhnm-fKN-P"],
+        ["image0007.jpg", "1cW7xt1_sXerfXrDUw9Xs5p_0elSx-OhB"],
+        ["image0008.jpg", "1WLq92SM4Jd1U8_TBUo41dw1Xq99KfxjP"],
+        ["image0009.jpg", "1IM9Zbx3UzzyOs4zklQlJrrpw9TwCdwxn"],
+        ["image0010.jpg", "111BEP48eJ2_nvMO5p8hx6iFJ9ZVI88mQ"],
+        ["image0011.jpg", "15prUXsI5fjf0en5grQze8TnB8LQ9yKMb"],
+        ["image0012.jpg", "14O43OrZPpotSODp8WLMso_JwPkzZgkWs"],
+        ["image0013.jpg", "1Bz5THelfqD5rtUd7kSMl7OBYs_WA5gE7"],
+        ["image0014.jpg", "1T4u8dTfxStU9mnKcVKH5LCL8pDRJwOjC"],
+        ["image0015.jpg", "15dEEkaTLRC1-0aN6ZId2rVG-BRVVoyDQ"],
+        ["image0016.jpg", "1q7NUPSBm-0WtmPlXTSSqUTDuXJQmfya6"],
+        ["image0017.jpg", "1vnR_iYQRP3BafjDnk9Vq_1ZIBuwVpj__"],
+        ["image0018.jpg", "1KyvtgprHf0ZhL1VHnCeYL982_3NGxw1L"],
+        ["image0019.jpg", "1joWhtF4yXNAT0HXnPC4SPA1SbkcARHmv"],
+        ["image0020.jpg", "1GbImQXxuEhIovtnEZdrC7VydysVIZEN-"],
+        ["image0021.jpg", "1s7bhWmxvwmEl7TLI94UYX0mtXi8E6Y5r"],
+        ["image0022.jpg", "17ozV4d4_xvl2oO3quT77UdvEZHnt4D9V"],
+        ["image0023.jpg", "1RUE9Z0J8Dilu4TPrQsxhioQ74nkCBP3Z"],
+        ["image0024.jpg", "1iTsil5f4buoX1kmvnOw-Uglx_v9NdPIZ"],
+        ["image0025.jpg", "1AHnryJQIMJ12dyZR3_9UNRZoqWyttPiV"],
+        ["image0026.jpg", "1FG_8yyGWS4yl80SjD2HK1-5rP4XdAkFt"],
+        ["image0027.jpg", "1_JpDOVdpURt2ejRGuwCB7kuF20a-GZCm"],
+        ["image0028.jpg", "1I_b2EKUtwQ7luSUuWCQEf-P1qKrsp3_S"],
+        ["image0029.jpg", "1XTxCWbPZMvCO8gdQE55WCSGfQkLk7ulT"],
+        ["image0030.jpg", "1d35SM1v6poAIu-kx0ifcCkCzghbRPuue"],
+        ["image0031.jpg", "11jUOFVKkfpg9ayqC_78oCJt9coNe-bHt"],
+        ["image0032.jpg", "1pBbQpIu0P6h3LVTojjVIuxdpvr_UWOC2"],
+        ["image0033.jpg", "1HIgDh8M8GsiPSbxZrl5NPpcbu2u1uzzg"],
+        ["image0034.jpg", "1oQaNZhcsw7DffwfAd4jHIvoCYG6KlqFe"],
+        ["image0035.jpg", "1W3kYbY3JML-RF_t9sWx4WMFgY6QNOAH_"],
+        ["image0036.jpg", "1nKENjWmnsWnD0en3QTa5DTnT6tFieezx"],
+        ["image0037.jpg", "1jqZDS38wAVQhC90oPln8n7BlT86bVFiL"],
+        ["image0038.jpg", "1XymQiWUKlwwEqCFL6QBvnaeISpX65D3H"]
+      ] }
+    ];
+
+    function readStoredPicks() {
+      const picks = [];
+      for (const source of PICK_SOURCES) {
+        try {
+          const raw = localStorage.getItem("cb_pick_" + source.key);
+          if (!raw) continue;
+          const stored = JSON.parse(raw);
+          if (typeof stored.start !== "number") continue;
+          if (stored.start < 0 || stored.start > source.frames.length - 3) continue;
+          picks.push({ source, stored });
+        } catch (error) { /* malformed pick - skip */ }
+      }
+      picks.sort((a, b) => (b.stored.at || 0) - (a.stored.at || 0));
+      return picks;
+    }
+
+    function frameFetchUrls(id) {
+      return [
+        "https://drive.usercontent.google.com/download?id=" + id + "&export=download",
+        "https://lh3.googleusercontent.com/d/" + id,
+        "https://drive.google.com/uc?export=download&id=" + id
+      ];
+    }
+
+    async function fetchFrameFile(id, name) {
+      let lastError = null;
+      for (const url of frameFetchUrls(id)) {
+        try {
+          const response = await fetch(url, { redirect: "follow" });
+          if (!response.ok) throw new Error("http " + response.status);
+          const buffer = await response.arrayBuffer();
+          const head = new Uint8Array(buffer, 0, 2);
+          if (head[0] !== 0xFF || head[1] !== 0xD8) throw new Error("not JPEG bytes");
+          return new File([buffer], name, { type: "image/jpeg" });
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error("read blocked");
+    }
+    async function loadRealDefaultTrio() {
+      const source = PICK_\u0053OURCES.find((entry) => entry.key === "c1");
+      if (!source) throw new Error("video1 source missing");
+      const triple = source.frames.slice(0, 3);
+      let timeoutId = null;
+
+      try {
+        const loadedFrames = await Promise.race([
+          Promise.all(triple.map(async ([name, id]) => {
+            const file = await fetchFrameFile(id, name);
+            return { name, loaded: await decodeImageFile(file) };
+          })),
+          new Promise((resolve, reject) => {
+            timeoutId = setTimeout(() => reject(new Error("default trio timeout")), 8000);
+          })
+        ]);
+
+        if (defaultTrioFilled || sources.A.present || sources.B.present || sources.C.present) return false;
+        defaultTrioFilled = true;
+        const slots = ["A", "B", "C"];
+        const canvases = { A: frameA, B: frameB, C: frameC };
+        const captions = { A: provenanceA, B: provenanceB, C: provenanceC };
+
+        for (let index = 0; index < loadedFrames.length; index += 1) {
+          const slot = slots[index];
+          const item = loadedFrames[index];
+          const dimensions = drawLetterboxed(canvases[slot], item.loaded.image);
+          sources[slot] = { kind: "file", bytes: item.loaded.bytes, present: true, src: item.name };
+          captions[slot].textContent = `loaded file: ${item.name} (${dimensions.imageWidth}x${dimensions.imageHeight}) - uniform-scale letterbox, original bytes hashed`;
+        }
+        sources.A.src = sources.B.src = sources.C.src = "collection 1 (video1)";
+
+        const demoCaption = document.querySelector(".demo-caption");
+        if (demoCaption) demoCaption.textContent = "default trio: video1 image0009-0011 - real frames (2 min/frame); synthetic demo trio replaced";
+        updateRunEnabled();
+        runStatus.textContent = "default trio: video1 image0009-0011 - real frames (2 min/frame)";
+        return true;
+      } finally {
+        if (timeoutId !== null) clearTimeout(timeoutId);
+      }
+    }
+
+    async function initDefaultTrio() {
+      runStatus.textContent = "building deterministic demo trio...";
+      try {
+        await loadRealDefaultTrio();
+      } catch (error) {
+        if (!defaultTrioFilled && !sources.A.present && !sources.B.present && !sources.C.present) {
+          buildDemoTrio();
+          runStatus.textContent = "ready - built-in demo trio loaded";
+        }
+      }
+    }
+
+
+    async function loadPickIntoSlots(entry, button) {
+      const slots = ["A", "B", "C"];
+      const captions = { A: provenanceA, B: provenanceB, C: provenanceC };
+      const triple = entry.source.frames.slice(entry.stored.start, entry.stored.start + 3);
+      button.disabled = true;
+      try {
+        for (let index = 0; index < triple.length; index += 1) {
+          const [name, id] = triple[index];
+          const slot = slots[index];
+          runStatus.textContent = `handoff - reading ${name} (${index + 1}/3) from ${entry.source.label}...`;
+          const file = await fetchFrameFile(id, name);
+          await loadFrame(slot, file);
+          sources[slot].src = entry.source.label;
+          if (!captions[slot].textContent.includes(name)) throw new Error(`${name} did not load`);
+        }
+        runStatus.textContent = `handoff loaded ${triple[0][0]} -> ${triple[2][0]} into A / B / C - press RUN CV`;
+      } catch (error) {
+        runStatus.textContent = `handoff blocked: ${error.message} - fallback: open the collection browser, use copy the 3 links, and load them here with the file pickers`;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function renderPickHandoff() {
+      const picks = readStoredPicks();
+      if (!picks.length) return;
+      const box = document.getElementById("pickHandoff");
+      const rows = document.getElementById("pickHandoffRows");
+      box.hidden = false;
+      for (const entry of picks) {
+        const triple = entry.source.frames.slice(entry.stored.start, entry.stored.start + 3);
+        const when = entry.stored.at ? new Date(entry.stored.at).toISOString().slice(11, 16) + " UTC" : "time unknown";
+        const row = document.createElement("p");
+        row.className = "pick-row";
+        const label = document.createElement("span");
+        const dtPart = typeof entry.stored.dt === "number" && entry.stored.dt > 0 ? `Δt +${entry.stored.dt * 2} min, ` : "";
+        label.textContent = `${entry.source.label} - ${triple[0][0]} -> ${triple[2][0]} (${dtPart}picked ${when})`;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "cam-control";
+        button.textContent = "load into A / B / C";
+        button.addEventListener("click", () => loadPickIntoSlots(entry, button));
+        row.appendChild(label);
+        row.appendChild(button);
+        rows.appendChild(row);
+      }
+    }
+
+    renderPickHandoff();
+    drawPlaceholder(flowCanvas, "run CV to render denoised flow");
+    drawPlaceholder(clusterCanvas, "run CV to render clusters");
+    if (web3) initMintPort();
+    applyPipeline("frame-diff-blob");
+    initDefaultTrio();
+  </script>
+<script>
+(function(){
+  'use strict';
+  function applyKgGate(){
+    var b=document.getElementById('annotToggle');
+    if(!b)return;
+    var unlocked=false;
+    try{unlocked=localStorage.getItem('biotic_kengrams_v1')==='1';}catch(e){}
+    var hint=document.getElementById('kgGateNote');
+    if(!unlocked){
+      b.style.display='none';
+      if(!hint){
+        hint=document.createElement('p');
+        hint.id='kgGateNote';
+        hint.textContent='collect a Knowledge Engram to unlock the annotations toolbar';
+        hint.style.cssText='color:#9c927d;font-size:11px;letter-spacing:.05em;margin:8px 0 0';
+        b.parentNode.insertBefore(hint,b);
+      }
+    }else{
+      b.style.display='';
+      if(hint){hint.parentNode.removeChild(hint);}
+    }
+  }
+  applyKgGate();
+  document.addEventListener('DOMContentLoaded',applyKgGate);
+  window.addEventListener('storage',function(e){if(e.key==='biotic_kengrams_v1')applyKgGate();});
+})();
+</script>
+</body>
+</html>

@@ -93,8 +93,7 @@
     padding:6px 12px;border-radius:3px;margin-left:16px;white-space:nowrap;
   }
   .ch.active a:hover{background:var(--amber);color:var(--bg)}
-  .ch.locked{opacity:.42;transition:opacity .15s ease,border-color .15s ease,background .15s ease}
-  .ch.locked:hover{opacity:.72;border-color:var(--amber-dim);background:rgba(217,164,65,.07)}
+  .ch.locked{opacity:.42}
   .ch.locked .state{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.2em;color:#6b5f45;margin-left:16px;white-space:nowrap}
   footer{
     border-top:1px solid var(--line);padding:14px 26px;display:flex;gap:14px;flex-wrap:wrap;
@@ -111,17 +110,16 @@
 
 <nav>
   <a class="brand" href="sim.html" aria-label="Rise of Microbes">
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPEAAADZCAYAAADxNNZSAAAHVElEQVR4Ae3AA6AkWZbG8f937o3IzKdyS2Oubdu2bdu2bdu2bWmMnpZKr54yMyLu+Xa3anqmhztr1S+46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCoHLV/2XmhRNX/W8GQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FQOWq/0vMVf+fABBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBULnq/zPznMRV/5sAEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwFQuer/M3HV/2YABFddddX/VgAEV1111f9WAARXXXXV/1YAVK76v0Q8J3PV/2UABFddddX/VgAEV1111f9WAARXXXXV/1YAiKuuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rACpX/X9i/v3EVf9TABBcddVV/1sBEFx11VX/WwEQXHXVVf9bASCu+r/E/PcTV/1XASC46qqr/rcCILjqqqv+twIguOqqq/63AkBc9b+J+b9HXPVvBUBw1VVX/W8FQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FgLjqP4r57yf++5n/XOKq+wEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEgrnpBzH8v8f+D+a8n/m8AILjqqqv+twIguOqqq/63AiC46qqr/rcCQPzvZP77iav+K5j/euJ/BwCCq6666n8rAIKrrrrqfysAgquuuup/KwDE/wzmv5e46v8y899P/McDILjqqqv+twIguOqqq/63AiC46qqr/rcCoPJfz/zriauu+rcT/zrmfwcAgquuuup/KwCCq6666n8rAIKrrrrqfysAxH8+8y8TV131v5t5TuI/HwDBVVdd9b8VAMFVV131vxUAwVVXXfW/FQDiqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqAfwTCaxS4qyUmQwAAAABJRU5ErkJggg==" width="22" height="22" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid rgba(232,165,28,.8);display:block;flex:none;background:#f4efe6;" aria-hidden="true">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPEAAADZCAYAAADxNNZSAAAHVElEQVR4Ae3AA6AkWZbG8f937o3IzKdyS2Oubdu2bdu2bdu2bWmMnpZKr54yMyLu+Xa3anqmhztr1S+46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCoHLV/2XmhRNX/W8GQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FQOWq/0vMVf+fABBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBULnq/zPznMRV/5sAEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwFQuer/M3HV/2YABFddddX/VgAEV1111f9WAARXXXXV/1YAVK76v0Q8J3PV/2UABFddddX/VgAEV1111f9WAARXXXXV/1YAiKuuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rACpX/X9i/v3EVf9TABBcddVV/1sBEFx11VX/WwEQXHXVVf9bASCu+r/E/PcTV/1XASC46qqr/rcCILjqqqv+twIguOqqq/63AkBc9b+J+b9HXPVvBUBw1VVX/W8FQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FgLjqP4r57yf++5n/XOKq+wEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEgrnpBzH8v8f+D+a8n/m8AILjqqqv+twIguOqqq/63AiC46qqr/rcCQPzvZP77iav+K5j/euJ/BwCCq6666n8rAIKrrrrqfysAgquuuup/KwDE/wzmv5e46v8y899P/McDILjqqqv+twIguOqqq/63AiC46qqr/rcCoPJfz/zriauu+rcT/zrmfwcAgquuuup/KwCCq6666n8rAIKrrrrqfysAxH8+8y8TV131v5t5TuI/HwDBVVdd9b8VAMFVV131vxUAwVVXXfW/FQDiqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqAfwTCaxS4qyUmQwAAAABJRU5ErkJggg==" width="22" height="22" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:1px solid rgba(232,165,28,.8);display:block;flex:none;background:#f4efe6;" aria-hidden="true">
     <b>RISE OF MICROBES</b>
   </a>
   <span class="navtag">Solana · Devnet</span>
   <div class="navlinks">
-    <a href="deck.html" title="the nine Knowledge Engrams">Knowledge Engrams</a>
-    <a href="sim.html">ALife Ecology</a>
-    <a href="dj.html">Terrain Console</a>
-    <a href="battle.html">Battle Arena</a>
-    <a href="Seek.html">Seek & Track</a>
-    <a href="https://terraquest.biotexturas.org/" title="TerraQuest — terraquest.biotexturas.org">TerraQuest</a>
+    <a href="sim.html">Model</a>
+    <a href="dj.html">DJ Console</a>
+    <a href="battle.html">Battle</a>
+    <a href="deck.html" title="Deck · the nine kEngrams">Deck</a>
+    <a href="https://terraquest.biotexturas.org/" title="Landing — terraquest.biotexturas.org">Landing</a>
   </div>
   <button class="wallet" id="walletBtn">Connect Wallet</button>
   <span class="stub-note" id="walletNote">connect only · nothing signed</span>
@@ -129,7 +127,7 @@
 
 <main>
   <div class="kicker">A Remnant AI · Her research group · You</div>
-  <h1>Choose your research quest</h1>
+  <h1>Chose your research quest</h1>
   <p class="sub">You arrive as a new member of a decentralized research group led by the
   Remnant AI — art, science, technology, three councils at one object. The Datagram is the entry point.</p>
 
@@ -159,16 +157,10 @@
 
       <!-- double-headed filaments: councils <-> datagram -->
       <defs>
-        <marker id="ah" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto-start-reverse">
+        <marker id="ah" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto">
           <path d="M0,0 L9,4.5 L0,9 z" fill="#8a6a2a"/>
         </marker>
       </defs>
-
-      <!-- central Datagram -->
-      <a class="dg-group" href="#chapters">
-        <rect x="385" y="270" width="230" height="82" rx="14" fill="#171207" stroke="#d9a441" stroke-width="1.6"/>
-        <text class="dg-text" x="500" y="308" text-anchor="middle">Datagram</text>
-      </a>
       <line class="filament" x1="185" y1="118" x2="418" y2="268" marker-start="url(#ah)" marker-end="url(#ah)"/>
       <line class="filament" x1="815" y1="118" x2="582" y2="268" marker-start="url(#ah)" marker-end="url(#ah)"/>
       <line class="filament" x1="500" y1="352" x2="500" y2="505" marker-start="url(#ah)" marker-end="url(#ah)"/>
@@ -180,6 +172,13 @@
       <text class="council-label" x="120" y="108" text-anchor="middle">Art</text>
       <text class="council-label" x="880" y="108" text-anchor="middle">Science</text>
       <text class="council-label" x="500" y="566" text-anchor="middle">Technology</text>
+
+      <!-- central Datagram -->
+      <a class="dg-group" href="#chapters">
+        <rect x="385" y="270" width="230" height="82" rx="14" fill="#171207" stroke="#d9a441" stroke-width="1.6"/>
+        <text class="dg-text" x="500" y="308" text-anchor="middle">Datagram</text>
+        <text class="dg-sub"  x="500" y="330" text-anchor="middle">ENTER · CHAPTER 1</text>
+      </a>
     </svg>
   </div>
 
@@ -204,18 +203,19 @@
         <span class="desc">Conquer the arena.</span>
         <span class="state">LOCKED</span>
       </div>
-      <div class="ch active">
+      <div class="ch locked">
         <span class="num">4.-</span>
         <span class="name">Drone activate</span>
         <span class="desc">Seek and track.</span>
-        <a href="Seek.html">Enter</a>
+        <span class="state">LOCKED</span>
       </div>
     </div>
   </div>
 </main>
 
 <footer>
-  <span>RISE OF MICROBES · </span>
+  <span>RISE OF MICROBES · ENTRY</span>
+  <span>DESIGN MOCKUP — NOTHING ON-CHAIN, NOTHING MINTED</span>
   <span>BIOTEXTURAS LAB</span>
 </footer>
 
@@ -242,22 +242,15 @@
     if (msg) note.textContent = msg;
   }
   function noWallet(){
-    note.textContent = 'no wallet detected · unlock Phantom or Solflare and allow it for this site';
-  }
-  function alreadyConnected(q){
-    try{
-      var c=(typeof q.isConnected==='function')?q.isConnected():q.isConnected;
-      return !!(c&&q.publicKey);
-    }catch(e){ return !!q.publicKey; }
+    note.textContent = 'no wallet detected · install Phantom or Solflare';
   }
   var p = getProvider();
   if (!p) noWallet();
-  else if (alreadyConnected(p)) connected(p.publicKey.toString());
-  var waiting = false;
-  function attempt(){
+  else if (p.isConnected && p.isConnected() && p.publicKey) connected(p.publicKey.toString());
+  btn.addEventListener('click', function(){
     var q = getProvider();
     if (!q){ noWallet(); return; }
-    if (alreadyConnected(q)){ connected(q.publicKey.toString()); return; }
+    if (q.isConnected && q.isConnected() && q.publicKey){ connected(q.publicKey.toString()); return; }
     btn.textContent = 'Connecting…';
     var r;
     try { r = q.connect(); }
@@ -274,32 +267,6 @@
     }
     if (r && typeof r.then === 'function') r.then(ok).catch(fail);
     else ok(r);
-  }
-  btn.addEventListener('click', function(){
-    if (waiting) return;
-    if (getProvider()){ attempt(); return; }
-    waiting = true;
-    note.textContent = 'waiting for wallet extension…';
-    var t0 = Date.now(), done = false;
-    function finish(){
-      if (done) return;
-      done = true; waiting = false;
-      clearInterval(poll);
-      window.removeEventListener('solana#initialized', onInit);
-      attempt();
-    }
-    function onInit(){ if (getProvider()) finish(); }
-    var poll = setInterval(function(){
-      if (getProvider()) finish();
-      else if (Date.now() - t0 > 4000){
-        if (done) return;
-        done = true; waiting = false;
-        clearInterval(poll);
-        window.removeEventListener('solana#initialized', onInit);
-        noWallet();
-      }
-    }, 150);
-    window.addEventListener('solana#initialized', onInit);
   });
 })();
 </script>

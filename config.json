@@ -1,1 +1,39 @@
-{"schema": "alifesim-config-v1", "bundle": "alifesim", "target": "microbes.biotexturas.org", "cluster": "devnet", "programId": "TODO_PROGRAM_ID_AT_DEVNET_DEPLOY", "wallet": {"connect": "injected - connect only, nothing signed"}, "bounty": {"status": "awaiting-deploy"}, "pages": ["sim.html", "dj.html", "glyph.html", "index.html", "battle.html", "deck.html", "vault.html"], "data": ["battle_data.json"], "notes": "Static bundle config. Fill programId when b2's devnet deploy lands (GitHub OAuth -> CI compile -> slice 2 -> devnet). cluster stays devnet for MVP. No secrets in this file. Front end touches nothing on-chain until programId is real.", "updated": "2026-09-27"}
+{
+  "schema": "alifesim-config-v1",
+  "bundle": "alifesim",
+  "target": "microbes.biotexturas.org",
+  "cluster": "devnet",
+  "programId": "CurN8UWQwD1pifo9rhzKLbVrJxNt5jiGDTtpT8h6KskS",
+  "wallet": {
+    "connect": "injected-provider (Phantom/Solflare) — vault.html DEVNET panel signs via provider.signTransaction; index.html remains connect-only"
+  },
+  "bounty": {
+    "status": "deployed-devnet; setup sequence (initialize_config -> add_device -> init_treasury -> set_economy_params) gated on Juan's fresh-key execution; UI wired and reads state live"
+  },
+  "pages": [
+    "index.html",
+    "sim.html",
+    "dj.html",
+    "glyph.html",
+    "battle.html",
+    "deck.html",
+    "vault.html",
+    "kEngram1.html",
+    "kEngram2.html",
+    "kEngram3.html",
+    "kEngram4.html",
+    "kEngram5.html",
+    "kEngram6.html",
+    "kEngram7.html",
+    "kEngram8.html",
+    "kEngram9.html",
+    "Seek.html",
+    "collections.html",
+    "construct.html"
+  ],
+  "data": [
+    "battle_data.json"
+  ],
+  "notes": "Static bundle config. programId filled at devnet deploy (verified executable 2026-09-27, b2 handoff). cluster stays devnet for MVP. No secrets in this file. vault.html DEVNET panel is the only page that sends transactions, and only on button press after its state precheck passes.",
+  "updated": "2026-10-04"
+}

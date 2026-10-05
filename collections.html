@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TerraScope Observatory</title>
+<style>
+:root{--bg:#0d0f12;--panel:#14171b;--cream:#eee2cf;--muted:#aa9f8e;--amber:#d9a441;--line:rgba(238,226,207,.18)}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;color:var(--cream);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.shell{width:min(1120px,calc(100% - 32px));margin:0 auto}
+header{padding:40px 0 22px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:clamp(30px,6vw,52px);letter-spacing:-.045em;font-weight:760}
+.sub{max-width:820px;margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
+.collnav{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:14px}.collnav a{color:var(--amber);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.05em;text-decoration:none}.collnav a:hover{text-decoration:underline}
+section.coll{padding:26px 0 30px;border-bottom:1px solid var(--line)}
+.collhead{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between}
+.collhead h2{margin:0;font-size:17px}
+.collmeta{color:var(--muted);font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.controls{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+button{cursor:pointer;border:1px solid var(--amber);background:none;color:var(--amber);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.08em;padding:8px 13px}
+button:hover{background:rgba(217,164,65,.14)}
+button.active{background:var(--amber);color:var(--bg);font-weight:800}
+button:disabled{opacity:.4;cursor:default}
+.status{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--muted);min-height:16px;margin-top:10px;letter-spacing:.03em}
+.status a{color:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
+.cell{border:1px solid var(--line);background:var(--panel);padding:0;cursor:pointer;display:block;width:100%;font:inherit;color:inherit;text-align:left}
+.cell img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#000}
+.cell .cap{display:flex;justify-content:space-between;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:var(--muted);padding:4px 6px;letter-spacing:.04em}
+.cell.sel{outline:2px solid var(--amber);outline-offset:-2px}
+.cell.win{border-color:var(--amber)}
+.cell.win .cap{color:var(--amber);background:rgba(217,164,65,.14)}
+.cell.na{opacity:.4}
+.pick{display:none;margin-top:14px;border:1px solid var(--amber);background:rgba(217,164,65,.06);padding:14px}
+.pick.show{display:block}
+.pick h3{margin:0 0 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:.1em;color:var(--amber)}
+.pickrow{display:flex;gap:12px;flex-wrap:wrap}
+.pk{width:130px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:var(--muted)}
+.pk img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#000;border:1px solid var(--line);display:block}
+.pk a{color:var(--amber);text-decoration:none;display:block;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickacts{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
+.note{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:.04em}
+#modal{position:fixed;inset:0;background:rgba(13,15,18,.95);display:none;align-items:center;justify-content:center;flex-direction:column;padding:18px;z-index:50}
+#modal.show{display:flex}
+#modal img{max-width:min(96vw,1400px);max-height:82vh;object-fit:contain;border:1px solid var(--line);background:#000}
+#modal .mbar{display:flex;gap:14px;align-items:center;margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:center}
+#modal .mbar a,#modal .mbar button{color:var(--amber)}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.header-tools{display:flex;align-items:flex-start;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.header-tools .collnav{margin-top:0}
+.console-chip{width:270px;height:103px;flex:none;border:1px solid var(--line);background-image:url(terrascope_card_expanded.png);background-repeat:no-repeat;background-size:704px 320px;background-position:-413.5px -108.5px}
+footer{padding:22px 0 40px;color:var(--muted);font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="header-top">
+    <h1>TerraScope Observatory</h1>
+    <div class="header-tools">
+      <nav class="collnav" aria-label="Site"><a href="Seek.html">Seek & track</a></nav>
+      <div class="console-chip" role="img" aria-label="TerraScope console render"></div>
+    </div>
+  </div>
+  <p class="sub">twelve timelapsed collections from the Susana_TerraQuest drive - 569 frames - plus the two original TerraScope sets (12 frames each). click a frame to enlarge it; turn on pick mode and click a start frame to select it plus the next two - the consecutive triple Seek runs on.</p>
+  <p class="sub">All frames taken with a 4x objective. The TerraScope that captured them is the same one attested on the Avalanche chain.</p>
+  <nav class="collnav">
+    <a href="#c1">collection 1 · video1 · pictures/ · image0009 → image0020</a>
+    <a href="#c2">collection 2 · video2 · pictures/ · image0024 → image0035</a>
+    <a href="#t121">12-1</a>
+    <a href="#t122">12-2</a>
+    <a href="#t135">13-5</a>
+    <a href="#t202">20-2</a>
+    <a href="#t264">26-4</a>
+    <a href="#t26o">26-ovni</a>
+    <a href="#t274">27-4</a>
+    <a href="#t27o">27-ovni</a>
+    <a href="#si113">sin-info / 11-3</a>
+    <a href="#si184">sin-info / 18-4</a>
+    <a href="#si71">sin-info / 7-1</a>
+    <a href="#si9o">sin-info / 9-ovni</a>
+  </nav>
+</header>
+<main id="main"></main>
+<footer>sources: google drive, shared "anyone with the link" - all fourteen collections are listed in the SOURCES block at the top of this page's code (edit that one list to repoint storage, no redesign). pick selections are stored in this browser only. display-only - nothing uploaded, nothing on-chain.</footer>
+</div>
+<div id="modal"><img id="mimg" alt=""><div class="mbar"><button id="mprev">prev</button><span id="mname"></span><button id="mnext">next</button><a id="mopen" target="_blank" rel="noopener">open original</a><button id="mclose">close</button></div></div>
+<script>
+"use strict";
+/* ===== SOURCES - edit this block to repoint storage ===== */
+const SOURCES = [
+ { key:"c1", label:"collection 1 · video1 · pictures/ · image0009 → image0020", dt:2, frames:[["image0009.jpg","1_MOHs3TMhT3oZKr27joL6ZSdwVhjHd-w"],["image0010.jpg","1NkvVeGZUFlzVpjhGkNyEuQrLBjublqCq"],["image0011.jpg","1EeyFzlfOvKa93yizSSMV3M2meWG7A5TB"],["image0012.jpg","1597QZ4G54qHFT55HZZb2fgToXjZ4eFvo"],["image0013.jpg","1Wr6CQ-KFGmccg6RI7QLLt1T3tFzraS1N"],["image0014.jpg","1afhFnsn4v8rcynnolK-RXrFfeK9EowXV"],["image0015.jpg","139mMXZhPePOj1-_S9iC9mYd6gDfxIM5e"],["image0016.jpg","1yCdVuS6ePcq_zAG65SMnumevjFu77wlV"],["image0017.jpg","1TdmtVu8iOJ_LvStVGMoKkW4k54fDV3mw"],["image0018.jpg","1N5rpdfa6Rg_ol031tTecJUZCNkxAOaMt"],["image0019.jpg","1rQLnx0KPbwrw88-xNRMcpjH0zB1InzHm"],["image0020.jpg","1ayjTrAfGVp2nD-0cGeAVkc-_V4T8O5Tz"]] },
+ { key:"c2", label:"collection 2 · video2 · pictures/ · image0024 → image0035", dt:2, frames:[["image0024.jpg","1cUsmYSL0y9zt4JTMaiPpL5qJBQwlcYXQ"],["image0025.jpg","1quySrAt-9Kya45jAU_kx7F_HNZhIAOok"],["image0026.jpg","1h2r2KKRp_dL6HCDx5PQbQIoqEjVl8ZcL"],["image0027.jpg","1il9IsMaOdv9bWcrwZr9JjRahCktSqY7C"],["image0028.jpg","12HW7L72_FvgBZbP9BrOa90rdX_adk8e6"],["image0029.jpg","1907RWtPwvL3gLzA9dU1I6k6w5QqRuM4R"],["image0030.jpg","1lbudnXqWjmkHvtqnzEk5K5rSAfqUxb9p"],["image0031.jpg","1beCaQbi7C-HfE6z9NmM81iXmQo83Ovii"],["image0032.jpg","1WJ-A-keKc6aPayy7H2QGNuiHga-fJaS-"],["image0033.jpg","1Glbzoz_wTpKKTx6wvlCYCVIVNIfaLWco"],["image0034.jpg","1yKZIi5v4bCDf0sgvpKfSnLJIlmhAyroH"],["image0035.jpg","1jZ8F4DLVqmwCkAwFGmsJA6ozLpVBYBJz"]] },
+ { key:"t121", label:"12-1", frames:[
+   ["image0000.jpg","1uCdhUWzd7qy4azurIq9rClGXNpBlD4bF"],
+   ["image0001.jpg","1TxKlgBk3hqT6gfWE0A78fmUIUS9qJ6F1"],
+   ["image0002.jpg","1FxKHUi-oT35Gra2_IyqBt5yLGZKWT-Or"],
+   ["image0003.jpg","1LluJOFZOBdih02mDCsCxNNR2DkkombSi"],
+   ["image0004.jpg","15GPtu5VEpm3iuvAx83ak3BYtZgVglebs"],
+   ["image0005.jpg","1nKMmAgbQZJrp2EdsTXlwe-eAiXQJgLLH"],
+   ["image0006.jpg","19fF5aDp_o83h8y7ut2Y9pKw4J2EMku8S"],
+   ["image0007.jpg","1-aN5EirMCK-i_qAvKP_16-y9KJgrZozF"],
+   ["image0008.jpg","16buk_XDZgtsjIXTBStCK4iuGUWUu-sk_"],
+   ["image0009.jpg","1ehR5zetRukphmJ_rgo6XqERnKY3cse6q"],
+   ["image0010.jpg","1BPhM4Pjx0I7ZjEPte7bL1poTS668oBEe"],
+   ["image0011.jpg","18_8sP-PiPUCUQyHd0Y3kPyRGdGbo1Nva"],
+   ["image0012.jpg","1L2wvE5up1cA-eEu45Ob8U3dQQo2ZY4mw"],
+   ["image0013.jpg","1KJ8oIxxPqJgHvNmA07T08E-StZmUE6oc"],
+   ["image0014.jpg","12Xwfm2uJC8rwDU2_WrxViYiTnB9szSZf"],
+   ["image0015.jpg","10esq7EeaAjHeHd1_EDWVJvXOsf1G5Msw"],
+   ["image0016.jpg","1PAy4kzsMvM7OJw64ja9URnKW3Bhdj0Ts"],
+   ["image0017.jpg","1K8POqcqdnhgGNdCgY3lltaq3Sx49XWLg"],
+   ["image0018.jpg","17WLw_XQQFSoIHezGEW3ZxeJLnj7Ck9Qp"],
+   ["image0019.jpg","1AcRTWE_C0euF_JEVPs_bd46IBE4WqClk"],
+   ["image0020.jpg","1nOP6P9xHh1lCC3FIqbSGgfwjtjyVvIrK"],
+   ["image0021.jpg","1pt9YliInDCrWB9c2FrEEaGWCCdgOYr1U"],
+   ["image0022.jpg","1tvwlTh3DlsjVwKUVxR9TedgON12uYPpB"],
+   ["image0023.jpg","14-l_qzKZqMfbkDNxqcYws-vI9DPMuqnc"],
+   ["image0024.jpg","1vOa2ETReEynvV69y71zRtWwJpZ8apJSP"],
+   ["image0025.jpg","15BDnFZ4FHaTvXFGhg0wpqb6dVIUA-jQF"],
+   ["image0026.jpg","1EvSiMSsCQOxlVZfRO6V62piW2CFcnKHo"],
+   ["image0027.jpg","1w7kX__FA4iu4azsEWfREEWHTjwMAluHu"],
+   ["image0028.jpg","1RIX2sqm7HrY57OZ_XGc6r-URPi-oaI37"],
+   ["image0029.jpg","1e3vAgtDyVn8vNMu_Ynw5jgCDqzVBCe4b"],
+   ["image0030.jpg","17TVcrd7_WT-Di_u3Gs3Zh29iwjCURY_q"],
+   ["image0031.jpg","1bxfjrWloIVV3NjL-7VM_o6kiwEiGMYjd"],
+   ["image0032.jpg","1kOOLnN56Mef0CKpU7R2esEKNpAKOOyud"],
+   ["image0033.jpg","1iq6EIz9Jf9D7GpE2KkzDWXeJJjHk2oHD"],
+   ["image0034.jpg","1R6Ka0tWE86L2rm1RLpJsJV2jh-PNF98D"],
+   ["image0035.jpg","1bDgQHEta1wKz4l9l7aSqhxZySqwWUyGN"]
+ ] },
+ { key:"t122", label:"12-2", frames:[
+   ["image0000.jpg","1Lu0wCusr6woMDtUjtwCcmHKEfzdWdLFK"],
+   ["image0001.jpg","1trOd_W8rUC5vz2jRQ653NfRfpB8W0SEb"],
+   ["image0002.jpg","1MTBiSbC-IM5mWZMKmYf2EJKmPOh73hfA"],
+   ["image0003.jpg","1nuoRMcL9o21QJF77VNZbmoYQ02qQq9sb"],
+   ["image0004.jpg","1omIn2mWXuEheXykeNTCAtW5_HodbLoH8"],
+   ["image0005.jpg","1M6VtvFCMF1dqkbilXhb6izRy1OcIB6Q0"],
+   ["image0006.jpg","1HavoWSX2Kdov7Ii39alYcWLRaz-scBIR"],
+   ["image0007.jpg","1uEOs1Waha-IBMgYBfW4mDc6M4GYLeV75"],
+   ["image0008.jpg","1x09OvyoNhzAtH8fZMQokd9AVRAC4E1vi"],
+   ["image0009.jpg","1qTVLmVusIxEwQrw4EyHghLCSTy24SqCR"],
+   ["image0010.jpg","1Ihuzi0-9pArlr5HhDgqvK_5ud8hCHRCg"],
+   ["image0011.jpg","1rEvEdsbnIa0fqX4mo-1FtB0kPAzSWIf6"],
+   ["image0012.jpg","1T-3Jd_VtuadQFny3id5L-nhBr2mO-xLF"],
+   ["image0013.jpg","1-_wwQANC9sNqFhw-Q2LyrYzENXkjtP8F"],
+   ["image0014.jpg","1jNGkVOsjwI7ZZ27iAJtGrfDDzKQhRc5R"],
+   ["image0015.jpg","1A-VhrdReqH8BAHeji4ly8168E8uvlUuE"],
+   ["image0016.jpg","1Rtcw2YbMGIxZWpC2rqpY3cQqD9jVl3Tn"],
+   ["image0017.jpg","1ClaLrwjb390NaWtNYO-1WCYrMiLpYNVt"],
+   ["image0018.jpg","13rvKQOj10b9KUK8KpOuza1e_osLpSL4I"],
+   ["image0019.jpg","1O9lokGSRde5qqyZfKS21oDrMMYLNPYh_"],
+   ["image0020.jpg","1oxD-_4I1JjrDSr_nCx--XgTkw94lyP9h"],
+   ["image0021.jpg","1Jrk2B4fN1HpFaLVBNA_y9fJjYopKCmw7"],
+   ["image0022.jpg","19u7srH0dkh8LtE2k_H1-p6w23CSwl-Tc"],
+   ["image0023.jpg","1uDIeS-9ZDEktV5VIbI_CMFSrZHdRH_xv"],
+   ["image0024.jpg","1kUI68GUekzm_pZzbjrywIT2t2QZMwxLm"],
+   ["image0025.jpg","1OmchmiZvPtkOOPKLWfVjx2HbMMKKDTAO"],
+   ["image0026.jpg","1EoryqZ9UbFDo_DfcHv4pVq_wZVOZ9H9t"],
+   ["image0027.jpg","1bgNCKvooa5Bv_wocVDLQmbQFi7a_xAlw"],
+   ["image0028.jpg","1t6AQpFskTjbQqpxIjPI7hOWDruijp5Y4"],
+   ["image0029.jpg","1pfY2nLeEy6XIMPyS5R-yrGUU0RrC07Td"],
+   ["image0030.jpg","1PFfq7JZp3tCZMmkb6hEVxGNzBj7puNkq"],
+   ["image0031.jpg","15cvfE6xVrjS5TVbyop3-QxkVfu4FXXrh"],
+   ["image0032.jpg","1KibgTCTlHSGscNeUkLeOCSm8dRhFnh-o"],
+   ["image0033.jpg","1Zp399qVNkKlLYu_6QMHr0RGQOOfzRrBq"],
+   ["image0034.jpg","10dscTPWr79MtN241VJRg7ahkJPvA49az"],
+   ["image0035.jpg","12yIFR6oFaX_61XjJcsjREgEH2CJEukPs"],
+   ["image0036.jpg","1j5-kpX1YXWXtogzxKHptdb1nOvPNp1Qf"],
+   ["image0037.jpg","1Yg3fRdBSN5ldCug5Xe5qGJ4ANzzms-z4"],
+   ["image0038.jpg","1MiU1u-9VGkn7AuyAi9wcugsh8V1ycMc0"],
+   ["image0039.jpg","10B0K6_ZiWCr1u6yNsLfYIB1bTFbGgcaL"],
+   ["image0040.jpg","1eiUGdu3Kg7iZX16UpJ3gZFRqbVUNu_PA"],
+   ["image0041.jpg","1tZ1tnFBeem60FFLMIlCYvmTGP1jGjYME"],
+   ["image0042.jpg","1OO41E1QmKxDiCpLXfrpN2Q5ahjex0a_r"],
+   ["image0043.jpg","1n9VxiNelLG80emPn4RIN9de8M7fmQ8kH"],
+   ["image0044.jpg","1wz7NWsLhcQF7Ps9Yy-BE0aLh2OVqDb8S"],
+   ["image0045.jpg","1XvJ6ZUima51mIcnaNI5EwqsAbUaQl8vj"],
+   ["image0046.jpg","1GErBjlvU6YZLlTjFflnt-ehIuoba44UY"]
+ ] },
+ { key:"t135", label:"13-5", frames:[
+   ["image20000.jpg","1MzzNPe3WSo3Kuo1EaWem7l7m7-U4ygjj"],
+   ["image20001.jpg","1hmHwQ0jVmzCoUe1MziJLN8W4HXlMjIxL"],
+   ["image20002.jpg","189kc05iIR--GzZepdt7khSt2-syvGPDp"],
+   ["image20003.jpg","1JNWDrK_cV1ufBsUlF1pZeTNVDfQo-N5P"],
+   ["image20004.jpg","1mk2sE0ctOY7bU7Xsv8m6mJNtZSS6Nn1M"],
+   ["image20005.jpg","1BCIdGKi9ZUQnc5Tp2XJtRnhFmlNk8M5X"],
+   ["image20006.jpg","18fO514wTL7mqoi6-icZ-iNUCBTZc1uAD"],
+   ["image20007.jpg","16T8Cw5QYDiYnbKH-VKITGIMDKHGME8f7"],
+   ["image20008.jpg","1p7x0HiwI4fNz6EPX2lQHrmNa1qkdLIlJ"],
+   ["image20009.jpg","1kuFHkysNz8dTsuugFx4k0dBM0Ni3q-04"],
+   ["image20010.jpg","1M_ocyUnNSUg3J03-HkczeXxHsXeH3NT3"],
+   ["image20011.jpg","1DJQbAdYHgSuEsV93HAHAOfkb3U-x5XkB"],
+   ["image20012.jpg","1S7TmZsTjxKgfyNQTDzLxWRZP-uBqwPFh"],
+   ["image20013.jpg","1rMFGDH5dZZ-9LGwbaxA1-iq9eUMA13ya"],
+   ["image20014.jpg","1WD2vW7l3mEa6E8gI1ORl3QxFfZgTGnuI"],
+   ["image20015.jpg","1JrjCiYpYb2IVAd-0-iCAYSHw0ya6SRDE"],
+   ["image20016.jpg","1_q42TY93tfQjA_xUJgO9TDckdELUA2qn"],
+   ["image20017.jpg","1yBBET6hk1oMaMCize1Ih_9zZc2ddfuZt"],
+   ["image20018.jpg","1zLdrFn4g1k6j07D_as-ibaDUahtytkWF"],
+   ["image20019.jpg","1BoQiJN0bM2JgSxviPY_C5OkmEdDmIgZg"],
+   ["image20020.jpg","1si8Ir3ICnkmEmSh6cnnBNTh1Lv0uGKuX"],
+   ["image20021.jpg","14P-MSuT0ewXuVRcPd5LdYqVM9TxAoDcF"],
+   ["image20022.jpg","11cyh4wt79oJQF9pDBTYYdyWqU_PuS9sK"],
+   ["image20023.jpg","1CYi2kzYwkuOf9gkjywm7tJLXpbuqREo0"],
+   ["image20024.jpg","1c5IbBSv6KEHIZm7Yv9hxoOAIc_XHmPAr"],
+   ["image20025.jpg","1FAg1xga-X3kxs-XWsoeaBXTkjdTzTl_v"],
+   ["image20026.jpg","173CM3vM9nS3JZApB0t4cELJig81r6KHy"],
+   ["image20027.jpg","1BMG1FLmN_QiAmO8CEPXoD7E1LvisdC47"],
+   ["image20028.jpg","1y_iYtJ7W5vKb6LFPa3agYMkZx3AdSXFP"],
+   ["image20029.jpg","1IvWdTnmi-D5DldZ7X2rkAODcp4pw58tK"],
+   ["image20030.jpg","1yyTDyOspOzToydpSdbJPfPjT7ZowB5PL"],
+   ["image20031.jpg","1ho34ydqVncz3HZIUwvLj9c3PZ6AszUkR"],
+   ["image20032.jpg","1CS_97g-85SXJ8sLZ44I6ijnrRTDjbyE3"],
+   ["image20033.jpg","1Pig4CBpXsONsfNUnjaw0kmItoao-JbGU"],
+   ["image20034.jpg","1oMFmdCX5Ehp1AC6y1iPzm-dGGkpnGWzV"],
+   ["image20035.jpg","16oWPCqXcMG5lof2xPmizztIxoiS76hdI"],
+   ["image20036.jpg","1x7MdkEimpKIHW7UK_EWTHcI0d7_5JgBg"],
+   ["image20037.jpg","1fWrWVEtWX9doqZdgnGfDKdOLO3oPQG9B"],
+   ["image20038.jpg","1X8jOEKosteItQRMb_p9uoHuOMVqxUEhO"],
+   ["image20039.jpg","17CyaU9kv2x13AlnbAJtzV9zS9nQhbdb5"],
+   ["image20040.jpg","1XH7nsz8W_DpeaGi9Me_giVxbs5YCliR4"],
+   ["image20041.jpg","1jdVcmxJO6t4taFGb2KbjZh6rUZZYorX9"],
+   ["image20042.jpg","16T7DMFrDXb1sMjetagpFIuXSNgwLSSRl"],
+   ["image20043.jpg","1qi88Vz-PE1h3yRWQm7FgVi_ZaQnLXQ7j"],
+   ["image20044.jpg","1cahIAzkxufX7l2RbyVaZvZd4NGE9PeKk"],
+   ["image20045.jpg","1NwEbY1wLHdNjrZTzTWWrbDFYkLX-qZZP"],
+   ["image20046.jpg","1wSgAUWpSg7r3iRc1Px4c_6Kjoe_hzZZ-"],
+   ["image20047.jpg","1pDBk5qv64wz6dTv9EYZ5gvXZoZUxF5Sg"],
+   ["image20048.jpg","1FjFGXqZsUK1CbVt5SEp2Av3wZvTixkIu"],
+   ["image20049.jpg","1Z7aDmY9Pkr3ivv5VSAzP-jM8qKX2NlGd"],
+   ["image20050.jpg","1GHAca2yYcn0qTRWcsFqmuAJTVjznWSLC"]
+ ] },
+ { key:"t202", label:"20-2", frames:[
+   ["image20000.jpg","1P5JM8OI8MuF5HeS8xLksAIGbVsKK0dz_"],
+   ["image20001.jpg","1Uhs2VXEHhtB33K_L1lyvJA4bvfjGNInA"],
+   ["image20002.jpg","1cnzOj2Gc9rOr0Wp4t2bQinGQtC6V6KGD"],
+   ["image20003.jpg","1-sGdhknkmDOZfxZNUf1QlxnNf2qdEt5n"],
+   ["image20004.jpg","1MNJztq0b9OsbugLGbI9ef_MPbqYpRJZs"],
+   ["image20005.jpg","1Knm9VHOrS4VE1x26PsJ8OdkHmFFXJFud"],
+   ["image20006.jpg","1lmBlK3phh1yYZMUV7Ncft_7ZF82a-LL0"],
+   ["image20007.jpg","1NNNbroGM7OgMi4w9eH8nycMIG87zSq3h"],
+   ["image20008.jpg","1FmpIuM9mDeXhHT6CqCsWG4vDMdxzBBLd"],
+   ["image20009.jpg","10ZoF_WT1ImItsg9eSwEk0gLD1Wal5L6V"],
+   ["image20010.jpg","1m7kKivmPihtI_POiMzCooo5_WBWpbjG_"],
+   ["image20011.jpg","1SF-Igk-nyBOuBIHbwlCqMCPZDbOrapgC"],
+   ["image20012.jpg","1dlQF6EY0mmnG-qW00ivWu0umcu5PU-4b"],
+   ["image20013.jpg","1zeDZnjNqd_3OiroB1uBXVLGAd1sbNHQh"],
+   ["image20014.jpg","1wAhOVRQyPgnW7lM219RvDC9qW1MKiO9P"],
+   ["image20015.jpg","19WYvqGsZ8akF9KX3-DQMDxwjt8zDqQs2"],
+   ["image20016.jpg","1xG8m6gxs8IS50ed0ho0KXRTEyJSmBZYj"],
+   ["image20017.jpg","1DgQEo-GFmfg4Qu-bBf1XxdGm9a1PXlD6"],
+   ["image20018.jpg","1XCWQ5hkCYIeKmcU2WRTzX4GcWAhswUmy"],
+   ["image20019.jpg","1fhsJIsCLZTubal0v1yUyJUfYQ1rWNk49"],
+   ["image20020.jpg","1CCf4tW6LO8ri08x1HcT2_yHERdFU4n7A"],
+   ["image20021.jpg","1IS19KO6GEl_nAnx-VBaziLCAO0wsMXWI"],
+   ["image20022.jpg","141o1GGnfJz46USUNbCn3U_k25gUF-z_-"],
+   ["image20023.jpg","1a9jukma8e2wZNZCKq1EO6neLMU77ILSe"],
+   ["image20024.jpg","1jDrg8s-ugXTszmqmWaWZSKJtHBUMdzQ1"],
+   ["image20025.jpg","1z0EQMYaz3V21z183JeSbvJmskfLV0RGX"],
+   ["image20026.jpg","1P7YfVlK6PzpLeqVn--5lEOib9CTww5w1"],
+   ["image20027.jpg","12b_8BSzZ9h4u_3cU9nRRUVRuV1_k3R3s"],
+   ["image20028.jpg","1Mp2aoCaTnM_YPJuWoQEe3L8mdvZ8xC_0"],
+   ["image20029.jpg","12PkUAcHfkUk4zzIfaQm7AjNaR9_d7Mz3"],
+   ["image20030.jpg","16Btxnz9BHlbhlNotjPpVITBe3Q1FOLsY"],
+   ["image20031.jpg","1GdEdsxjpcxln6N_QFcnojeVsFjgWwR9L"]
+ ] },
+ { key:"t264", label:"26-4", frames:[
+   ["img0000.jpg","1nmeFePR0zukePcyQjJLoKbLDofAUejYi"],
+   ["img0001.jpg","17RGOOucVd1iaxyK-XI7LYaVQGHucVk5X"],
+   ["img0002.jpg","1Se4VMu_R7yvnQWhadnv_Lgkf7dJR1bvn"],
+   ["img0003.jpg","19TDDlc-rZTL6gTvF_Rdfkz4JDgW7J7QZ"],
+   ["img0004.jpg","1Jb76N9Ib9pFWM69ATsiF3UU-yauRk6wg"],
+   ["img0005.jpg","1NZrDxMJM-h7W0QwD0L2oQL0QEpSkn_4I"],
+   ["img0006.jpg","1Zk36ZkmNCpOWtor2M3hJ7kSzY2DXOZBv"],
+   ["img0007.jpg","1riBznksdOkb7bMYCur7IXX23y4V2DOvb"],
+   ["img0008.jpg","1KnF7M2TfmMA71JrotY5WL7oqhI__b_-x"],
+   ["img0009.jpg","13x8WmsWt8mUnN7FwjPVgo6DeUmWJryvS"],
+   ["img0010.jpg","1KaubOJ8KMGZ-d_jlgLSuc5ZUiX51Xike"],
+   ["img0011.jpg","1qVCr1sChgEaPlgGi5U6y9k_9dhFUg3rl"],
+   ["img0012.jpg","1ROhKt6gSyVIVXEJjNNFbGjAqwHCG1m1E"],
+   ["img0013.jpg","1bOx_1cUhijw7zXS-LocMavGD07t6rvm1"],
+   ["img0014.jpg","1g6577RLsvZUpqrpQDZ2fqJILRkvLrchv"],
+   ["img0015.jpg","1fUTj5N-V4rx8Ufj16l83-4fo-OaOvuHQ"],
+   ["img0016.jpg","10kDKFvkY_JCbSR1nAFx-0U4KN49iQUsn"],
+   ["img0017.jpg","1zkIh83L19lOswgimTGuM_waLr4jUxMt8"],
+   ["img0018.jpg","1JB99V3TTD5IW0khqRijuJiB5oUT8vH3l"],
+   ["img0019.jpg","1DHwfrd81-Ls_7_nvmXfgKxX1QQfvnHee"],
+   ["img0020.jpg","1bCjBcJSs7MxTYd5SEzrDi1bUBLO3MI80"],
+   ["img0021.jpg","1ddgWvn6xSC5Jk_dj5h3g4mH1PnaMmkXk"],
+   ["img0022.jpg","1jLKQb3IYnxL44-WTZExc4ZavVBb4DAw-"],
+   ["img0023.jpg","1QJj7Pue_SzGZjL9d1nmZizSWD8AKphYW"],
+   ["img0024.jpg","19OmMw6ADeRhPa94Y_jxoB_7aQsK0PmKd"],
+   ["img0025.jpg","1w2mFh1RIwp7Ta_WYFCZpw1VSFt_vm7x_"],
+   ["img0026.jpg","1pw8PcjEabOWroXAZPP6RxjGBwEqSCwIN"],
+   ["img0027.jpg","1Y71GR36EgHjmhepQYICBkjcce7ZFp06D"],
+   ["img0028.jpg","101hi-8EiOCsQv3GlOiRsMKA0KsGhSQ2U"],
+   ["img0029.jpg","1KvUgq94sE1Ih0kcx9I5hLAbEp-6kRvCV"],
+   ["img0030.jpg","1_ZVLILG-jttN1TsiIbZ3Kip2c7E-LhD-"],
+   ["img0031.jpg","1hJNxDOlDt5_30UV9BEvOO0YISigIkxec"],
+   ["img0032.jpg","1A_dAGU4dBVpQ4Gb8jXrK2XpAGjQ_9vI7"],
+   ["img0033.jpg","1J0PPCUphFfg07WlmKz4rk8KbsdMWVi1W"],
+   ["img0034.jpg","1p-I7D466bNsjB3Xdk2h5Z52vAmRFNei5"],
+   ["img0035.jpg","1FGVtpA7MZOWD24I-wLt_TLPzpXoK3EMZ"],
+   ["img0036.jpg","1ys0kpUzvq5bmz5VLfMz4eXXCpWD_pr15"],
+   ["img0037.jpg","1baJwy6PlHKzftiA5bOizjDGbIBqQ5CEe"],
+   ["img0038.jpg","1cQvOIh-E3GIzb7Io8hwy1Bz9p0cXoSRX"],
+   ["img0039.jpg","1RotkXzdY0nJJLs4Z8LZkach-gZO--Jym"],
+   ["img0040.jpg","1vxsvcHxG670l9koiRkbtp3M7bSgeoa6c"],
+   ["img0041.jpg","1myKvUzxLOYUfWa_imuJvkEKbN2jAUU1l"],
+   ["img0042.jpg","1M-vahKZQKM_BB9sE2mZ1UwyQ2DkdNAIQ"],
+   ["img0043.jpg","1QRhBKq98s4r0e3EzlczKcuhPv6dgAhjH"],
+   ["img0044.jpg","1HwObQGsO5iIOIkGVPHcP5dsY4uprgjL5"]
+ ] },
+ { key:"t26o", label:"26-ovni", frames:[
+   ["image10000.jpg","16EOzD0XOgKz2_-QpHbHnyVZynGP_vqcz"],
+   ["image10001.jpg","10rfAKHprWhK6besdaUOZC1JBfL3PNc4J"],
+   ["image10002.jpg","1KpwiFT5z6k49OiLkGKUb37U7jaR6uGdy"],
+   ["image10003.jpg","17XNlGA1BgF9814tM89dFSwFSUwq9L_Ig"],
+   ["image10004.jpg","15oCokzvnmhrMBpor1qcVddAQhCneXO8X"],
+   ["image10005.jpg","1RuLAyS7-dGYD7EaLDO_YXq4mrPw_4mCr"],
+   ["image10006.jpg","1CzYWAp8wIoNBb3ohjS-K8WcY754G-87M"],
+   ["image10007.jpg","1WTHI8qrC0hI-FAQjVsMMMzW47AdcHUHR"],
+   ["image10008.jpg","1oZFcmGja3faYhizEZbDbrtnfnUMr8lYq"],
+   ["image10009.jpg","1i5GYr0UM_RudN8ZxycdxZ6DeVROCv8c9"],
+   ["image10010.jpg","1XvAPeZeY5x3twSy_kyMoO5JBhRnUUyZJ"],
+   ["image10011.jpg","1pCWBLBcwkk8lYGibOi9M34MxIxkCUgFK"],
+   ["image20000.jpg","1Y6uPcy8QMUGtZOssY71IF6cX43es5QAN"],
+   ["image20001.jpg","1PXgoKcXTa8A41X3Q7li9G1UWZL7HqDsh"],
+   ["image20002.jpg","1qs16Csa8IrIyITri7QWv-BiU5ojKVRgc"],
+   ["image20003.jpg","1KGzSZcQM3VN2lYU3U-sY0KJr_wQptf9K"],
+   ["image20004.jpg","1BjalSJJyUfoTA1vJk5--kxlLVU_vc92S"],
+   ["image20005.jpg","1k-U9zEyfcWiOOawr4QkUJRm0bA0W7c8w"],
+   ["image20006.jpg","1YDqp82dNRoTfJ-X_Rd8jFB20SmhcW4X3"],
+   ["image20007.jpg","1SalYihZaMlP1nqY60_3mt49Nj65xyefz"],
+   ["image20008.jpg","1VVd1ZRPcYj1qgJopE9l-cHqQjNSsWcgi"],
+   ["image20009.jpg","1QSHCVw1vaRnLSEMwPlWIb1fQgj7KH8ov"],
+   ["image20010.jpg","1JHR-eVypStr_MSNN6z6n-XwUuUsOfyEw"],
+   ["image20011.jpg","1RL8pX52SQq27QDOWVteukUzcSC5s_xRU"],
+   ["image20012.jpg","1Z92QYH1TCENkf9jy9hcgRNyNyaBJLa_X"],
+   ["image20013.jpg","1ueyQK6kQiiYoJzYyN_vXIh45ffoZf2pY"],
+   ["image20014.jpg","1m_ST9hsfHHOLZmtesb_XgNp36WHSp3lD"],
+   ["image20015.jpg","1ALHH1ytrDv4mg3r-3q6s0KIfFpHVCeh1"],
+   ["image20016.jpg","1MoIn8xSNhj0t7NrpKiRzHcmcH-7ilYYI"],
+   ["image20017.jpg","1C-o-ZZHfPwZ2b1p6ghFQhVwGQ2o3cKH_"],
+   ["image20018.jpg","1IcaBH7NoOgAtsbMzn6M4gc5GDt5SOPAD"],
+   ["image20019.jpg","1drV_CFdjp0-mVWSGwCLDfN7e3iW3b3cE"],
+   ["image20020.jpg","1sXh7d87M7t0-Fl3D5A279AbdYw-KOIZ9"],
+   ["image20021.jpg","1lCdwbtnudXI0YU0Y__1JYQBlwNjhlcnl"],
+   ["image20022.jpg","1m7bWxLYbRID4kMLzv2LubL9MY2Z00liR"],
+   ["image20023.jpg","1V4jv2_2mtx9DALe1FQ0NWI8vhGSV4PyQ"],
+   ["image20024.jpg","1ZSeVd2OmxnOxf9Eaie96EaT8swupRFqK"],
+   ["image20025.jpg","1IfoMKeJ0EP-4FutYSKRIyskDZSqZ3vjn"],
+   ["image20026.jpg","19-qdqauXl9t126XWQx0prHKeLbfDrTed"],
+   ["image20027.jpg","1iMQ3uQCOZgRDnDaE0bstw7j1PkxqzcbY"],
+   ["image20028.jpg","1UNJQtFrj0vWBzhZzgDDBmuq7FSQxK8Qx"],
+   ["image20029.jpg","1x3Oq_X-zn6sNTIQy0Nhw68NZg1L5s5V6"],
+   ["image20030.jpg","1VGKR2-5hm-OkmpLHicGg2l5xQCTIOrg8"],
+   ["image20031.jpg","16O58-8lNJX92UtQtUZVbxjTqA6yDKx5X"],
+   ["image20032.jpg","1OKPyei96mVMcet0Fbo1pp2IO97k-Qel9"],
+   ["image20033.jpg","15CHMBx7pDWJN7WblHIBUONvMELWHErUG"],
+   ["image20034.jpg","1NTU8PH9jj5ExuihzQIdt2RESdOZEJOn7"],
+   ["image20035.jpg","16S2BOxKkQQRMbw9JYGfIwOZjPqpT_9ky"],
+   ["image20036.jpg","1UzhfOkIFJED7Z5VYT81Os0WVuaQ6HcfO"],
+   ["image20037.jpg","1C-9yCmHPzvK32VuhcqKIP4Nl2d7WHtba"],
+   ["image20038.jpg","1Xq5PEObAmmSgZX2nTpR5SCybwVAQLdac"],
+   ["image20039.jpg","1Qdv24Av6qHgjpp4QGZR_Xl6yYA0hHQgT"],
+   ["image20040.jpg","1IIuzVjCFO29M5CEDh0x5p4OdJ8G015Ou"],
+   ["image20041.jpg","1EynMTBeaAs2YUGh7vDbhZOzVrLZfit-4"],
+   ["image20042.jpg","1mKcNulPQsmCxyE7gjJoMfqtGqYtp99ni"],
+   ["image20043.jpg","1ejBxapQFeKPA2cslul8rhu96z1B7nxjC"],
+   ["image20044.jpg","1gYvPAxrN51G-PX18BD94_SRUrfiWgHYg"],
+   ["image20045.jpg","1NDDYRvK6D3cEXl3AHyHeUCj5TBL8bcvN"],
+   ["image20046.jpg","1Gzlcr6IPKCuAgvXTqpXQpU3bc_rLC_jY"],
+   ["image20047.jpg","1VVgrjn70wErLjhpn95clbiPnS3AD-_RH"],
+   ["image20048.jpg","1xmH9fq5WJlYrKz4B0fWy6iACqmXEB85F"],
+   ["image20049.jpg","14OLL-qdfMpeSX34SbMyEVwwBPIA9Lc0r"],
+   ["image20050.jpg","1m0O6e58MacqhEdHmguZBnlIsWjweF-hu"],
+   ["image20051.jpg","1KQyH7vxqa-aQdQ-uRzC8plNi0JPB1XyD"],
+   ["image20052.jpg","1jktIcW0f37WyBLGjGlEm_WyZJeLmT_yw"],
+   ["image20053.jpg","1kjzsaYs9KcuwS5uzZKYyudm1w3zvZhcA"],
+   ["image20054.jpg","1sGOuvu3KnpMl3yVEkgEQWatlAdUhVhZp"],
+   ["image20055.jpg","1ClOLi-eFp_MshgQwVeaYjqliOnT2bstL"],
+   ["image20056.jpg","1UMUw78KbiBpAXLNMK-d66L4RejLS8-6E"],
+   ["image20057.jpg","1HVyEWVxX4d0qUUTnqVbfCeJcyVX9CBYN"],
+   ["image20058.jpg","1PuQr8R0_x2_OX3Y2sC28j_Qrl9W50LBy"],
+   ["image20059.jpg","19WxNjT-z2Gi1AXtnaRQdvOk80h7XuKrm"],
+   ["image20060.jpg","1Xt0hQBEebhlg7ITljDaUbuM3Frgif13K"],
+   ["image20061.jpg","1kZr-cyERSbomQgS7T7Yu1-B81vm0K7nR"],
+   ["image20062.jpg","17HvOsHZcfIwsOYMiP5jYHTPlI0BzvGTC"],
+   ["image20063.jpg","14PIUTVhTwdkc01TaUqAA007-bBzBVwex"],
+   ["image20064.jpg","14SGKnsnudfnn6kegRgc9iuVjSC81jc8h"],
+   ["image20065.jpg","1wvzwbgc5a53Tw7YBvEO_jrGW0-SXggy_"],
+   ["image20066.jpg","1fGgYlK6eJ3D-ccVbqWCgWzaxtVr0mlri"],
+   ["image20067.jpg","162ZWVsofCTFXxJjWyVeHmQ02chGGI-8q"],
+   ["image20068.jpg","1xc9bjv-XE0ydCj0H7GdyFnBHpDb9f8FL"],
+   ["image20069.jpg","1dsfifkQI-PnAXHK_PZ8zXtBKdKU54-k-"],
+   ["image20070.jpg","1CTUwrzesvXGXC38b2mKFkbztMHYRWuTs"],
+   ["image20071.jpg","1FTJrRLK2HoHq456p67hU7IOFdT_h5Wmi"],
+   ["image20072.jpg","1GnrKzUIOivrDQIR7EvzyZxqdzLg863re"],
+   ["image20073.jpg","1Mz-2FIr30RS5guY26EE2uCal3WKkKzO-"],
+   ["image20074.jpg","1h6jy9R-bpLe5kdRzEHdZ0SnUVjEpOxL2"],
+   ["image20075.jpg","1-VRn5Hx1mgEsi6yWzx3DqSayXfRvOj-K"],
+   ["image20076.jpg","1FC7CbyBf4lJBt3zUto3xV766-4UQxvqB"],
+   ["image20077.jpg","1_sXlbYF8d_N9IYRPni5--SStZqE-PLnR"],
+   ["image20078.jpg","1olTCpWt8sNTU7ir3tUmLLnXElzyuneY2"],
+   ["image20079.jpg","11RoACH9fohmD_s-262gp9pzdmFWGPNJq"],
+   ["image20080.jpg","1ZBUkUckNhzpHFk9gor3YaCR-PJ3wBCtj"],
+   ["image20081.jpg","1ToJ08DLape-i_mcAqHarf5lJ_KQmpHjt"],
+   ["image20082.jpg","1sjgXDzaeC3tktZRRMDjKCwTeBiFw7jt2"],
+   ["image20083.jpg","17n6DdROqMNDJmIQr7s66WuYKu1cI4FQv"],
+   ["image20084.jpg","1B_0-EZyoapBIriE51TLZkaE7NrXhwOQy"],
+   ["image20085.jpg","1s10VYnq-gl8mkw-4BOOvoqK2LRhThWXs"],
+   ["image20086.jpg","1-miVEfHR-0nIzGMigJlrQTJlb3QLQX4I"],
+   ["image20087.jpg","1F7hen9WJRV7RtWvmj04FXCfmkIFaObWa"],
+   ["image20088.jpg","1aSDtTZFtacHPj-4sNeeZMGi011yC6Lob"],
+   ["image20089.jpg","1tj5hKUMC-8yMV0LB0zI-EB3Fo0prkVe9"],
+   ["image20090.jpg","1q6MS6or2M67w7m9ptYqYNS7MSG-WfcGQ"],
+   ["image20091.jpg","1gVlgPrtFhVEtv8Yk8ZWCHd7nlwKUt5VU"],
+   ["image30000.jpg","1N-b-B0XRpacj-lHrWYUZOGml3zRW1hc1"],
+   ["image30001.jpg","1NoLpt0ObHgs6Xw5dnglCsaDxD9y9_747"],
+   ["image30002.jpg","1-pgNE1NWsoJppenbphXGKrUYpHz_QftR"],
+   ["image30003.jpg","1iS9HpPJDEXTnVS7i6pOQbDc5KBD7sIyX"],
+   ["image30004.jpg","1fRMfsdJnuVWqzxZIZ_-77DP-r7cu3Dzr"],
+   ["image30005.jpg","1ZVwHDWeg5MXWunMDuUK1cp6uuz6KIspA"],
+   ["image30006.jpg","1Cgk9It-GseWSo-XaQrQAhm6z53ckAce5"],
+   ["image30007.jpg","18AejEo6L-prh7abyJZM32pF2UVsIH9AE"],
+   ["image30008.jpg","1l--7CX1ZRhz0EfEp4rv7Z_fHgi5pBc73"],
+   ["image30009.jpg","1Zt4NhbEEAAqMyi3V2H0-dQ8DX5oDh4p6"],
+   ["image30010.jpg","1ab6Cn6NtEhfKvrZptNVjvL9ABLXim9VM"],
+   ["image30011.jpg","1OK8ExPutYAMdbcDc6_jP7folbSg8lhC3"],
+   ["image30012.jpg","1GIztO033zMsB2JUMXvEgx9OhaPazsSuH"],
+   ["image30013.jpg","1ljDAB9CJa4rB0Oi54a_1R6fAmdNrW44B"],
+   ["image30014.jpg","1aZQWUzV9lieo7Xcjmz5wNW1Zfk5ouOcG"],
+   ["image30015.jpg","1tXKu7Q87J1ZsRRLlddRKp5XS7uFD-8CO"],
+   ["image30016.jpg","1dg7AyxthkUyfbCKm7H6xeImsZANTlsHF"],
+   ["image30017.jpg","1_qC_rbLvMKiCRuI7-j023f6-e7HybQwK"],
+   ["image30018.jpg","1v__vyzoq5xuMCsRNYF4BoWxlCGKgO2LY"],
+   ["image30019.jpg","1EDDqNHd-mY06ilJbFtnj2rlr6LAYIXyg"],
+   ["image30020.jpg","1Jq2YqT4JvojHfusiyfFKzVs5auEN9cp9"],
+   ["image30021.jpg","1U8s732s292DUEPjrhrYA9qTpSvt77Y4j"],
+   ["image30022.jpg","1bH8iqb7lHTxrC6e8CPwnHxHHRQ89Qp8e"],
+   ["image30023.jpg","1I9tFVovkNitEnjnGdPVe4PjcUMqoY4Ic"],
+   ["image30024.jpg","16-Sc0r9KBhwT8qebuw23I83NQKa2O3N-"],
+   ["image30025.jpg","1N-348_ZOV14P4gXuNvjCXRtuTjo12x6L"]
+ ] },
+ { key:"t274", label:"27-4", frames:[
+   ["img0000.jpg","1jp9Fqagvab3dAu8ApN-tfcDFtQt3_2QD"],
+   ["img0001.jpg","1E618LbK3dNl-g3lk40kb2EXr2YOsgANV"],
+   ["img0002.jpg","1jxo7Jb-eNPmmKc5dcsJihrBO2qShkqS1"],
+   ["img0003.jpg","1QK_2vKFa-ToeZ-ErfvEUrpmLlXnS_33_"],
+   ["img0004.jpg","15ssmY9gotd0TY4_I4W21AKpYwYXOThmW"],
+   ["img0005.jpg","1Tg2fq6cav9eS0mhtuN-MQnwuxFKQU2t5"],
+   ["img0006.jpg","1INELYJZxTwzeZX_VS8TkkBKZiHJF8YuX"],
+   ["img0007.jpg","13z757tDSVr0HTTJLOyRPmbnI3xpbTDBU"],
+   ["img0008.jpg","1JZZD1dUOIBAEMGsZh2aAKwDzYc-DvDlF"],
+   ["img0009.jpg","1upHuev8Yge2rmL0imnNVQu_ndLomn4A4"],
+   ["img0010.jpg","1qAckq-vEvNAiNJJkB9kKee5T_zMPx45H"],
+   ["img0011.jpg","1AR8t3D3gb_8pIve3Lre3mMvy1Nc7Mgtl"],
+   ["img0012.jpg","1Sz-7EFYrX4sKPR2B2jZhnTlTnz0Xtxwo"],
+   ["img0013.jpg","1elh2m1Zi6WfoAJ7pxrsWZlmxx6eVa2DX"],
+   ["img0014.jpg","1eplJNhgGsAU0tb8IMKVaLzA9Fkb9mmEr"],
+   ["img0015.jpg","1sXZL5AER5e73yTv0txgM_PGUH1yMViPM"],
+   ["img0016.jpg","1lP38GOGhiLmI-DCYA-KgGU2ePEDt_kpG"],
+   ["img0017.jpg","1m5R8yuajux0Y7xl1Z7yJrmD3MGwt-Oji"],
+   ["img0018.jpg","1FylEsLEt8ocBcqr5sst9ZDCjfjQHSfCP"],
+   ["img0019.jpg","1EoL1szR9TpX8ZLNyOnSnxMIVYTyFd4te"],
+   ["img0020.jpg","1Ru71YEnJMTUIepflGMsCZLKVYpum6m9l"],
+   ["img0021.jpg","1knD6d2LnrqWhQou7NJyBt-x2IghhBny9"],
+   ["img0022.jpg","1w1efrF7MAk8ULOtU_z77Sk1kOcCSms-V"],
+   ["img0023.jpg","1PuuaTR-sIiw8VBPa0plio32m3L9KuBIH"],
+   ["img0024.jpg","1j8OlQpnzGPccGiKhz7hhJaxNI6hZ0L9d"],
+   ["img0025.jpg","1bERd2v0wO7IdmZbIM_pbwEVK10-QnVwF"],
+   ["img0026.jpg","1W46sR6vhzJY7xLWcZQDgaHE3rwhv6axC"],
+   ["img0027.jpg","1pR06vrfYPvoGNhc_0cZ0wx51LYXBi1D7"],
+   ["img0028.jpg","1upKIapGGa_4r1EE6oAKHXdriHpO5jGXr"],
+   ["img0029.jpg","1-A50c7yCpv9O-tAm5CiBA1smQpg6vaRc"],
+   ["img0030.jpg","19VPz-eXlyJPCKy76bsGJCZAyj9ZLLDDx"],
+   ["img0031.jpg","1juz6TNFSt--xel8ycKGuJjfodOHngycO"]
+ ] },
+ { key:"t27o", label:"27-ovni", frames:[
+   ["img0000.jpg","1fKuqlki9mOR6lSxgyXNAjPhDMF9PxtBi"],
+   ["img0001.jpg","1EI7LSbRSPVPHZ07nt0hIhljcMLFI0qmt"],
+   ["img0002.jpg","1en7IGwqpcSRmPcAggI4Naa8FDl1o-WRX"],
+   ["img0003.jpg","1e5roRJUNdoccXxD-D52RgRfIgdKf0fLK"],
+   ["img0004.jpg","11TfXRq0ByVqbMnIYHiEOQMoYzkFyUEix"],
+   ["img0005.jpg","1NfyomnvFBf0QHkLIWt_lUZgSMvletAmP"],
+   ["img0006.jpg","1se7SplXPUUrKlCPbFtANBoBnVFauhIPI"],
+   ["img0007.jpg","1nXg0fxRTpReGXl2-bsdUx04GcFtkW3t0"],
+   ["img0008.jpg","1Wq1QiYIW78JJUw-77xAm2RGbq1kBJjCM"],
+   ["img0009.jpg","1sS1qtGbtfuRrMHT4BE1kI1eBsebLsU6R"],
+   ["img0010.jpg","1fzghFUoG51WFwcpWrYAas0GkN4l1sd9y"],
+   ["img0011.jpg","1sTj4n4tXXhYLu4SSVlm3SDtOXF3BbUoV"],
+   ["img0012.jpg","1-YUX_GswfX7kYd_Gup7kDX8S063OjKy7"],
+   ["img0013.jpg","1qL11lpzNJmO0YFA0zf59lRIWOF7ZYHBv"],
+   ["img0014.jpg","1nGhH5YcHLm5ds2a6ULLAqZzun98d9_MR"],
+   ["img0015.jpg","1BIA_gBbkP-DoidZZlA7dwLFg3mGgsOWb"],
+   ["img0016.jpg","1mPBuzAulzZY9tKfEEp54NNmxtmC48eK9"],
+   ["img0017.jpg","1-vYUGdfI8454YLKNd1GgZsZKcnZOhl-B"],
+   ["img0018.jpg","168yE27RlgIw-YCEUJsNJPB-ZBUS6qT-0"],
+   ["img0019.jpg","1rZqZvxdr09Or8UGqUw4-9R8NYopNnheU"],
+   ["img0020.jpg","1B5yh33sBFX9k5qarqPTrKCNemoqxH3gW"],
+   ["img0021.jpg","1dGd97aonDQCL59cLIH2S6M2qNp0I1l1u"],
+   ["img0022.jpg","1ZoyQAZUPbfz5qYmWe-TFWluhWGmZCnFO"],
+   ["img0023.jpg","1-VxatoIuZl62uGiJ0xL_mUrSxzSPMiam"],
+   ["img0024.jpg","1fionogd_Vt4knDxXbwOksnKTOOwVofmH"],
+   ["img0025.jpg","1gknaAafD3nYuFe8QZeRrsSln7tyr5U4p"],
+   ["img0026.jpg","1lVFdDkkQOY_KObvOZ3cBw3l9yn4yRtux"],
+   ["img0027.jpg","1KtlEZ94UMqlK7KC76SoUx6m_h7_Pd_SM"],
+   ["img0028.jpg","1nEKdLsqM4eecy6bhB6Ipfgtw7jwSkT-m"],
+   ["img0029.jpg","1b6V8gaM7L2jluX4il1FvL_pQZjinRc6I"]
+ ] },
+ { key:"si113", label:"sin-info / 11-3", frames:[
+   ["image00.jpg","1s9zAQyWAwIzqjOwLdgFrB_7T8YkK3vkq"],
+   ["image01.jpg","1JZNxgzZT-1PEDco480Lf6XY5vbLfsLyA"],
+   ["image02.jpg","1qdQl3nCFWTPhDMmi458K1FzdPwXS4hMF"],
+   ["image03.jpg","1eqQm5ZxG0l38vvfGenk1gscjSwTIPy7b"],
+   ["image04.jpg","1zmER-F_9RcuPKGu6p6UqhiDAAGWrVvs3"],
+   ["image05.jpg","1cvZqUevZ_FaWyGP1gpEkSnL25UY6S7Dn"],
+   ["image06.jpg","1Nsx4sBrjxg7OLjh6h_vQMf2Zll1No26N"],
+   ["image07.jpg","1SHwkHGMDf9o_IoGnrBLB3PxSYVYQKUug"],
+   ["image08.jpg","12Etakqduk3_wgceIVs3ZUTJzuUT7hZea"],
+   ["image09.jpg","1Gx6ws4gT8sExw2TlCiAByZVBMX8baDFi"],
+   ["image10.jpg","1SublozHgWbGYq9zrZKdYcTtkmHzxA2mH"],
+   ["image11.jpg","1t4lGKlI9BfbX8cefiKWT43lHpoFUAsP3"],
+   ["image12.jpg","1MyEJ944psJo6uTbTqmtUPZeoV042_Jwz"],
+   ["image13.jpg","1Fyi-mFxtoRKKYc1X584N4PhbnYcOxDvO"],
+   ["image14.jpg","1kxzriocD8QpR2d4-nKlasktCpPkJigRd"],
+   ["image15.jpg","19VjzanPV34b1ehw1xvk6gRuAbVFWhxJ4"],
+   ["image16.jpg","1SKJP9gMZAjPEx4Nzu1pgxZDdpm6qCxq8"],
+   ["image17.jpg","1VVZ31wJ6FqBeyw1y1A6v7Dn_unRH6-ia"],
+   ["image18.jpg","1T59CFYXcPRfKiRMD7mGEX9oFw2uGi5qL"],
+   ["image19.jpg","1qdl_SQipCtzVMGbYhL7HsuYKv8eLshWt"],
+   ["image20.jpg","1daPVkuBv-k4OqbV2VUC-jfd0URfh0ZM1"],
+   ["image21.jpg","1UoYi9YuhPhJ82WULaR8UBJBez63qXmBm"],
+   ["image22.jpg","1fmcauPa9kCLKG0NdIx7cRVqKSaHOlZgs"],
+   ["image23.jpg","1omiDusPjIh2SsFqycQ9l2gUH7qcEcs1T"],
+   ["image24.jpg","1VeBO4ubuQic2LwgWjnu6zKP2ysBknZGR"],
+   ["image25.jpg","12l7vBSct8EH5oAF-qJNIXzXDSjFWGO5_"],
+   ["image26.jpg","1uidBSiPEfwturKMR9kU9vn1FIVsw66NU"],
+   ["image27.jpg","1IF9aZPg7tyB9x_LRcA5dSWMO1KiGXyNh"],
+   ["image28.jpg","1xpKVu3mvRvuOdpM9suUEEuFEWdXXPp1g"],
+   ["image29.jpg","1sRjBRtNQEq5fMcTacnzzsWBqTGognwAv"],
+   ["image30.jpg","1fLF05YwIUhWOtv0272il9i0dyyaB63Pc"],
+   ["image31.jpg","11u7PY9WmsKqXuW-cyV0fEqKPd7ITy3ue"],
+   ["image32.jpg","1G8LD2qdgEt9Gr20pnvSq-foJYjMR_uYB"],
+   ["image33.jpg","1M3u18R3OUBsW46BtUTax--lpAzqoSXKZ"],
+   ["image34.jpg","1aC2VDwYH-SPoynHaZOPRRdXvpJJNUjiB"],
+   ["image35.jpg","1yJaFFFNauImEX3TdDh-xVfS8NtDdnFGn"],
+   ["image36.jpg","13Qm0DcZHmSuy9E-d2RDbiYBCWv8wLD1e"],
+   ["image37.jpg","1noHS-KzdcjZFrO4SnFpL1lXyo_5B6mii"],
+   ["image38.jpg","13EaCGuwMfGYx7hUXsxSqzg_KbDaf8ZUV"],
+   ["image39.jpg","1xORvkA8YApIVniWCi0DMLJLYvNdtExYk"],
+   ["image40.jpg","1KlFNZXxZpRcsGta8cqL5M-2SEc4MOFtT"],
+   ["image41.jpg","1AjfvhChE4uEa-xrYcUQGdEwEAyX7D7pz"],
+   ["image42.jpg","1g0JkMmEhdrnJH6WHJIKCQIOs-3la7KrY"],
+   ["image43.jpg","1KYcMeB3704nh8lA6iDEJ4kKMxvu6O86b"],
+   ["image44.jpg","19tMkxa6el_SLW2cnizXAE8IwZDvKOBbt"],
+   ["image45.jpg","1oh0k8CXe7I1H6RzhP_zU5AHW15PSZR6Z"],
+   ["image46.jpg","1_WHgKiKwWkl30R1RAZsZ8GfSZaEYRCiA"],
+   ["image47.jpg","1Gs41Fx04Xxlq7Bp0lu3hzTIrC8OeIhZi"],
+   ["image48.jpg","1gwpyUB0T9o2aZ4sd9FtEFeYOrLATNRXA"],
+   ["image49.jpg","1EmflGcvUfD4biCQs7NOFb10NdhHqG_NB"],
+   ["image50.jpg","1KjgVp2j4d1_iBExuT_BYHFdvs4a5tcLE"],
+   ["image51.jpg","1IrA-oY6L6EPmUyGx1DvvL1p0mFBNh8pJ"],
+   ["image52.jpg","1m5-jdJC-uQhJNUB6OWTfHhHV_niXUuaQ"],
+   ["image53.jpg","1ZA9vdiMb_EZ9nUkswyVE9z5DlUq3gBgv"],
+   ["image54.jpg","1XA_2OeIXhdySzeKKhYEdH88zSajdf7GR"],
+   ["image55.jpg","120VVWzPrRhH81eX_5mSVxHF1xvFFrWej"],
+   ["image56.jpg","1kDuVMYtGfgnOrY-zgRvuiYU9LLYab0js"],
+   ["image57.jpg","18l6e6m2Gje-e2uXmH7T_zYTTBugUdQJ_"],
+   ["image58.jpg","1JJzPb5r_83bts4_TN_LjpDJB73pLrgG7"],
+   ["image59.jpg","1UMk2ff8apdOcA_xGfNBjQ2RSDWZaPE_x"],
+   ["image60.jpg","1uqvTyBCS9M9BCNZgSyMe7c5z3ocfb996"]
+ ] },
+ { key:"si184", label:"sin-info / 18-4", frames:[
+   ["imagev400.jpg","1QhmGg2Us-TPpJgxfINKYU76cQYmfV423"],
+   ["imagev401.jpg","1F12Y-LBeA_NkjY_sWK8XnV42uPlFUsXG"],
+   ["imagev402.jpg","1oYeemfZZYo-guKn1cWl_z9uDlu_nLzB6"],
+   ["imagev403.jpg","16YiITuKKwiNxGfpqZsgC8XDJX7mhUH3I"],
+   ["imagev404.jpg","1kHVyRnuHrldofLCNI-qAuaeVL3JHh5w3"],
+   ["imagev405.jpg","1feDsT7H0aqWb_muuGrxTZPXcOn-3RWW5"],
+   ["imagev406.jpg","15dn33pqsD5ipFZAmeGc-U7m5s-7wDvjv"],
+   ["imagev407.jpg","1MGD8LrTtFkXqmXgL_2ItcILHzcm1K6MJ"],
+   ["imagev408.jpg","1WSYnKidtVj6eplUn-I1-gER44DCZAox0"],
+   ["imagev409.jpg","1lgKnNFv4tjO2efNo8ycLr2TyRF5CR1rO"],
+   ["imagev410.jpg","1B-MLok9gG_JKHUp_UDeTdkVNQSqt1lkd"],
+   ["imagev411.jpg","1UYjj4iFbcb5najXFV1S8KkdCHGFXlCfn"],
+   ["imagev412.jpg","13p-HkQDCUgbWCkwI2NVr8BC9t9l512uI"],
+   ["imagev413.jpg","1kpnhDiiIWTYMyi2zdgvXgpVuECwKLaNH"],
+   ["imagev414.jpg","13S2JY82YqgSyTwS8xJRJKqMYfFy3-iqL"],
+   ["imagev415.jpg","1rjrbp9L1TcdvO0KN_Ur8oCu772QFMLML"],
+   ["imagev416.jpg","1fWav9FH0P8pT0fMJkf20hq9ldXoNalx5"],
+   ["imagev417.jpg","1DxXoeNJ46H7w5BZ3UQ5_592dBGY0bDrn"],
+   ["imagev418.jpg","12rhEDWviPMbwI8ZSKuRGLeQP_teWDGU2"],
+   ["imagev419.jpg","1IxTbDlBNNtayUUAlHNp2law7qG1Rw6F1"],
+   ["imagev420.jpg","1Or5-RBCT0SAngZwfTTAyJuO1PG1CI6zG"],
+   ["imagev421.jpg","1t9-unH8lpoEnAECpurYFvWMaaRhM3WMO"],
+   ["imagev422.jpg","1unMg72D-XzjBv_It1G2H0UnE1tyId6rN"],
+   ["imagev423.jpg","1FdrHawRPpED6HOw5nffUMd-7Auol-WDU"],
+   ["imagev424.jpg","1a6G9my_6eUkHujCbRdEmeV9Bi-2vPN8c"],
+   ["imagev425.jpg","11aTrh2UB5Gtwy1KRHaYbW9AK4U7iQUCr"],
+   ["imagev426.jpg","1S265NxUKzJSomjYO92YYyQ_eAdv1nq14"],
+   ["imagev427.jpg","15-0FTuTvpwYWKpYOm2Jk9HnQkQBYd72m"],
+   ["imagev428.jpg","1SXgRkkE5Xd8fh623JSjc7hzbC61LbB7H"],
+   ["imagev429.jpg","1PUS0ABpM5HAIVDTCaciNXNTqPufO8i03"],
+   ["imagev430.jpg","1a0OSJaS-ERbKm4T_QSeOXoGGJDTLh3Sz"],
+   ["imagev431.jpg","1XenBQR5GAIn1uUB_23imT3PfWh2BSTAs"],
+   ["imagev432.jpg","18bnU6tDmoqHQmJ4acP82rCnwRXimz9b4"],
+   ["imagev433.jpg","1ShDzIL5ANw84kZEl6v1LTWuXICIWe-B3"],
+   ["imagev434.jpg","12_SX1VLL2lYk73oYBkoOk7OlmPTKlpY0"],
+   ["imagev435.jpg","1z9jv2H1ieUTERFH8TIH5oCm7SlGlm5ly"],
+   ["imagev436.jpg","1LWvo7aXjAeyhMuAKYFTkXcB0B2mirNCo"],
+   ["imagev437.jpg","1UOG5kN5CLmL62k7BKZiS52lYUpC-vLVb"],
+   ["imagev438.jpg","1xTiNnwnbIq_0WBhY-EwNQBBc6-Y_RBxG"],
+   ["imagev439.jpg","1KqktxVT9gWQ2HCpA8SH7xxOGf1N3By6X"],
+   ["imagev440.jpg","1eQXJopo5tVDue9paGVbdMFOr7i7-wuwC"],
+   ["imagev441.jpg","10Fpjb8minYgAuIuTCQcufWOBek96VBJo"],
+   ["imagev442.jpg","1tNk3Jf5O44adY6WvinsUikxfNBUs3QEJ"],
+   ["imagev443.jpg","1e-sNxGLExYUof6eCkOfPsFdDU1Ww-ue5"],
+   ["imagev444.jpg","1FZzKQTxhLC0CnN-nfYPM_WC4Silq3Z-D"],
+   ["imagev445.jpg","1v0GCLgOzBX6bg3fCAGIY1rXzvOFr1dtf"],
+   ["imagev446.jpg","1QmzVcptLg7Q_rLtdH0OgPGgbBrGrRcKx"],
+   ["imagev448.jpg","183v8HG4SQXdc9bHhaK2HOOEgbGr3Kd2v"],
+   ["imagev449.jpg","17IBvRNfbFIqLU3QJzow9L9c7eeH_-Kf0"],
+   ["imagev450.jpg","1tVvXikncEMwc2ScudvA1DRmQWCG-L_nf"],
+   ["imagev451.jpg","1IzhxrkpRfMrQd8bGVhE_j6PaXp9vfxSX"],
+   ["imagev452.jpg","1jkDp7HzvfVD7GbiU0WInGzomDZN-Fdpi"],
+   ["imagev453.jpg","1YaTKIC05j9vXMUWTPCSZKp6OTkcyy3ZA"],
+   ["imagev454.jpg","1GazVWyEueeB8KqxO6gjeuiqpzHsFNpKe"],
+   ["imagev455.jpg","1M7xH84MZQyK6hEshhbb9ImothydZTjBe"],
+   ["imagev456.jpg","10b25rsoOrKdI7U2a07aRNC9-GgUsCNMa"],
+   ["imagev457.jpg","1gphCAHtUseAzx4jGA8mssoCjftwGOr_J"],
+   ["imagev458.jpg","1d8-TGE_8LtMd9_K8WplU-_H18bf_FMS_"],
+   ["imagev459.jpg","1yNW3gZeIXCkoegbNo_pmyvBJr50BJFCF"],
+   ["imagev460.jpg","1uMIuXdo5F_WgL7Hb6baA1lYzEgVc1_Gg"]
+ ] },
+ { key:"si71", label:"sin-info / 7-1", frames:[
+   ["test00000.jpg","1es2rmoZRTh3DUugX4npWQrss04Jii-cj"],
+   ["test00001.jpg","1wxXTRsyC6N6jTo1OkT4-eXjiQXAnRy6T"],
+   ["test00002.jpg","1sr15SHAPQlVpw4X_iUyyfwRg4ZafcCg9"],
+   ["test00003.jpg","1KQ9g-77_KbxGcSFlG2n2wDh0EsQnwdN6"],
+   ["test00004.jpg","1Il92MxJFJpr94uLBqhLI8Rv-sZ9zMLkQ"],
+   ["test00005.jpg","1GykB2-o4-x81Hj_KPB1xc29AEDJR_o3x"]
+ ] },
+ { key:"si9o", label:"sin-info / 9-ovni", frames:[
+   ["image0000.jpg","1Ea2TdaTt2s86BytUiTAsY1XRLTRJ3tG4"],
+   ["image0001.jpg","1eYacmgRpusaQK0ztYOb-RNl816m_VDsf"],
+   ["image0002.jpg","1WGYxOK3nkHWipZ3BpVSf88pm5jJ-UJq_"],
+   ["image0003.jpg","1gdjVFJPByfssaBT78fijytd0YCRm8vCT"],
+   ["image0004.jpg","1fBMT0Iib8Nd_3qDNGfKguW11xhiauYsA"],
+   ["image0005.jpg","1yuzrbNRC1T_d6DlZHwrnz-gfnM8xgyvL"],
+   ["image0006.jpg","1ZR_xdismjkBpVOzMouPewIyhnm-fKN-P"],
+   ["image0007.jpg","1cW7xt1_sXerfXrDUw9Xs5p_0elSx-OhB"],
+   ["image0008.jpg","1WLq92SM4Jd1U8_TBUo41dw1Xq99KfxjP"],
+   ["image0009.jpg","1IM9Zbx3UzzyOs4zklQlJrrpw9TwCdwxn"],
+   ["image0010.jpg","111BEP48eJ2_nvMO5p8hx6iFJ9ZVI88mQ"],
+   ["image0011.jpg","15prUXsI5fjf0en5grQze8TnB8LQ9yKMb"],
+   ["image0012.jpg","14O43OrZPpotSODp8WLMso_JwPkzZgkWs"],
+   ["image0013.jpg","1Bz5THelfqD5rtUd7kSMl7OBYs_WA5gE7"],
+   ["image0014.jpg","1T4u8dTfxStU9mnKcVKH5LCL8pDRJwOjC"],
+   ["image0015.jpg","15dEEkaTLRC1-0aN6ZId2rVG-BRVVoyDQ"],
+   ["image0016.jpg","1q7NUPSBm-0WtmPlXTSSqUTDuXJQmfya6"],
+   ["image0017.jpg","1vnR_iYQRP3BafjDnk9Vq_1ZIBuwVpj__"],
+   ["image0018.jpg","1KyvtgprHf0ZhL1VHnCeYL982_3NGxw1L"],
+   ["image0019.jpg","1joWhtF4yXNAT0HXnPC4SPA1SbkcARHmv"],
+   ["image0020.jpg","1GbImQXxuEhIovtnEZdrC7VydysVIZEN-"],
+   ["image0021.jpg","1s7bhWmxvwmEl7TLI94UYX0mtXi8E6Y5r"],
+   ["image0022.jpg","17ozV4d4_xvl2oO3quT77UdvEZHnt4D9V"],
+   ["image0023.jpg","1RUE9Z0J8Dilu4TPrQsxhioQ74nkCBP3Z"],
+   ["image0024.jpg","1iTsil5f4buoX1kmvnOw-Uglx_v9NdPIZ"],
+   ["image0025.jpg","1AHnryJQIMJ12dyZR3_9UNRZoqWyttPiV"],
+   ["image0026.jpg","1FG_8yyGWS4yl80SjD2HK1-5rP4XdAkFt"],
+   ["image0027.jpg","1_JpDOVdpURt2ejRGuwCB7kuF20a-GZCm"],
+   ["image0028.jpg","1I_b2EKUtwQ7luSUuWCQEf-P1qKrsp3_S"],
+   ["image0029.jpg","1XTxCWbPZMvCO8gdQE55WCSGfQkLk7ulT"],
+   ["image0030.jpg","1d35SM1v6poAIu-kx0ifcCkCzghbRPuue"],
+   ["image0031.jpg","11jUOFVKkfpg9ayqC_78oCJt9coNe-bHt"],
+   ["image0032.jpg","1pBbQpIu0P6h3LVTojjVIuxdpvr_UWOC2"],
+   ["image0033.jpg","1HIgDh8M8GsiPSbxZrl5NPpcbu2u1uzzg"],
+   ["image0034.jpg","1oQaNZhcsw7DffwfAd4jHIvoCYG6KlqFe"],
+   ["image0035.jpg","1W3kYbY3JML-RF_t9sWx4WMFgY6QNOAH_"],
+   ["image0036.jpg","1nKENjWmnsWnD0en3QTa5DTnT6tFieezx"],
+   ["image0037.jpg","1jqZDS38wAVQhC90oPln8n7BlT86bVFiL"],
+   ["image0038.jpg","1XymQiWUKlwwEqCFL6QBvnaeISpX65D3H"]
+ ] }
+];
+/* frame ordering = filename order per folder. c1/c2 (HomeScope) run at 2 min/frame (Informe 1); the Susana_TerraQuest series have no stated interval, so no Δt is claimed for them. */
+const thumbURL = id => "https://drive.google.com/thumbnail?sz=w400&id=" + id;
+const largeURL = id => "https://drive.google.com/thumbnail?sz=w1600&id=" + id;
+const viewURL  = id => "https://drive.google.com/file/d/" + id + "/view";
+const main = document.getElementById("main");
+const modal = document.getElementById("modal");
+const mimg = document.getElementById("mimg"), mname = document.getElementById("mname"),
+      mopen = document.getElementById("mopen");
+let modalList = [], modalIdx = 0;
+function openModal(list, i){ modalList = list; modalIdx = i; showModal(); modal.classList.add("show"); }
+function showModal(){
+  const f = modalList[modalIdx];
+  mimg.src = largeURL(f[1]);
+  mname.textContent = f[0] + " · " + (modalIdx + 1) + " / " + modalList.length;
+  mopen.href = viewURL(f[1]);
+}
+document.getElementById("mclose").onclick = () => modal.classList.remove("show");
+document.getElementById("mprev").onclick = () => { if (modalIdx > 0) { modalIdx--; showModal(); } };
+document.getElementById("mnext").onclick = () => { if (modalIdx < modalList.length - 1) { modalIdx++; showModal(); } };
+modal.addEventListener("click", e => { if (e.target === modal) modal.classList.remove("show"); });
+
+function buildCollection(src){
+  const sec = document.createElement("section");
+  sec.className = "coll";
+  sec.id = src.key;
+  sec.innerHTML =
+    '<div class="collhead"><h2>' + src.label + '</h2><span class="collmeta">' + src.frames.length + ' frames' + (src.dt ? ' · Δt ' + src.dt + ' min/frame' : '') + '</span></div>' +
+    '<div class="controls"><button data-act="pick">pick mode: off</button></div>' +
+    '<p class="status" data-el="status"></p>' +
+    '<div class="grid" data-el="grid"></div>' +
+    '<div class="pick" data-el="pick"><h3>selected window</h3><div class="pickrow" data-el="pickrow"></div><div class="pickacts"><button data-act="copy">copy the 3 links</button><button data-act="clear">clear</button></div><p class="note" data-el="picknote"></p></div>';
+
+  main.appendChild(sec);
+
+  const grid = sec.querySelector("[data-el=grid]"),
+        status = sec.querySelector("[data-el=status]"),
+        pickBox = sec.querySelector("[data-el=pick]"),
+        pickRow = sec.querySelector("[data-el=pickrow]"),
+        pickNote = sec.querySelector("[data-el=picknote]"),
+        pickBtn = sec.querySelector("[data-act=pick]");
+
+  let pickMode = false, selStart = -1;
+  const cells = [];
+  src.frames.forEach((f, i) => {
+    const b = document.createElement("button");
+    b.className = "cell"; b.type = "button";
+    b.innerHTML = '<img loading="lazy" src="' + thumbURL(f[1]) + '" alt="' + f[0] + '"><span class="cap"><span>' + f[0].replace(".jpg", "").replace("image", "#") + '</span><span>' + (i + 1) + '/' + src.frames.length + '</span></span>';
+    b.onclick = () => {
+      if (pickMode){
+        if (i > src.frames.length - 3) return;
+        selStart = i; paintPick();
+      } else openModal(src.frames, i);
+    };
+    if (i > src.frames.length - 3) { b.classList.add("na"); b.title = "not a window start - needs 3 consecutive frames"; }
+    grid.appendChild(b); cells.push(b);
+  });
+
+  function paintPick(){
+    cells.forEach((c, i) => {
+      c.classList.toggle("sel", pickMode && i === selStart);
+      c.classList.toggle("win", pickMode && selStart >= 0 && i >= selStart && i < selStart + 3);
+    });
+    if (!pickMode || selStart < 0){ pickBox.classList.remove("show"); return; }
+    pickBox.classList.add("show");
+    const triple = src.frames.slice(selStart, selStart + 3);
+    pickRow.innerHTML = triple.map((f, i) =>
+      '<div class="pk"><img src="' + thumbURL(f[1]) + '" alt="' + f[0] + '"><a href="' + viewURL(f[1]) + '" target="_blank" rel="noopener">' + (selStart + i + 1) + '. ' + f[0] + '</a></div>').join("");
+    pickNote.textContent = "window start " + triple[0][0] + " → " + triple[2][0] + (src.dt ? " · Δt +" + (src.dt * 2) + " min" : "") + " · stored in this browser - open Seek to load this window";
+    try { localStorage.setItem("cb_pick_" + src.key, JSON.stringify({ start: selStart, at: Date.now(), dt: (src.dt ?? null) })); } catch (e) {}
+  }
+
+  pickBtn.onclick = () => {
+    pickMode = !pickMode;
+    pickBtn.textContent = "pick mode: " + (pickMode ? "on" : "off");
+    pickBtn.classList.toggle("active", pickMode);
+    if (!pickMode) selStart = -1;
+    paintPick();
+  };
+  sec.querySelector("[data-act=copy]").onclick = async () => {
+    if (selStart < 0) return;
+    const text = src.frames.slice(selStart, selStart + 3).map(f => viewURL(f[1])).join("\n");
+    try { await navigator.clipboard.writeText(text); pickNote.textContent = "3 links copied"; }
+    catch (e) { pickNote.textContent = "copy blocked by the browser - open the links instead"; }
+  };
+  sec.querySelector("[data-act=clear]").onclick = () => { selStart = -1; paintPick(); };
+
+
+
+  paintPick();
+}
+SOURCES.forEach(buildCollection);
+</script>
+</body>
+</html>

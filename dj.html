@@ -93,11 +93,15 @@ input[type="range"]{width:100%;accent-color:var(--green);cursor:pointer}
 #populationSpark{display:block;width:100%;height:72px;background:#090f0a;border:1px solid #162219}
 .stage-panel{overflow:hidden}
 .stage-wrap{
-  position:relative;width:100%;height:clamp(370px,calc(100vh - 255px),720px);
-  min-height:370px;background:var(--black);overflow:hidden;
+  position:relative;width:100%;height:clamp(300px,calc(100vh - 360px),540px);
+  min-height:300px;background:var(--black);overflow:hidden;
 }
 #lattice{
-  display:block;width:100%;height:100%;background:var(--black);image-rendering:pixelated;cursor:crosshair;
+  display:block;width:100%;height:100%;background:var(--black);image-rendering:pixelated;cursor:crosshair;touch-action:none;
+}
+.view-corner{
+  position:absolute;left:7px;top:6px;color:#365438;background:rgba(5,8,5,.72);
+  padding:2px 5px;font-size:10px;pointer-events:none;
 }
 .canvas-corner{
   position:absolute;right:7px;top:6px;color:#365438;background:rgba(5,8,5,.72);
@@ -147,17 +151,23 @@ footer{
   max-width:1680px;margin:12px auto 0;border-top:1px solid var(--border);padding:10px 4px 4px;
   color:var(--dim);font-size:10px;line-height:1.5;
 }
+.page-nav{
+  max-width:1680px;margin:0 auto 8px;display:flex;flex-wrap:wrap;gap:5px 12px;
+  font-family:inherit;font-size:10px;
+}
+.page-nav a{color:var(--dim);text-decoration:none}
+.page-nav a:hover,.page-nav a:focus-visible{color:var(--amber)}
 @media(max-width:1120px){
   .layout{grid-template-columns:minmax(245px,300px) minmax(0,1fr)}
   .right-stack{grid-column:1/-1;grid-template-columns:minmax(0,1.6fr) minmax(260px,.8fr);align-items:start}
-  .stage-wrap{height:min(68vw,650px)}
+  .stage-wrap{height:min(56vw,480px)}
 }
 @media(max-width:760px){
   body{padding:8px}
   .top{display:block}.boot-mark{margin-top:7px}
   .layout{grid-template-columns:1fr}
   .right-stack{grid-column:auto;grid-template-columns:1fr}
-  .stage-wrap{height:min(94vw,560px);min-height:310px}
+  .stage-wrap{height:min(80vw,460px);min-height:280px}
   .controls .spacer{display:none}
 }
 @media(max-width:430px){
@@ -168,6 +178,9 @@ footer{
 </style>
 </head>
 <body>
+<nav id="djNav" class="page-nav" aria-label="Page navigation">
+  <a href="index.html">Rise of Microbes</a> <a href="sim.html">ALife Ecology</a> <a href="battle.html">Battle Arena</a> <a href="deck.html">Knowledge Engrams</a> <a href="glyph.html">genome glyph</a> <a href="https://terraquest.biotexturas.org/">TerraQuest</a> <a href="vault.html">My workbench</a>
+</nav>
 <div id="extinctionBanner" class="banner" hidden></div>
 <header class="top">
   <div>
@@ -186,29 +199,29 @@ footer{
         <div class="knob">
           <div class="knob-head">
             <label class="knob-name" for="regrowth">REGROWTH</label>
-            <output id="regrowthValue" class="knob-value neutral">0.20</output>
+            <output id="regrowthValue" class="knob-value neutral">0.10</output>
             <button class="tiny" type="button" data-neutral="regrowth">neutral</button>
           </div>
-          <input id="regrowth" type="range" min="0" max="0.60" step="0.01" value="0.20">
-          <div class="baseline">registered baseline: 0.20</div>
-        </div>
-        <div class="knob">
-          <div class="knob-head">
-            <label class="knob-name" for="diffusion">DIFFUSION</label>
-            <output id="diffusionValue" class="knob-value neutral">0.100</output>
-            <button class="tiny" type="button" data-neutral="diffusion">neutral</button>
-          </div>
-          <input id="diffusion" type="range" min="0" max="0.25" step="0.005" value="0.10">
+          <input id="regrowth" type="range" min="0" max="0.60" step="0.01" value="0.10">
           <div class="baseline">registered baseline: 0.10</div>
         </div>
         <div class="knob">
           <div class="knob-head">
+            <label class="knob-name" for="diffusion">DIFFUSION</label>
+            <output id="diffusionValue" class="knob-value neutral">0.085</output>
+            <button class="tiny" type="button" data-neutral="diffusion">neutral</button>
+          </div>
+          <input id="diffusion" type="range" min="0" max="0.25" step="0.005" value="0.085">
+          <div class="baseline">registered baseline: 0.085</div>
+        </div>
+        <div class="knob">
+          <div class="knob-head">
             <label class="knob-name" for="consumption">CONSUMPTION</label>
-            <output id="consumptionValue" class="knob-value neutral">0.050</output>
+            <output id="consumptionValue" class="knob-value neutral">0.040</output>
             <button class="tiny" type="button" data-neutral="consumption">neutral</button>
           </div>
-          <input id="consumption" type="range" min="0" max="0.15" step="0.005" value="0.05">
-          <div class="baseline">registered baseline: 0.05</div>
+          <input id="consumption" type="range" min="0" max="0.15" step="0.005" value="0.04">
+          <div class="baseline">registered baseline: 0.04</div>
         </div>
 
         <div class="deck-actions">
@@ -239,7 +252,7 @@ footer{
           <div class="label">population</div><div id="cPopulation" class="value">0</div>
           <div class="label">mean energy</div><div id="cEnergy" class="value">0.00</div>
           <div class="label">w=1 fraction</div><div id="cW1" class="value">0.00</div>
-          <div class="label">births conj / mut</div><div id="cBirths" class="value amber-value">0 / 0</div>
+          <div class="label">births (partnered / solo)</div><div id="cBirths" class="value amber-value">0 / 0</div>
           <div class="label">deaths total</div><div id="cDeaths" class="value">0</div>
           <div id="deathNote" class="death-note">awaiting per-tick telemetry key</div>
           <div class="label">mean U</div><div id="cMeanU" class="value">0.000</div>
@@ -255,9 +268,26 @@ footer{
 
   <section class="panel stage-panel">
     <div class="panel-head"><span>48 × 48 TERRAIN</span><span id="terrainReadout" class="dim">U --</span></div>
+    <div class="dj-xy-top" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 9px 0 9px">
+      <span style="font-size:10.5px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;color:#bfe8c6;display:inline-block;vertical-align:middle">XY-TRANSLATE - drag the terrain to move the view</span>
+    </div>
     <div id="stageWrap" class="stage-wrap">
       <canvas id="lattice" aria-label="48 by 48 terrain lattice"></canvas>
-      <div class="canvas-corner">CLICK AGENT TO INSPECT</div>
+       <div class="canvas-corner">CLICK AGENT TO INSPECT - WHEEL/PINCH ZOOM - DRAG PANS</div>
+       <div id="viewReadout" class="view-corner">1.0x</div>
+    </div>
+    <div class="dj-focus" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 9px 0 9px">
+      <div style="border:1px solid var(--border);padding:6px 8px;display:flex;gap:14px;align-items:end;flex-wrap:wrap" title="Z-focus: zoom the view like a microscope objective">
+        <div class="control">
+          <label>Z-FOCUS</label>
+          <div style="display:flex;gap:5px;align-items:center">
+            <button id="djZoomOut" class="tiny" type="button">-</button>
+            <button id="djZoomIn" class="tiny" type="button">+</button>
+            <button id="djZoomReset" class="tiny" type="button">1:1</button>
+          </div>
+        </div>
+      </div>
+      <button id="btn-snap" class="tiny" title="save the current view as a PNG file" style="margin-left:auto">SNAPSHOT</button>
     </div>
     <div class="controls">
       <div class="control">
@@ -280,6 +310,12 @@ footer{
         </select>
       </div>
       <button id="resetSim" type="button">reset sim (keeps knob settings)</button>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;flex-basis:100%;border-top:1px dotted var(--border);padding-top:7px">
+        <span class="amber">VAULT - founder: <span id="dj-founder-status" class="dim"></span></span>
+        <select id="dj-vault-select" aria-label="vault founder genome"></select>
+        <button id="dj-vault-load" type="button">LOAD AS FOUNDER</button>
+        <button id="dj-vault-save" type="button">SAVE INITIAL GENOME TO VAULT</button>
+      </div>
       <span class="spacer"></span>
       <span class="key-hint">SPACE = run/pause · 1× = 60 ticks/s</span>
     </div>
@@ -291,7 +327,14 @@ footer{
       <div class="panel-body">
         <div id="inspectorEmpty" class="inspector-empty">click an agent on the lattice</div>
         <div id="inspectorContent" hidden>
-          <div id="agentHeader" class="agent-header"></div>
+           <div id="agentHeader" class="agent-header"></div>
+           <div class="deck-actions" style="margin:4px 0 2px">
+             <button id="djPickVault" class="primary" type="button">PICK TO VAULT</button>
+             <button id="djTrackPick" type="button">TRACK</button>
+             <button id="djCard" type="button" title="save a presentation card PNG - logo, specimen #, glyph, chromosome. a picture, not an NFT">SAVE CARD</button>
+           </div>
+           <div class="dim" style="font-size:11px;margin-top:4px">tap an agent to select - RADIATE and RE-PICK live in ALife Ecology</div>
+           <div id="djPickMsg" class="inline-ok"></div>
 
           <div class="subhead">GATE VIEW</div>
           <div class="gate-grid">
@@ -344,7 +387,7 @@ footer{
 </main>
 
 <footer>
-lineage: harness_regrow020.py (CB1D915C) -&gt; harness_boids.js (7689CB75) -&gt; harness_boids v1.1 (bit-exact refactor) -> harness_boids v1.2 (bit-exact PCG64; 8/8 seeds: final pop 2304, births 2264, deaths 0). regrowth 0.20 = steward-adopted neutral. RNG: bit-exact NumPy PCG64 port (validation: seeds 0-1, 40/40 checkpoint rows + 44,000/44,000 per-tick fields bitwise vs registered Python; seeds 2-7 invariants hold). Sandbox mode: DJ knobs live; registered runs keep the mid-run lock.
+lineage: harness_regrow020.py (CB1D915C) -&gt; harness_boids.js (7689CB75) -&gt; harness_boids v1.1 (bit-exact refactor) -> harness_boids v1.2 (bit-exact PCG64; 8/8 seeds: final pop 2304, births 2264, deaths 0). regrowth 0.10 = steward-adopted neutral. RNG: bit-exact NumPy PCG64 port (validation: seeds 0-1, 40/40 checkpoint rows + 44,000/44,000 per-tick fields bitwise vs registered Python; seeds 2-7 invariants hold). Sandbox mode: DJ knobs live; registered runs keep the mid-run lock.
 </footer>
 
 <script id="canonical-engine">#!/usr/bin/env node
@@ -355,8 +398,8 @@ Lineage: harness_boids_v1_2 / bit-exact PCG64.
 Faithful trajectory-level JavaScript port of harness_regrow020.py, artifact CB1D915C.
 Registered constants (verbatim): lattice_size 48; ticks 4000; seed_list 0..7;
 rng_seed_multiplier 7919; rng_seed_offset 13; dt_seconds 60;
-initial_terrain_u 1.0; terrain bounds [0,1]; regrowth_rate 0.20;
-diffusion_coefficient 0.1; consumption_eat_rate 0.05;
+initial_terrain_u 1.0; terrain bounds [0,1]; regrowth_rate 0.1;
+diffusion_coefficient 0.085; consumption_eat_rate 0.04;
 energy_gain_per_u 0.6; subsistence_u 0.05; division_energy 2.0;
 mutation_sd 0.01; conjugation_probability 0.3;
 chromosome_sections (7,146,155,38) => 346 genes; deme_size 6;
@@ -370,7 +413,7 @@ jitter_half_width 0.05; graze_tie_jitter 1e-9;
 gate_normalization_floor 1e-9; checkpoint_interval 100;
 founder windows: width 5, A(8,8), B(35,35), 20 founders per window;
 DIRS order: (-1,0),(1,0),(0,-1),(0,1),(-1,-1),(-1,1),(1,-1),(1,1).
-Regrowth 0.20 is the steward-adopted baseline.
+Regrowth 0.10 is the steward-adopted baseline.
 
 RNG honesty note: one self-contained, bit-exact NumPy PCG64 + Generator
 distribution implementation is used per run. Seed derivation is the Python
@@ -593,9 +636,9 @@ const REGISTERED_CONSTANTS = Object.freeze({
   dt_seconds: 60,
   initial_terrain_u: 1.0,
   terrain_bounds: Object.freeze([0,1]),
-  regrowth_rate: 0.20,
-  diffusion_coefficient: 0.1,
-  consumption_eat_rate: 0.05,
+  regrowth_rate: 0.1,
+  diffusion_coefficient: 0.085,
+  consumption_eat_rate: 0.04,
   energy_gain_per_u: 0.6,
   subsistence_u: 0.05,
   division_energy: 2.0,
@@ -849,7 +892,7 @@ function toleranceFromGenes(genes, base) {
     clamp(REGISTERED_CONSTANTS.death_tolerance_dr_scale * drMean, 0.0, 40.0);
 }
 
-function initializeState(seed, rng) {
+function initializeState(seed, rng, founderGenes) {
   const x = new Int16Array(NCELLS);
   const y = new Int16Array(NCELLS);
   const energy = new Float64Array(NCELLS);
@@ -882,19 +925,47 @@ function initializeState(seed, rng) {
     trMetric[i] = traitMetric(genes, base, TR_START, TR_END);
     drMetric[i] = traitMetric(genes, base, DR_START, DR_END);
   }
-
-  // NumPy order: choice A, choice B, then one uint16 bounded fill for headings.
-  const indicesA = rng.choiceReplaceFalse(25, 20);
-  const indicesB = rng.choiceReplaceFalse(25, 20);
-  for (let i = 0; i < 20; i++) {
-    const idx = indicesA[i];
-    x[i] = 8 + (idx % 5);
-    y[i] = 8 + ((idx / 5) | 0);
+  if (Array.isArray(founderGenes) && founderGenes.length === NGENES && founderGenes.every(Number.isFinite)) {
+    for (let i = 0; i < n0; i++) {
+      const b = i * NGENES;
+      for (let j = 0; j < NGENES; j++) genes[b + j] = founderGenes[j];
+      tol[i] = toleranceFromGenes(genes, b);
+      trMetric[i] = traitMetric(genes, b, TR_START, TR_END);
+      drMetric[i] = traitMetric(genes, b, DR_START, DR_END);
+    }
   }
-  for (let i = 0; i < 20; i++) {
-    const idx = indicesB[i];
-    x[20 + i] = 35 + (idx % 5);
-    y[20 + i] = 35 + ((idx / 5) | 0);
+
+  // Registered two-camp start: seeded shuffle inside the two founder windows.
+  const windowWidth = REGISTERED_CONSTANTS.founder_window_width;
+  const windowA = REGISTERED_CONSTANTS.founder_window_a;
+  const windowB = REGISTERED_CONSTANTS.founder_window_b;
+  const foundersPerWindow = REGISTERED_CONSTANTS.founders_per_window;
+  if (n0 !== foundersPerWindow * 2) throw new Error('initial population must equal two founder camps');
+  function cellsInWindow(anchor) {
+    const cells = [];
+    for (let row = 0; row < windowWidth; row++) {
+      for (let col = 0; col < windowWidth; col++) {
+        const cx = anchor[0] + col, cy = anchor[1] + row;
+        if (cx < 0 || cx >= L || cy < 0 || cy >= L) throw new Error('founder window out of bounds');
+        cells.push(cy * L + cx);
+      }
+    }
+    return cells;
+  }
+  const campA = cellsInWindow(windowA);
+  const campB = cellsInWindow(windowB);
+  for (const cells of [campA, campB]) {
+    for (let i = cells.length - 1; i > 0; i--) {
+      const j = rng.integersScalar(0, i + 1);
+      const tmp = cells[i]; cells[i] = cells[j]; cells[j] = tmp;
+    }
+  }
+  for (let i = 0; i < foundersPerWindow; i++) {
+    const idxA = campA[i], idxB = campB[i];
+    x[i] = idxA % L;
+    y[i] = (idxA / L) | 0;
+    x[i + foundersPerWindow] = idxB % L;
+    y[i + foundersPerWindow] = (idxB / L) | 0;
   }
   const headings = rng.boundedUint16Fill(0, 7, n0);
   for (let i = 0; i < n0; i++) heading[i] = headings[i];
@@ -1039,7 +1110,7 @@ class Simulation {
     }
     const rng = new PCG64(baseSeed);
     const rings = getRingTables();
-    const state = initializeState(seed, rng);
+    const state = initializeState(seed, rng, options && options.founderGenes);
 
     const U = new Float64Array(NCELLS);
     const UNext = new Float64Array(NCELLS);
@@ -1669,6 +1740,46 @@ if (typeof require !== 'undefined' && require.main === module) {
 
   const H = window.harnessBoids;
   const $ = (id) => document.getElementById(id);
+  const VAULT_KEY='biotic_vault_v1',FOUNDER_KEY='biotic_dj_founder_v1';
+  function qhash(chrom){
+    let h=2166136261>>>0;
+    for(let i=0;i<346;i++){
+      let q=Math.round((chrom[i]+1)*127.5);
+      if(q<0)q=0;else if(q>255)q=255;
+      h^=q;h=Math.imul(h,16777619)>>>0;
+    }
+    return(h>>>0).toString(16).padStart(8,'0');
+  }
+  function validVaultChrom(chrom){return Array.isArray(chrom)&&chrom.length===346&&chrom.every(Number.isFinite)}
+  function readFounder(){
+    readFounder.invalid=false;
+    try{
+      const raw=localStorage.getItem(FOUNDER_KEY);
+      if(raw===null||raw===undefined)return null;
+      const parsed=JSON.parse(raw);
+      if(parsed&&typeof parsed.hash==='string'&&validVaultChrom(parsed.chrom)&&qhash(parsed.chrom)===parsed.hash)return{hash:parsed.hash,chrom:parsed.chrom};
+      localStorage.removeItem(FOUNDER_KEY);
+      readFounder.invalid=true;
+      return null;
+    }catch(_){
+      try{localStorage.removeItem(FOUNDER_KEY)}catch(__){}
+      readFounder.invalid=true;
+      return null;
+    }
+  }
+  function readVault(){
+    let vault={saved:{},registry:{}};
+    try{
+      const raw=localStorage.getItem(VAULT_KEY);
+      if(raw){
+        const parsed=JSON.parse(raw);
+        if(parsed&&typeof parsed==='object')vault=parsed;
+      }
+    }catch(_){}
+    if(!vault.saved||typeof vault.saved!=='object')vault.saved={};
+    if(!vault.registry||typeof vault.registry!=='object')vault.registry={};
+    return vault;
+  }
   const ui = {
     engineError:$('engineError'), bootMark:$('bootMark'), extinction:$('extinctionBanner'),
     regrowth:$('regrowth'), diffusion:$('diffusion'), consumption:$('consumption'),
@@ -1680,10 +1791,13 @@ if (typeof require !== 'undefined' && require.main === module) {
     cW1:$('cW1'), cBirths:$('cBirths'), cDeaths:$('cDeaths'), deathNote:$('deathNote'),
     cMeanU:$('cMeanU'), cContested:$('cContested'), counterState:$('counterState'),
     populationSpark:$('populationSpark'), terrainReadout:$('terrainReadout'),
-    stageWrap:$('stageWrap'), lattice:$('lattice'), seedSelect:$('seedSelect'),
+    stageWrap:$('stageWrap'), lattice:$('lattice'), viewReadout:$('viewReadout'), seedSelect:$('seedSelect'),
     speedSelect:$('speedSelect'), runToggle:$('runToggle'), resetSim:$('resetSim'),
+    founderStatus:$('dj-founder-status'), vaultSelect:$('dj-vault-select'),
+    vaultLoad:$('dj-vault-load'), vaultSave:$('dj-vault-save'),
     inspectorEmpty:$('inspectorEmpty'), inspectorContent:$('inspectorContent'),
     agentHeader:$('agentHeader'), selectionMark:$('selectionMark'), thetaReadout:$('thetaReadout'),
+    pickVault:$('djPickVault'), trackPick:$('djTrackPick'), pickMsg:$('djPickMsg'),
     gateN:$('gateN'), gateE:$('gateE'), gateS:$('gateS'), gateW:$('gateW'), gateC:$('gateC'),
     genesTCS:$('genesTCS'), genesTF:$('genesTF'), genesTR:$('genesTR'), genesDR:$('genesDR'),
     statusLamp:$('statusLamp'), sEngine:$('sEngine'), sMode:$('sMode'), sSim:$('sSim'),
@@ -1692,6 +1806,8 @@ if (typeof require !== 'undefined' && require.main === module) {
   };
 
   let sim = null;
+  let initGenome = null;
+  let activeFounder = null;
   let running = false;
   let tickNumber = 0;
   let telemetry = null;
@@ -1721,6 +1837,11 @@ if (typeof require !== 'undefined' && require.main === module) {
   let latticeDpr = 1;
   let latticeSize = {w:1,h:1};
   let viewport = {x:0,y:0,size:1,cell:1};
+  let viewZoom = 1.5;
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 12;
+  let viewCenter = {x:LATTICE_SIZE/2, y:LATTICE_SIZE/2};
+  let trackOn = false;
 
   const heatPalette = Array.from({length:256}, (_, i) => {
     const t = i / 255;
@@ -1827,9 +1948,9 @@ if (typeof require !== 'undefined' && require.main === module) {
 
   function knobDefinition(id) {
     return {
-      regrowth:{neutral:0.20, digits:2, setter:'setRegrowth', output:ui.regrowthValue},
-      diffusion:{neutral:0.10, digits:3, setter:'setDiffusion', output:ui.diffusionValue},
-      consumption:{neutral:0.05, digits:3, setter:'setConsumption', output:ui.consumptionValue}
+      regrowth:{neutral:0.1, digits:2, setter:'setRegrowth', output:ui.regrowthValue},
+      diffusion:{neutral:0.085, digits:3, setter:'setDiffusion', output:ui.diffusionValue},
+      consumption:{neutral:0.04, digits:3, setter:'setConsumption', output:ui.consumptionValue}
     }[id];
   }
 
@@ -1892,6 +2013,34 @@ if (typeof require !== 'undefined' && require.main === module) {
       consumption:Number(ui.consumption.value),
       radii:appliedRadii.slice()
     };
+  }
+
+  function vaultEntry(vault,h) {
+    const candidates=[vault.saved&&vault.saved[h],vault.registry&&vault.registry[h]];
+    for(const e of candidates)if(e&&validVaultChrom(e.chrom))return e;
+    return null;
+  }
+
+  function populateVault() {
+    const vault=readVault(),rows=[];
+    Object.entries(vault.saved||{}).forEach(([h,e]) => rows.push([h,e]));
+    Object.entries(vault.registry||{}).forEach(([h,e]) => rows.push([h,e]));
+    const validCount=rows.reduce((n,row) => n+(row[1]&&validVaultChrom(row[1].chrom)?1:0),0);
+    ui.vaultSelect.textContent='';
+    if(validCount===0){
+      const option=document.createElement('option');
+      option.disabled=true;
+      option.textContent='vault empty - save a genome from ALife Ecology first';
+      ui.vaultSelect.appendChild(option);
+      return;
+    }
+    for(const [h,row] of rows){
+      const e=row||{},option=document.createElement('option');
+      option.value=h;
+      if(validVaultChrom(e.chrom))option.textContent=`${h} - ${e.src||'alife'} - #${e.id} gen ${e.gen}`;
+      else{option.disabled=true;option.textContent=`${h} - old row (re-save from ALife Ecology)`}
+      ui.vaultSelect.appendChild(option);
+    }
   }
 
   function saveResetState(state) {
@@ -1984,6 +2133,8 @@ if (typeof require !== 'undefined' && require.main === module) {
     deathsTotal = 0;
     deathTickKey = undefined;
     selectedIndex = null;
+    if (trackOn) { trackOn = false; if (ui.trackPick) ui.trackPick.textContent = 'TRACK'; }
+    if (ui.pickMsg) ui.pickMsg.textContent = '';
     frameAgents = [];
     sparkData = [initial.population];
     sparkDirty = true;
@@ -2011,9 +2162,11 @@ if (typeof require !== 'undefined' && require.main === module) {
 
   function installSimulation(nextSim) {
     sim = nextSim;
+    initGenome = Array.from(sim.agentView(0).genes);
     const initial = readInitialState();
     if (!initial) return false;
     resetPageTelemetry(initial);
+    ui.founderStatus.textContent = activeFounder ? `vault ${activeFounder.hash} - loaded` : `seeded draw (seed ${ui.seedSelect.value})`;
     ui.sEngine.textContent = 'harness_boids v1.2';
     ui.sMode.textContent = 'sandbox';
     ui.sSeed.textContent = ui.seedSelect.value;
@@ -2029,9 +2182,10 @@ if (typeof require !== 'undefined' && require.main === module) {
   function constructSimulation() {
     clearError(ui.engineError);
     const seed = Number(ui.seedSelect.value);
+    activeFounder = readFounder();
     const result = engineCall(
       'construct simulation',
-      () => new H.Simulation(seed, {mode:'sandbox'})
+      () => new H.Simulation(seed, {mode:'sandbox', founderGenes:activeFounder ? activeFounder.chrom : undefined})
     );
     return result.ok ? installSimulation(result.value) : false;
   }
@@ -2130,9 +2284,95 @@ if (typeof require !== 'undefined' && require.main === module) {
     ui.lattice.width = Math.max(1, Math.round(w * latticeDpr));
     ui.lattice.height = Math.max(1, Math.round(h * latticeDpr));
     latticeSize = {w,h};
-    const size = Math.min(w,h);
-    viewport = {x:(w-size)/2, y:(h-size)/2, size, cell:size/LATTICE_SIZE};
+    computeViewport();
     needsDraw = true;
+  }
+
+  function computeViewport() {
+    const w = latticeSize.w, h = latticeSize.h;
+    const base = Math.min(w,h);
+    const cell = (base / LATTICE_SIZE) * viewZoom;
+    const world = cell * LATTICE_SIZE;
+    let ox, oy;
+    if (world <= w) ox = (w - world) / 2;
+    else ox = Math.min(0, Math.max(w - world, w/2 - viewCenter.x * cell));
+    if (world <= h) oy = (h - world) / 2;
+    else oy = Math.min(0, Math.max(h - world, h/2 - viewCenter.y * cell));
+    viewport = {x:ox, y:oy, size:world, cell};
+    updateViewReadout();
+  }
+
+  function updateViewReadout() {
+    const el = ui.viewReadout;
+    if (el) el.textContent = viewZoom.toFixed(1) + 'x' + (trackOn ? ' - TRACK' : '');
+  }
+
+  function screenToGrid(px, py) {
+    return {gx:(px - viewport.x) / viewport.cell, gy:(py - viewport.y) / viewport.cell};
+  }
+
+  function zoomAt(px, py, factor) {
+    const before = screenToGrid(px, py);
+    const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, viewZoom * factor));
+    if (next === viewZoom) return;
+    viewZoom = next;
+    computeViewport();
+    const after = screenToGrid(px, py);
+    viewCenter.x = Math.min(LATTICE_SIZE, Math.max(0, viewCenter.x + (before.gx - after.gx)));
+    viewCenter.y = Math.min(LATTICE_SIZE, Math.max(0, viewCenter.y + (before.gy - after.gy)));
+    computeViewport();
+    needsDraw = true;
+    ui.sEvent.textContent = 'zoom ' + viewZoom.toFixed(1) + 'x';
+  }
+
+  function drawUmScale() {
+    const rect = ui.lattice.getBoundingClientRect();
+    const cw = ui.lattice.width, ch = ui.lattice.height;
+    if (!cw || !ch || !rect.width || !rect.height) return;
+    const dpr = latticeDpr || (cw / rect.width);
+    const s = viewport.cell * dpr;
+    const ox = viewport.x * dpr, oy = viewport.y * dpr;
+    if (!s) return;
+    const ppm = s / SNAP_GRAIN_UM;
+    const STEPS = [0.5,1,2,5,10,15,30,45,90,180];
+    let st = STEPS[STEPS.length - 1];
+    for (let k = 0; k < STEPS.length; k++) {
+      if (STEPS[k] * ppm >= 72 * dpr) { st = STEPS[k]; break; }
+    }
+    latticeCtx.save();
+    latticeCtx.setTransform(1,0,0,1,0,0);
+    latticeCtx.lineWidth = Math.max(1, Math.round(dpr));
+    latticeCtx.font = (9 * dpr) + 'px ui-monospace,Menlo,Consolas,monospace';
+    latticeCtx.strokeStyle = 'rgba(136,255,160,0.6)';
+    latticeCtx.fillStyle = 'rgba(136,255,160,0.85)';
+    latticeCtx.textBaseline = 'alphabetic';
+    latticeCtx.textAlign = 'center';
+    const xa = (0 - ox) / ppm, xb = (cw - ox) / ppm;
+    let n = 0;
+    for (let i = Math.ceil(xa / st); i <= Math.floor(xb / st) && n < 40; i++, n++) {
+      const ux = i * st, px = ox + ux * ppm;
+      if (px < 12 * dpr || px > cw - 40 * dpr) continue;
+      latticeCtx.beginPath();
+      latticeCtx.moveTo(px, ch - 2 * dpr);
+      latticeCtx.lineTo(px, ch - 9 * dpr);
+      latticeCtx.stroke();
+      latticeCtx.fillText(String(Number(ux.toFixed(2))), px, ch - 12 * dpr);
+    }
+    latticeCtx.textAlign = 'right';
+    latticeCtx.fillText('µm', cw - 4 * dpr, ch - 12 * dpr);
+    latticeCtx.textAlign = 'left';
+    const ya = (0 - oy) / ppm, yb = (ch - oy) / ppm;
+    n = 0;
+    for (let i = Math.ceil(ya / st); i <= Math.floor(yb / st) && n < 40; i++, n++) {
+      const uy = i * st, py = oy + uy * ppm;
+      if (py < 44 * dpr || py > ch - 14 * dpr) continue;
+      latticeCtx.beginPath();
+      latticeCtx.moveTo(2 * dpr, py);
+      latticeCtx.lineTo(9 * dpr, py);
+      latticeCtx.stroke();
+      latticeCtx.fillText(String(Number(uy.toFixed(2))), 12 * dpr, py + 3 * dpr);
+    }
+    latticeCtx.restore();
   }
 
   function drawLattice() {
@@ -2192,6 +2432,7 @@ if (typeof require !== 'undefined' && require.main === module) {
     latticeCtx.strokeStyle = '#2c472f';
     latticeCtx.lineWidth = 1;
     latticeCtx.strokeRect(viewport.x+.5,viewport.y+.5,viewport.size-1,viewport.size-1);
+    drawUmScale();
   }
 
   function clickLattice(event) {
@@ -2220,6 +2461,8 @@ if (typeof require !== 'undefined' && require.main === module) {
 
   function clearSelection() {
     selectedIndex = null;
+    if (trackOn) setTrack(false);
+    if (ui.pickMsg) ui.pickMsg.textContent = '';
     ui.inspectorEmpty.hidden = false;
     ui.inspectorContent.hidden = true;
     ui.selectionMark.textContent = 'NONE';
@@ -2229,6 +2472,13 @@ if (typeof require !== 'undefined' && require.main === module) {
 
   function selectAgent(index) {
     selectedIndex = index;
+    if (trackOn && sim && index < sim.agentCount()) {
+      const tracked = sim.agentView(index);
+      viewCenter.x = tracked.x + 0.5;
+      viewCenter.y = tracked.y + 0.5;
+      computeViewport();
+      needsDraw = true;
+    }
     ui.inspectorEmpty.hidden = true;
     ui.inspectorContent.hidden = false;
     ui.selectionMark.textContent = `#${index}`;
@@ -2374,9 +2624,10 @@ if (typeof require !== 'undefined' && require.main === module) {
     setRunning(false);
     clearError(ui.engineError);
     const seed = Number(ui.seedSelect.value);
+    activeFounder = readFounder();
     const result = engineCall(
       'reset simulation',
-      () => new H.Simulation(seed, {mode:'sandbox'})
+      () => new H.Simulation(seed, {mode:'sandbox', founderGenes:activeFounder ? activeFounder.chrom : undefined})
     );
     if (result.ok) {
       installSimulation(result.value);
@@ -2411,6 +2662,13 @@ if (typeof require !== 'undefined' && require.main === module) {
       }
     }
 
+    if (trackOn && selectedIndex !== null && sim && selectedIndex < sim.agentCount()) {
+      const tracked = sim.agentView(selectedIndex);
+      viewCenter.x = tracked.x + 0.5;
+      viewCenter.y = tracked.y + 0.5;
+      computeViewport();
+      needsDraw = true;
+    }
     if (needsDraw && now - lastDraw >= 45) {
       drawLattice();
       needsDraw = false;
@@ -2442,9 +2700,9 @@ if (typeof require !== 'undefined' && require.main === module) {
   });
 
   ui.resetRegistered.addEventListener('click', () => {
-    ui.regrowth.value = '0.20';
-    ui.diffusion.value = '0.10';
-    ui.consumption.value = '0.05';
+    ui.regrowth.value = '0.10';
+    ui.diffusion.value = '0.085';
+    ui.consumption.value = '0.04';
     const knobsOk = ['regrowth','diffusion','consumption'].every(applyKnob);
     ui.radius1.value = '1';
     ui.radius2.value = '2';
@@ -2456,6 +2714,38 @@ if (typeof require !== 'undefined' && require.main === module) {
     }
   });
 
+  ui.vaultLoad.addEventListener('click', () => {
+    const h=ui.vaultSelect.value,vault=readVault(),e=vaultEntry(vault,h);
+    if(!h||!e)return;
+    const h2 = qhash(e.chrom);
+    if(h2 !== h){
+      ui.founderStatus.textContent='rejected - hash mismatch (row does not match its key)';
+      return;
+    }
+    try{localStorage.setItem(FOUNDER_KEY,JSON.stringify({hash:h,chrom:e.chrom}))}
+    catch(error){surfaceError('load founder',error);return}
+    ui.founderStatus.textContent=`vault ${h} - founders loaded (verbatim; registered seat policy applies to seeded draws only)`;
+    if(!constructSimulation()&&/already active/i.test(ui.engineError.textContent)){
+      clearError(ui.engineError);
+      saveResetState({...currentSettings(),founderLoadHash:h});
+      ui.sEvent.textContent='loading vault founder in fresh engine realm';
+      window.setTimeout(() => {
+        try{location.reload()}
+        catch(error){surfaceError('founder reload',error)}
+      },40);
+    }
+  });
+  ui.vaultSave.addEventListener('click', () => {
+    if(!initGenome||!validVaultChrom(initGenome))return;
+    const chrom=initGenome.slice(),h=qhash(chrom),vault=readVault();
+    if(!vault.saved||typeof vault.saved!=='object')vault.saved={};
+    vault.saved[h]={id:0,gen:0,tick:0,chrom:chrom,src:'dj'};
+    try{localStorage.setItem(VAULT_KEY,JSON.stringify(vault))}
+    catch(error){surfaceError('save initial genome',error);return}
+    ui.founderStatus.textContent=`saved to vault - ${h}`;
+    populateVault();
+    ui.vaultSelect.value=h;
+  });
   ui.applyRadii.addEventListener('click', () => applyRadii(true));
   ui.runToggle.addEventListener('click', toggleRunning);
   ui.resetSim.addEventListener('click', resetSimulation);
@@ -2465,9 +2755,131 @@ if (typeof require !== 'undefined' && require.main === module) {
   });
   ui.seedSelect.addEventListener('change', () => {
     ui.sSeed.textContent = ui.seedSelect.value;
+    if(!activeFounder)ui.founderStatus.textContent=`seeded draw (seed ${ui.seedSelect.value})`;
     ui.sEvent.textContent = 'seed selected; reset sim to apply';
   });
-  ui.lattice.addEventListener('click', clickLattice);
+  const djZoomIn = document.getElementById('djZoomIn');
+  const djZoomOut = document.getElementById('djZoomOut');
+  const djZoomReset = document.getElementById('djZoomReset');
+  if (djZoomIn) djZoomIn.addEventListener('click', () => zoomAt(latticeSize.w / 2, latticeSize.h / 2, 1.35));
+  if (djZoomOut) djZoomOut.addEventListener('click', () => zoomAt(latticeSize.w / 2, latticeSize.h / 2, 1 / 1.35));
+  if (djZoomReset) djZoomReset.addEventListener('click', () => {
+    viewZoom = MIN_ZOOM;
+    viewCenter = {x:LATTICE_SIZE / 2, y:LATTICE_SIZE / 2};
+    computeViewport();
+    needsDraw = true;
+    ui.sEvent.textContent = 'view reset 1.0x';
+  });
+  function djPan(dx,dy){
+    const cell=viewport.cell||1;
+    const stepX=(latticeSize.w/cell)*0.18,stepY=(latticeSize.h/cell)*0.18;
+    viewCenter.x=Math.min(LATTICE_SIZE,Math.max(0,viewCenter.x+dx*stepX));
+    viewCenter.y=Math.min(LATTICE_SIZE,Math.max(0,viewCenter.y+dy*stepY));
+    computeViewport();
+    needsDraw=true;
+    ui.sEvent.textContent='xy-translate';
+  }
+
+  function setTrack(value) {
+    trackOn = Boolean(value);
+    if (ui.trackPick) ui.trackPick.textContent = trackOn ? 'TRACKING: ON' : 'TRACK';
+    updateViewReadout();
+    if (ui.pickMsg) ui.pickMsg.textContent = trackOn ? 'tracking the selected agent' : '';
+    ui.sEvent.textContent = trackOn ? 'tracking selected agent' : 'tracking off';
+  }
+  if (ui.trackPick) ui.trackPick.addEventListener('click', () => {
+    if (!trackOn && selectedIndex === null) {
+      ui.pickMsg.textContent = 'select an agent first, then track';
+      return;
+    }
+    setTrack(!trackOn);
+  });
+
+  if (ui.pickVault) ui.pickVault.addEventListener('click', () => {
+    if (selectedIndex === null || !sim) return;
+    let chrom = null;
+    const result = engineCall('pick to vault', () => {
+      const count = sim.agentCount();
+      if (selectedIndex < 0 || selectedIndex >= count) throw new Error('selected agent is no longer available');
+      chrom = Array.from(sim.agentView(selectedIndex).genes);
+    });
+    if (!result.ok) return;
+    if (!validVaultChrom(chrom)) return;
+    const h = qhash(chrom);
+    const vault = readVault();
+    if (!vault.saved || typeof vault.saved !== 'object') vault.saved = {};
+    vault.saved[h] = {id:0, gen:0, tick:tickNumber, chrom:chrom, src:'dj'};
+    try { localStorage.setItem(VAULT_KEY, JSON.stringify(vault)); }
+    catch (error) { surfaceError('pick to vault', error); return; }
+    populateVault();
+    ui.vaultSelect.value = h;
+    ui.pickMsg.textContent = 'picked variant ' + h + ' - in your vault (free, no mint)';
+    ui.founderStatus.textContent = 'picked variant ' + h + ' saved to vault';
+    ui.sEvent.textContent = 'picked variant ' + h;
+  });
+
+  ui.lattice.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    const rect = ui.lattice.getBoundingClientRect();
+    zoomAt(event.clientX - rect.left, event.clientY - rect.top, Math.exp(-event.deltaY * 0.0018));
+  }, {passive:false});
+
+  const activePointers = new Map();
+  let panLast = null;
+  let pinchDist = 0;
+  let movedPx = 0;
+  ui.lattice.addEventListener('pointerdown', (event) => {
+    try { ui.lattice.setPointerCapture(event.pointerId); } catch (_) {}
+    activePointers.set(event.pointerId, {x:event.clientX, y:event.clientY});
+    movedPx = 0;
+    if (activePointers.size === 1) panLast = {x:event.clientX, y:event.clientY};
+    else if (activePointers.size === 2) {
+      const pts = Array.from(activePointers.values());
+      pinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      panLast = null;
+    }
+  });
+  ui.lattice.addEventListener('pointermove', (event) => {
+    if (!activePointers.has(event.pointerId)) return;
+    activePointers.set(event.pointerId, {x:event.clientX, y:event.clientY});
+    if (activePointers.size === 1 && panLast) {
+      const dx = event.clientX - panLast.x;
+      const dy = event.clientY - panLast.y;
+      movedPx += Math.hypot(dx, dy);
+      panLast = {x:event.clientX, y:event.clientY};
+      if (viewZoom > MIN_ZOOM) {
+        viewCenter.x = Math.min(LATTICE_SIZE, Math.max(0, viewCenter.x - dx / viewport.cell));
+        viewCenter.y = Math.min(LATTICE_SIZE, Math.max(0, viewCenter.y - dy / viewport.cell));
+        computeViewport();
+        needsDraw = true;
+      }
+    } else if (activePointers.size === 2) {
+      const pts = Array.from(activePointers.values());
+      const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      if (pinchDist > 0 && dist > 0) {
+        const rect = ui.lattice.getBoundingClientRect();
+        movedPx += Math.abs(dist - pinchDist);
+        zoomAt((pts[0].x + pts[1].x) / 2 - rect.left, (pts[0].y + pts[1].y) / 2 - rect.top, dist / pinchDist);
+      }
+      pinchDist = dist;
+    }
+  });
+  function endPointer(event) {
+    if (!activePointers.has(event.pointerId)) return;
+    const wasTap = activePointers.size === 1 && movedPx < 7;
+    activePointers.delete(event.pointerId);
+    if (activePointers.size === 0) {
+      panLast = null;
+      pinchDist = 0;
+      if (wasTap) clickLattice(event);
+    } else if (activePointers.size === 1) {
+      const remaining = Array.from(activePointers.values())[0];
+      panLast = {x:remaining.x, y:remaining.y};
+      pinchDist = 0;
+    }
+  }
+  ui.lattice.addEventListener('pointerup', endPointer);
+  ui.lattice.addEventListener('pointercancel', endPointer);
 
   document.addEventListener('keydown', (event) => {
     if (event.code !== 'Space' || event.repeat) return;
@@ -2509,10 +2921,187 @@ if (typeof require !== 'undefined' && require.main === module) {
     resizeLattice();
     drawSparkline();
     constructSimulation();
+    if(readFounder.invalid)ui.founderStatus.textContent='stored vault load invalid - dropped';
+    populateVault();
+    if(pending&&pending.founderLoadHash&&activeFounder&&activeFounder.hash===pending.founderLoadHash){
+      ui.founderStatus.textContent=`vault ${activeFounder.hash} - founders loaded (verbatim; registered seat policy applies to seeded draws only)`;
+    }
     requestAnimationFrame(animationFrame);
   }
 
   boot();
+  const CARD_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPEAAADZCAYAAADxNNZSAAAHVElEQVR4Ae3AA6AkWZbG8f937o3IzKdyS2Oubdu2bdu2bdu2bWmMnpZKr54yMyLu+Xa3anqmhztr1S+46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCoHLV/2XmhRNX/W8GQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FQOWq/0vMVf+fABBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBULnq/zPznMRV/5sAEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwFQuer/M3HV/2YABFddddX/VgAEV1111f9WAARXXXXV/1YAVK76v0Q8J3PV/2UABFddddX/VgAEV1111f9WAARXXXXV/1YAiKuuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rACpX/X9i/v3EVf9TABBcddVV/1sBEFx11VX/WwEQXHXVVf9bASCu+r/E/PcTV/1XASC46qqr/rcCILjqqqv+twIguOqqq/63AkBc9b+J+b9HXPVvBUBw1VVX/W8FQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FgLjqP4r57yf++5n/XOKq+wEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEgrnpBzH8v8f+D+a8n/m8AILjqqqv+twIguOqqq/63AiC46qqr/rcCQPzvZP77iav+K5j/euJ/BwCCq6666n8rAIKrrrrqfysAgquuuup/KwDE/wzmv5e46v8y899P/McDILjqqqv+twIguOqqq/63AiC46qqr/rcCoPJfz/zriauu+rcT/zrmfwcAgquuuup/KwCCq6666n8rAIKrrrrqfysAxH8+8y8TV131v5t5TuI/HwDBVVdd9b8VAMFVV131vxUAwVVXXfW/FQDiqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqAfwTCaxS4qyUmQwAAAABJRU5ErkJggg==';
+  const cardLogo=new Image();cardLogo.src=CARD_LOGO;
+  function glyphVals(g){let fs=0,rs=0;for(let i=0;i<146;i++)fs+=g[7+i];for(let i=0;i<155;i++)rs+=g[153+i];return{tcs:7,tf:Math.max(2,Math.min(300,Math.round(Math.abs(fs)*140))),tr:Math.max(2,Math.min(320,Math.round(Math.abs(rs)*140)))}}
+  function glyphHash(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return h>>>0}
+  function mulberry32(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,a|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+  function drawGlyphTo(c2,W,H,chrom){
+    const g=glyphVals(chrom);
+    const cx=W/2,cy=H/2,pad=8,stepL=Math.min(W,H)/170;
+    c2.clearRect(0,0,W,H);
+    const rnd=mulberry32(glyphHash(g.tcs+'-'+g.tf+'-'+g.tr));
+    c2.strokeStyle='rgba(232,184,40,0.85)';c2.lineWidth=1;c2.lineJoin='round';
+    c2.fillStyle='#e8b840';c2.beginPath();c2.arc(cx,cy,2,0,Math.PI*2);c2.fill();
+    const GOLDEN=Math.PI*(3-Math.sqrt(5)),D=Math.PI/180;
+    function walk(x,y,ang,steps,sign,depth){
+      let cum=0,signed=0;
+      let branchE=g.tf/30;if(depth>0)branchE*=0.5;
+      const pB=Math.min(0.08,branchE/steps);
+      c2.beginPath();c2.moveTo(x,y);
+      for(let s=0;s<steps;s++){
+        let dth=sign*Math.min(1,g.tr/320)*D*4+(rnd()-0.5)*D*4;
+        if(Math.abs(signed+dth)>D*300)dth=0;
+        if(cum+Math.abs(dth)>D*270)dth=0;
+        const rx=x-cx,ry=y-cy,rl=Math.hypot(rx,ry)||1;
+        ang=Math.atan2(Math.sin(ang)*0.85+ry/rl*0.15,Math.cos(ang)*0.85+rx/rl*0.15);
+        ang+=dth;
+        cum+=Math.abs(dth);signed+=dth;
+        x+=Math.cos(ang)*stepL;y+=Math.sin(ang)*stepL;
+        c2.lineTo(x,y);
+        if(x<pad||x>W-pad||y<pad||y>H-pad)break;
+        if(depth<2&&rnd()<pB){
+          const ba=ang+(rnd()<0.5?1:-1)*(0.5+rnd()*0.5),bs=Math.floor((steps-s)*0.5);
+          if(bs>20)walk(x,y,ba,bs,sign,depth+1);
+        }
+      }
+      c2.stroke();
+    }
+    for(let k=0;k<g.tcs;k++){
+      const base=k*GOLDEN+(rnd()-0.5)*0.3,sign=rnd()<0.5?1:-1,steps=150+Math.floor(rnd()*41);
+      walk(cx,cy,base,steps,sign,0);
+    }
+  }
+  function saveDjCard(){
+    try{
+      if(selectedIndex===null||!sim)return;
+      const view=sim.agentView(selectedIndex);
+      if(!view||!view.genes)return;
+      if(!(cardLogo.complete&&cardLogo.naturalWidth>0)){cardLogo.onload=function(){cardLogo.onload=null;saveDjCard()};return}
+      const W=640,H=780;
+      const cc=document.createElement('canvas');cc.width=W;cc.height=H;
+      const g=cc.getContext('2d');
+      g.fillStyle='#0a0e0a';g.fillRect(0,0,W,H);
+      g.strokeStyle='#e8b840';g.lineWidth=2;g.strokeRect(5.5,5.5,W-11,H-11);
+      g.save();g.beginPath();g.arc(320,76,40,0,Math.PI*2);g.fillStyle='#f4efe6';g.fill();g.clip();
+      const ar=(cardLogo.naturalWidth||1)/(cardLogo.naturalHeight||1);
+      let dw=64,dh=64;
+      if(ar>=1){dh=64;dw=64*ar}else{dw=64;dh=64/ar}
+      g.drawImage(cardLogo,320-dw/2,76-dh/2,dw,dh);
+      g.restore();
+      g.strokeStyle='rgba(217,164,65,.8)';g.lineWidth=1;g.beginPath();g.arc(320,76,40,0,Math.PI*2);g.stroke();
+      g.textAlign='center';
+      g.fillStyle='#e8b840';g.font='13px ui-monospace,Menlo,Consolas,monospace';
+      g.fillText('RISE OF MICROBES',320,146);
+      g.fillStyle='#88ffa0';g.font='bold 28px ui-monospace,Menlo,Consolas,monospace';
+      g.fillText('SPECIMEN #'+selectedIndex,320,190);
+      g.fillStyle='#5a7a5a';g.font='11px ui-monospace,Menlo,Consolas,monospace';
+      g.fillText('presentation card - display only - not an NFT',320,214);
+      g.fillStyle='#050a05';g.fillRect(170,230,300,300);
+      g.strokeStyle='#1c2a1c';g.lineWidth=1;g.strokeRect(170.5,230.5,299,299);
+      const go=document.createElement('canvas');go.width=300;go.height=300;
+      drawGlyphTo(go.getContext('2d'),300,300,view.genes);
+      g.drawImage(go,170,230);
+      g.textAlign='left';
+      g.fillStyle='#e8b840';g.font='11px ui-monospace,Menlo,Consolas,monospace';
+      g.fillText('CHROMOSOME - TCS 7 / TF 146 / TR 155 / DR 38',24,566);
+      const csecs=[['TCS',0,7],['TF',7,146],['TR',153,155],['DR',308,38]];
+      let ry=586;
+      for(let si=0;si<csecs.length;si++){
+        const nm=csecs[si][0],off=csecs[si][1],sz=csecs[si][2];
+        g.fillStyle='#b8d4b8';g.font='10px ui-monospace,Menlo,Consolas,monospace';
+        g.fillText(nm+'x'+sz,24,ry+13);
+        const cw2=516/sz;
+        for(let i=0;i<sz;i++){
+          const v=view.genes[off+i],mag=Math.min(1,Math.abs(v)*3);
+          g.fillStyle=v>=0?'rgb('+Math.floor(mag*40)+','+Math.floor(80+mag*140)+','+Math.floor(mag*40)+')':'rgb('+Math.floor(80+mag*140)+','+Math.floor(mag*40)+','+Math.floor(mag*40)+')';
+          g.fillRect(96+i*cw2,ry,Math.ceil(cw2),18);
+        }
+        ry+=30;
+      }
+      g.textAlign='center';
+      g.fillStyle='#5a7a5a';g.font='10px ui-monospace,Menlo,Consolas,monospace';
+      g.fillText('genome glyph is deterministic from the chromosome',320,736);
+      g.fillText('nothing minted - nothing on-chain',320,756);
+      cc.toBlob(function(b){
+        if(!b)return;
+        const al=document.createElement('a');
+        al.href=URL.createObjectURL(b);
+        al.download='TerraQuest - Rise of Microbes.png';
+        document.body.appendChild(al);al.click();al.remove();
+        setTimeout(function(){URL.revokeObjectURL(al.href)},4000);
+      },'image/png');
+    }catch(e){}
+  }
+  document.getElementById('djCard').addEventListener('click',function(){saveDjCard()});
+  const SNAP_GRAIN_UM=1.5;
+function snapCompose(c,labelLines){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const W=c.width,H=c.height;
+  const FH=Math.max(48,Math.round(56*dpr));
+  const out=document.createElement('canvas');out.width=W;out.height=H+FH;
+  const g=out.getContext('2d');
+  g.drawImage(c,0,0);
+  g.fillStyle='#0e1610';g.fillRect(0,H,W,FH);
+  g.strokeStyle='#1c2a1c';g.lineWidth=Math.max(1,Math.round(dpr));
+  g.strokeRect(0.5,H+0.5,W-1,FH-1);
+  const r=FH*0.4,cx=r+8*dpr,cy=H+FH/2;
+  const IMGLOAD=cardLogo;
+  if(IMGLOAD&&IMGLOAD.complete&&IMGLOAD.naturalWidth>0){
+    g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);
+    g.fillStyle='#f4efe6';g.fill();g.clip();
+    const ar=(IMGLOAD.naturalWidth||1)/(IMGLOAD.naturalHeight||1);
+    const d=r*2*0.8;let dw,dh;
+    if(ar>=1){dh=d;dw=d*ar}else{dw=d;dh=d/ar}
+    g.drawImage(IMGLOAD,cx-dw/2,cy-dh/2,dw,dh);
+    g.restore();
+    g.strokeStyle='rgba(217,164,65,.8)';g.lineWidth=Math.max(1,Math.round(dpr));
+    g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.stroke();
+  }
+  const x0=cx+r+10*dpr;
+  let fs=Math.round(11*dpr);
+  g.textAlign='left';g.textBaseline='middle';
+  const fits=(t,s)=>{g.font='bold '+s+'px ui-monospace,Menlo,Consolas,monospace';return g.measureText(t).width<=W-x0-8*dpr};
+  while(fs>7&&!(labelLines.every(t=>fits(t,fs))))fs--;
+  const y0=H+FH*0.28,dy=FH*0.24;
+  g.fillStyle='#e8b840';g.font='bold '+fs+'px ui-monospace,Menlo,Consolas,monospace';
+  g.fillText(labelLines[0],x0,y0);
+  g.fillStyle='#b8d4b8';g.font=fs+'px ui-monospace,Menlo,Consolas,monospace';
+  for(let i=1;i<labelLines.length;i++)g.fillText(labelLines[i],x0,y0+dy*i);
+  return out;
+}
+document.getElementById('btn-snap').addEventListener('click',function(){
+  try{
+    const c=document.getElementById('lattice');
+    if(!(c&&typeof c.toBlob==='function'))return;
+    const snapSend=(out)=>{if(typeof out.toBlob!=='function')return;out.toBlob(function(b){
+      if(!b)return;
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);
+      a.download='TerraQuest - Rise of Microbes.png';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
+    },'image/png')};
+    const build=()=>{
+      let cell=(typeof viewport!=='undefined'&&viewport&&viewport.cell>0)?viewport.cell:0;
+      let vw=0,vh=0;
+      try{
+        if(!cell){const base=Math.min(latticeSize.w,latticeSize.h);cell=(base/LATTICE_SIZE)*viewZoom}
+        vw=latticeSize.w/cell*SNAP_GRAIN_UM;vh=latticeSize.h/cell*SNAP_GRAIN_UM;
+      }catch(err){}
+      const seedN=Number((document.getElementById('seedSelect')||{}).value||0);
+      const lines=[
+        'RISE OF MICROBES - TERRAIN SNAPSHOT',
+        'REGEN regrow '+regrowthRate+' - diffuse '+diffusionCoefficient+' - consume '+consumptionRate+'  |  GRAIN '+SNAP_GRAIN_UM+' um/cell - VIEW '+vw.toFixed(1)+' x '+vh.toFixed(1)+' um',
+        'TICK '+((typeof tickNumber==='number')?tickNumber:0)+'  |  SIM seed '+seedN+' - lattice '+LATTICE_SIZE+'x'+LATTICE_SIZE
+      ];
+      snapSend(snapCompose(c,lines));
+    };
+    const im=(typeof cardLogo!=='undefined')?cardLogo:null;
+    if(im&&im.complete)build();
+    else if(im){im.addEventListener('load',build,{once:true});im.addEventListener('error',build,{once:true})}
+    else build();
+  }catch(e){}
+});
 })();
 </script>
 </body>

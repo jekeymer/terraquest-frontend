@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ALIFE SIM — spec v0.2 mockup</title>
+<title>ALife Ecology — spec v0.2 mockup</title>
 <style>
 :root{
   --bg:#0a0e0a;--panel:#0e1610;--pb:#1c2a1c;--tx:#b8d4b8;--td:#5a7a5a;
@@ -14,28 +14,31 @@ html,body{background:var(--bg);color:var(--tx);font-family:ui-monospace,"SF Mono
 #app{
   display:grid;
   grid-template-rows:auto auto 1fr auto;
-  grid-template-columns:300px 1fr 320px;
+  grid-template-columns:264px 1fr 272px;
   grid-template-areas:"h h h" "l l l" "le ma ri" "f f f";
-  height:100vh;gap:6px;padding:6px;
+  height:100vh;gap:5px;padding:5px;
 }
-header{grid-area:h;background:var(--panel);border:1px solid var(--pb);padding:8px 12px}
+header{grid-area:h;background:var(--panel);border:1px solid var(--pb);padding:6px 10px}
 header h1{color:var(--gb);font-size:14px;letter-spacing:.18em;text-transform:uppercase;font-weight:normal}
-header p{color:var(--td);font-size:10px;margin-top:4px;line-height:1.45}
+header p{color:var(--td);font-size:9.5px;margin-top:3px;line-height:1.35}
 header em{color:var(--am);font-style:normal}
-#loop{grid-area:l;background:var(--panel);border:1px solid var(--pb);display:flex;padding:6px;gap:4px}
-.stage{flex:1;padding:8px 6px;border:1px solid var(--pb);text-align:center;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--td);transition:all .15s}
+#loop{grid-area:l;background:var(--panel);border:1px solid var(--pb);display:flex;padding:4px 6px;gap:4px}
+.stage{flex:1;padding:5px 6px;border:1px solid var(--pb);text-align:center;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--td);transition:all .15s}
 .stage.active{background:#152015;border-color:var(--gn);color:var(--gb);box-shadow:inset 0 0 12px #1c3c1c,0 0 6px #1c3c1c}
 #left,#right{display:flex;flex-direction:column;gap:6px;overflow:hidden;min-height:0}
 #left{grid-area:le}#right{grid-area:ri}
-#main{grid-area:ma;background:var(--panel);border:1px solid var(--pb);display:flex;flex-direction:column;padding:6px;min-height:0}
-#main canvas{display:block;width:100%;flex:1;image-rendering:pixelated;image-rendering:crisp-edges;background:#050a05;cursor:crosshair;touch-action:none}
+#main{grid-area:ma;background:var(--panel);border:1px solid var(--pb);display:flex;flex-direction:column;padding:5px;min-height:0}
+#main canvas{display:block;width:100%;flex:1;min-height:0;image-rendering:pixelated;image-rendering:crisp-edges;background:#050a05;cursor:crosshair;touch-action:none}
 #controls{display:flex;gap:4px;padding:6px 0 0 0;flex-wrap:wrap;align-items:center}
 #controls button,#controls select{background:var(--bg);color:var(--tx);border:1px solid var(--pb);padding:4px 8px;font-family:inherit;font-size:11px;cursor:pointer}
 #controls button:hover,#controls select:hover{border-color:var(--gn)}
 #controls button.on{border-color:var(--am);color:var(--am);background:#1a1408}
 #controls .hint{color:var(--td);font-size:10px;margin-left:auto}
+#navrow{display:flex;gap:4px;padding:6px 0 6px 0;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--pb);margin-bottom:4px}
 #controls .toolbtn{padding:9px 16px;font-size:13px;font-weight:bold;letter-spacing:.06em}
 #controls .toolbtn.locked{opacity:.45;border-style:dashed;color:var(--td)}
+#controls .instgrp{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--pb);padding:3px 6px;background:var(--bg)}
+#controls .instlbl{font-size:9px;color:var(--td);letter-spacing:.12em;text-transform:uppercase;margin-right:2px}
 #kg-chip{font-size:10px;padding:5px 8px;border:1px solid var(--rd);color:var(--rd);letter-spacing:.05em;white-space:nowrap}
 #kg-chip.on{border-color:var(--gn);color:var(--gb)}
 #btn-kg{border-color:var(--am);color:var(--am);font-size:11px}
@@ -50,11 +53,11 @@ header em{color:var(--am);font-style:normal}
 .event{font-size:10px;padding:3px 0;color:var(--td);border-bottom:1px dotted var(--pb);line-height:1.3}
 .event .t{color:var(--am);margin-right:6px;font-variant-numeric:tabular-nums}
 .event.warn{color:var(--rd)}.event.warn .t{color:var(--rd);font-weight:bold}
-footer{grid-area:f;background:var(--panel);border:1px solid var(--pb);padding:6px 10px;font-size:10px;color:var(--td);line-height:1.5}
+footer{grid-area:f;background:var(--panel);border:1px solid var(--pb);padding:5px 8px;font-size:9.5px;color:var(--td);line-height:1.4}
 footer em{color:var(--am);font-style:normal}
 .chrom-row{display:flex;gap:4px;margin:3px 0;align-items:center}
 .chrom-label{font-size:9px;color:var(--am);width:48px;letter-spacing:.05em}
-.chrom-bars{display:flex;gap:0;flex:1;height:10px;overflow-x:auto;background:#050a05;padding:1px;border:1px solid var(--pb);min-width:0}
+.chrom-bars{display:flex;gap:0;flex:1;height:10px;overflow:hidden;background:#050a05;padding:1px;border:1px solid var(--pb);min-width:0}
 .chrom-cell{flex:0 0 auto;min-width:1px;height:6px;background:#1c2a1c}
 .tcs-perc{margin:4px 0}
 .perc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:170px}
@@ -88,10 +91,10 @@ footer em{color:var(--am);font-style:normal}
 .vrel{background:var(--bg);color:var(--td);border:1px solid var(--pb);font-family:inherit;font-size:9px;padding:0 5px;cursor:pointer;margin-left:4px}
 .vrel:hover{border-color:var(--rd);color:var(--rd)}
 #vault-msg{font-size:9px;color:var(--am);min-height:12px;line-height:1.4;margin-bottom:2px}
-@media (max-width:700px){
-  html,body{overflow:auto;height:auto}
+@media (max-width:1100px){
+  html,body{overflow-y:auto;overflow:auto;height:auto;min-height:100%}
   #app{grid-template-columns:1fr;grid-template-areas:"h" "l" "ma" "le" "ri" "f";height:auto;min-height:100vh}
-  #main{min-height:56vh}
+  #main{min-height:45vh}
   #roster-panel{max-height:none}
 }
 </style>
@@ -99,7 +102,7 @@ footer em{color:var(--am);font-style:normal}
 <body>
 <div id="app">
   <header>
-    <h1>ALIFE SIM — spec v0.2 mockup</h1>
+    <h1>ALife Ecology — spec v0.2 mockup</h1>
     <p>two strata of tokenizable terrain: <em>IRL habitat terrain</em> related to datagrams; <em>virtual arenas</em> (game-model lattice) tokenized in their own right. Mapping = separate pairing layer, one-way RWA → virtual (virtual-arena contract design held until RWA asset space complete).</p>
   </header>
   <div id="loop">
@@ -116,7 +119,7 @@ footer em{color:var(--am);font-style:normal}
       <div class="kv"><span>tick (model h)</span><span class="v" id="c-tick">0.00</span></div>
       <div class="kv"><span>population</span><span class="v" id="c-pop">0</span></div>
       <div class="kv"><span>mean energy</span><span class="v" id="c-energy">0.00</span></div>
-      <div class="kv"><span>divisions (conj / mut)</span><span class="v" id="c-div">0 / 0</span></div>
+      <div class="kv"><span>divisions (partnered / solo)</span><span class="v" id="c-div">0 / 0</span></div>
       <div class="kv"><span>deaths</span><span class="v" id="c-deaths">0</span></div>
       <div class="kv"><span>mean U</span><span class="v" id="c-u">0.000</span></div>
       <div class="kv"><span>w = 1 fraction</span><span class="v" id="c-w">0.00</span></div>
@@ -133,8 +136,15 @@ footer em{color:var(--am);font-style:normal}
     </div>
   </div>
   <div id="main">
+    <div id="xyrow" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:0 0 6px 0">
+<span style="font-size:10.5px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;color:#bfe8c6;display:inline-block;vertical-align:middle">XY-TRANSLATE - drag the terrain to move the view</span>
+</div>
     <canvas id="cv"></canvas>
-    <div id="legend"><span class="sw" style="background:linear-gradient(90deg,#0a1a0a,#88ffa0)"></span>U (dark→phosphor) <span id="zoom-ind" style="color:var(--am);margin-left:6px">1.0×</span></div>
+    <div id="focusrow" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 0 0 0">
+<span class="instgrp" title="Z-focus: zoom the view like a microscope objective"><span class="instlbl">Z-FOCUS</span><button id="btn-zoomout" class="toolbtn" title="zoom out">−</button><button id="btn-zoomin" class="toolbtn" title="zoom in">+</button><button id="btn-vreset" class="toolbtn" title="reset view to full lattice">1:1</button></span>
+<button id="btn-snap" class="toolbtn" title="save the current view as a PNG file" style="margin-left:auto">SNAPSHOT</button>
+</div>
+    <div id="legend"><span class="sw" style="background:linear-gradient(90deg,#0a1a0a,#88ffa0)"></span>U (dark→phosphor) <span id="zoom-ind" style="color:var(--am);margin-left:6px">1.0×</span><div id="scale-ind" style="margin-top:3px"></div></div>
     <div id="controls">
       <button id="btn-pause">⏸ Pause</button>
       <select id="sel-speed" title="visual ticks per second">
@@ -161,19 +171,23 @@ footer em{color:var(--am);font-style:normal}
       <button id="btn-radiate" class="toolbtn" title="show specimen's direct offspring (existing division · conjugation + mutation)">RADIATE</button>
       <button id="btn-repick" class="toolbtn" title="drop the current specimen and track a new random agent">RE-PICK</button>
       <button id="btn-track" class="toolbtn" title="track the selected specimen: fitness = registered measured proxy">TRACKER</button>
-      <a id="kg-gatehint" href="deck.html" style="display:none;color:var(--am);text-decoration:underline;cursor:pointer;font-size:11px" title="open the kEngram deck and collect cards to unlock the tools">locked · collect the kEngrams in the deck</a>
-      <button id="btn-follow" class="toolbtn" title="when zoomed in, keep the tracked specimen centered">FOLLOW</button>
-      <button id="btn-zoomout" title="zoom out">−</button>
-      <button id="btn-zoomin" title="zoom in">+</button>
-      <button id="btn-vreset" title="reset view to full lattice">1:1</button>
+      <a id="kg-gatehint" href="deck.html" style="display:none;color:var(--am);text-decoration:underline;cursor:pointer;font-size:11px" title="open Knowledge Engrams and collect cards to unlock the tools">locked · collect the kEngrams in the deck</a>
+      <button id="btn-follow" class="toolbtn" title="when zoomed in, keep the tracked specimen centered">TRACK</button>
+      
+      
       <button id="btn-reset">↺ Reset</button>
       <span id="kg-chip">kEngrams: checking…</span>
-      <button id="btn-kg" title="demo stand-in until the kEngram deck ships — collection state lives in this browser">collect (demo)</button>
-      <a href="deck.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">DECK</a>
-      <a href="index.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">ENTRY</a>
-      <a href="dj.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">DJ</a>
-      <a href="battle.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">BATTLE</a>
+      <button id="btn-kg" title="demo stand-in until Knowledge Engrams ships — collection state lives in this browser">collect (demo)</button>
       <span class="hint">space = pause · wheel / pinch = zoom · drag = pan · click = select / tracker override</span>
+    </div>
+    <div id="navrow">
+      <a href="deck.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">Knowledge Engrams</a>
+      <a href="index.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">Rise of Microbes</a>
+      <a href="dj.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">Terrain Console</a>
+      <a href="battle.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">Battle Arena</a>
+      <a href="glyph.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">genome glyph</a>
+      <a href="https://terraquest.biotexturas.org/" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">TerraQuest</a>
+      <a href="vault.html" class="toolbtn" style="display:inline-block;background:var(--bg);color:var(--am);border:1px solid var(--am);font-family:inherit;text-decoration:none;cursor:pointer">My workbench</a>
     </div>
   </div>
   <div id="right">
@@ -210,6 +224,7 @@ footer em{color:var(--am);font-style:normal}
 <script>
 'use strict';
 const GRID_W=60,GRID_H=45,N=GRID_W*GRID_H;
+const CELL_UM=1.5,TICK_S=60;
 const TCS=7,TF=146,TR=155,DR=38,CHROM=TCS+TF+TR+DR;
 const TCS_OFF=0,TF_OFF=TCS,TR_OFF=TCS+TF,DR_OFF=TCS+TF+TR;
 const ORDER=['tick','lattice grain','division threshold','subsistence U','tolerance window','mutation rate','dispersal radius (offspring local hop)','uptake rate','regrow rate','diffuse rate','reflective edges','w-gate mode','delta mode','delta memory k'];
@@ -238,7 +253,7 @@ let events=[],flashes=[],selected=-1;
 const settings={paused:false,speed:1,overlay:'u',wgate:'baseline',delta:'one',select:true,radiate:false,track:false};
 const DELTA_LABEL={off:'off · λ 0.0',one:'λ = 1.0 (fixed)',gene:'TCS-6 gene (λ evolving)'};
 let specimenId=-1,specBirthTick=0,specimenDeadTick=-1,specLastE=0,radConj=0,radMut=0,lastTrkSig='';
-const view={z:1,px:0,py:0,follow:false};
+const view={z:1.5,px:0,py:0,follow:false};
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const sparkCv=document.getElementById('spark'),sparkCtx=sparkCv.getContext('2d');
 const insBody=document.getElementById('ins-body'),logBody=document.getElementById('log-body');
@@ -256,7 +271,7 @@ function kgApply(){
   const chip=document.getElementById('kg-chip'),btn=document.getElementById('btn-kg');
   if(chip){chip.textContent=kgCollected?'kEngrams: collected · tools active':'kEngrams: not collected · tools locked';chip.classList.toggle('on',kgCollected)}
   if(btn)btn.textContent=kgCollected?'release (demo)':'collect (demo)';
-  for(const id of ['btn-select','btn-radiate','btn-repick','btn-track']){const el=document.getElementById(id);if(!el)continue;if(el.dataset.tip===undefined)el.dataset.tip=el.getAttribute('title')||'';el.classList.toggle('locked',!kgCollected);el.setAttribute('title',kgCollected?el.dataset.tip:'locked · go to the kEngram deck and collect the kEngrams to unlock')}
+  for(const id of ['btn-select','btn-radiate','btn-repick','btn-track']){const el=document.getElementById(id);if(!el)continue;if(el.dataset.tip===undefined)el.dataset.tip=el.getAttribute('title')||'';el.classList.toggle('locked',!kgCollected);el.setAttribute('title',kgCollected?el.dataset.tip:'locked · open Knowledge Engrams and collect the kEngrams to unlock')}
   const gh=document.getElementById('kg-gatehint');if(gh)gh.style.display=kgCollected?'none':'inline';
 }
 function kgFlash(){
@@ -496,10 +511,9 @@ function drawTrace(id){
     t.fillRect(x,0,Math.max(1,x2-x),H);
   }
 }
-function drawGlyph(chrom){
-  const gcv=document.getElementById('glyph-cv');if(!gcv)return;
+function drawGlyphTo(c2,W,H,chrom){
   const g=glyphVals(chrom);
-  const c2=gcv.getContext('2d'),W=gcv.width,H=gcv.height,cx=W/2,cy=H/2,pad=8,stepL=Math.min(W,H)/170;
+  const cx=W/2,cy=H/2,pad=8,stepL=Math.min(W,H)/170;
   c2.clearRect(0,0,W,H);
   const rnd=mulberry32(glyphHash(g.tcs+'-'+g.tf+'-'+g.tr));
   c2.strokeStyle='rgba(232,184,40,0.85)';c2.lineWidth=1;c2.lineJoin='round';
@@ -533,6 +547,10 @@ function drawGlyph(chrom){
     walk(cx,cy,base,steps,sign,0);
   }
 }
+function drawGlyph(chrom){
+  const gcv=document.getElementById('glyph-cv');if(!gcv)return;
+  drawGlyphTo(gcv.getContext('2d'),gcv.width,gcv.height,chrom);
+}
 function updateTracker(){
   if(!settings.track){trackerPanel.style.display='none';lastTrkSig='';return}
   trackerPanel.style.display='';
@@ -547,7 +565,7 @@ function updateTracker(){
     html+=`<div class="kv"><span>survival</span><span class="v">${a.age} ticks</span></div>`;
     html+=`<div class="kv"><span>energy</span><span class="v">${a.energy.toFixed(2)}</span></div>`;
     html+=`<div class="kv"><span>fitness (proxy)</span><span class="v warn">${fit.toFixed(2)}</span></div>`;
-    html+=`<div class="kv"><span>offspring (conj / mut)</span><span class="v">${radConj} / ${radMut}</span></div>`;
+    html+=`<div class="kv"><span>offspring (partnered / solo)</span><span class="v">${radConj} / ${radMut}</span></div>`;
     html+=`<div style="font-size:9px;color:var(--td);margin-top:3px">override: click any agent · RE-PICK for a new specimen · pause holds the run, tracker keeps its target</div>`;
   }else{
     if(specimenId>0&&specimenDeadTick<0)specimenDeadTick=stats.tick;
@@ -559,7 +577,7 @@ function updateTracker(){
         +`<div class="kv"><span>survived</span><span class="v">${survived} ticks</span></div>`
         +`<div class="kv"><span>final energy</span><span class="v">${specLastE.toFixed(2)}</span></div>`
         +`<div class="kv"><span>fitness (final)</span><span class="v warn">${(survived+specLastE).toFixed(2)}</span></div>`
-        +`<div class="kv"><span>offspring (conj / mut)</span><span class="v">${radConj} / ${radMut}</span></div>`
+        +`<div class="kv"><span>offspring (partnered / solo)</span><span class="v">${radConj} / ${radMut}</span></div>`
         +`<div style="font-size:9px;color:var(--td);margin-top:3px">RE-PICK to track a new specimen</div>`
       :`<div style="font-size:10px;color:var(--td)">no specimen tracked — click an agent or press RE-PICK</div>`;
   }
@@ -587,7 +605,7 @@ function updateInspector(){
   const labels=['NW','N','NE','W','X','E','SW','S','SE'];
   const wtMap={1:1,3:4,4:0,5:2,7:3};
   html+=`<div style="margin-top:8px;color:var(--am);font-size:10px;letter-spacing:.1em">TCS PERCEPTRON · 5 inputs + Δ + θ</div>`;
-  html+=`<div style="font-size:9px;color:var(--td);margin-bottom:3px">uses 6 of 10 numbers (TCS-1..5 weights + TCS-7 θ); TCS-6 = Δ seat (λ per delta mode · memory k=${C['delta memory k']} ticks); NW/SW/SE unweighted</div>`;
+  html+=`<div style="font-size:9px;color:var(--td);margin-bottom:3px">uses 6 of 7 numbers (TCS-1..5 weights + TCS-7 θ); TCS-6 = Δ seat (λ per delta mode · memory k=${C['delta memory k']} ticks); NW/SW/SE unweighted</div>`;
   html+=`<div style="margin-top:8px;color:var(--am);font-size:10px;letter-spacing:.1em">FIRING TRACE</div>`;
   html+=`<div style="font-size:9px;color:var(--tx);margin:2px 0 3px 0;line-height:1.7">last 120 ticks · one stripe = one tick of this agent's gate w · <b style="color:#0a0e0a;background:#88ffa0;padding:1px 5px;border-radius:2px">w 1 · BOIDS heading</b> · <b style="color:#e8b840;background:#241c08;padding:1px 5px;border-radius:2px">w 0 · GRAZE</b> · strip starts empty on selection, then fills</div>`;
   html+=`<canvas id="trace-cv" width="220" height="16" style="width:220px;height:16px;max-width:100%;display:block;background:#000;border:1px solid var(--pb);margin-bottom:4px"></canvas>`;
@@ -610,16 +628,15 @@ function updateInspector(){
   const secs=[['TCS',TCS_OFF,TCS],['TF',TF_OFF,TF],['TR',TR_OFF,TR],['DR',DR_OFF,DR]];
   for(const[name,off,sz]of secs){
     html+=`<div class="chrom-row"><div class="chrom-label">${name}×${sz}</div><div class="chrom-bars">`;
-    const cw=sz<=7?5:sz<=40?3:1.5;
-    for(let i=0;i<sz;i++){const v=a.chrom[off+i],mag=Math.min(1,Math.abs(v)*3),bg=v>=0?`rgb(${Math.floor(mag*40)},${Math.floor(80+mag*140)},${Math.floor(mag*40)})`:`rgb(${Math.floor(80+mag*140)},${Math.floor(mag*40)},${Math.floor(mag*40)})`;html+=`<div class="chrom-cell" style="flex:0 0 ${cw}px;background:${bg}" title="${name}[${i}]=${v.toFixed(2)}"></div>`}
+    for(let i=0;i<sz;i++){const v=a.chrom[off+i],mag=Math.min(1,Math.abs(v)*3),bg=v>=0?`rgb(${Math.floor(mag*40)},${Math.floor(80+mag*140)},${Math.floor(mag*40)})`:`rgb(${Math.floor(80+mag*140)},${Math.floor(mag*40)},${Math.floor(mag*40)})`;html+=`<div class="chrom-cell" style="flex:1 1 0;min-width:0;background:${bg}" title="${name}[${i}]=${v.toFixed(2)}"></div>`}
     html+=`</div></div>`;
   }
   const gv=glyphVals(a.chrom);
   html+=`<div style="margin-top:8px;color:var(--am);font-size:10px;letter-spacing:.1em">GENOME GLYPH</div>`;
   html+=`<div style="font-size:9px;color:var(--td);margin-bottom:3px">pure function of the chromosome subset · TCS ${gv.tcs} / TF ${gv.tf} / TR ${gv.tr} (mapped: |TF section sum| and |TR section sum| ×140) · DR excluded · seed = hash(TCS-TF-TR), deterministic</div>`;
-  html+=`<canvas id="glyph-cv" width="220" height="220" style="width:150px;height:150px;max-width:100%;display:block;background:#050a05;border:1px solid var(--pb)"></canvas>`;
+  html+=`<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap"><canvas id="glyph-cv" width="220" height="220" style="width:150px;height:150px;max-width:100%;display:block;background:#050a05;border:1px solid var(--pb)"></canvas><div style="display:flex;flex-direction:column;gap:4px;padding-top:2px"><button class="vbtn" id="btn-card" title="save a presentation card PNG - logo, specimen #, glyph, chromosome. a picture, not an NFT">SAVE TO FILE</button><span style="font-size:9px;color:var(--td);max-width:110px;line-height:1.3">picture only - not an NFT</span></div></div>`;
   const vh=qhash(a.chrom),vSaved=!!vault.saved[vh],vOwn=vault.registry[vh];
-  html+=`<div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="vbtn${vSaved?' on':''}" id="btn-save">${vSaved?'SAVED ✓':'SAVE'}</button><button class="vbtn${vOwn&&vOwn.owner==='you'?' on':''}" id="btn-own">OWNERSHIP</button><span style="font-size:9px;color:var(--td)">${vOwn?(vOwn.owner==='you'?'owned by you':'taken — owned by another'):vh}</span></div>`;
+  html+=`<div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="vbtn${vSaved?' on':''}" id="btn-save">${vSaved?'SAVED ✓':'SAVE TO VAULT'}</button><button class="vbtn${vOwn&&vOwn.owner==='you'?' on':''}" id="btn-own">OWNERSHIP</button><span style="font-size:9px;color:var(--td)">${vOwn?(vOwn.owner==='you'?'owned by you':'taken — owned by another'):vh}</span></div>`;
   insBody.innerHTML=html;
   drawTrace(a.id);
   drawGlyph(a.chrom);lastGlyphId=a.id;
@@ -647,6 +664,57 @@ function updateRoster(){
     const cls='rrow'+(a.id===selected?' sel':'')+(a.id===specimenId?' spec':'');
     return `<div class="${cls}" data-id="${a.id}" title="lineage ${a.lineage.toFixed(2)} · click to inspect">#${a.id}<span class="lsw" style="background:hsl(${(a.lineage*30)%360},70%,55%)"></span><span>g${a.generation}</span><span>${a.age}t</span><span>${a.energy.toFixed(1)}</span><span class="fit">${f.toFixed(1)}</span></div>`;
   }).join('');
+  mergeStandings(rows.slice(0,12).map(({a,f})=>({
+    h:qhash(a.chrom),id:'#'+a.id,gen:a.generation,t:a.age,e:a.energy,f:f,
+    src:'ALife Ecology',ts:new Date().toISOString()
+  })));
+}
+const STANDINGS_KEY='tq_standings_v1',STANDINGS_WRITE_MS=5000,STANDINGS_CAP=200;
+let standingsLastWrite=0,standingsTimer=0;
+const standingsPending=new Map();
+function readStandings(){
+  try{
+    const raw=localStorage.getItem(STANDINGS_KEY);
+    if(!raw)return[];
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed)?parsed:[];
+  }catch(e){return[]}
+}
+function flushStandings(){
+  standingsTimer=0;
+  const existing=readStandings(),byHash=new Map();
+  let changed=false,validCount=0;
+  for(const row of existing){
+    if(!row||typeof row.h!=='string'||!Number.isFinite(Number(row.f))){changed=true;continue}
+    validCount++;
+    const prior=byHash.get(row.h);
+    if(!prior||Number(row.f)>Number(prior.f))byHash.set(row.h,row);
+  }
+  if(validCount!==byHash.size||byHash.size>STANDINGS_CAP)changed=true;
+  for(const [h,row] of standingsPending){
+    const prior=byHash.get(h);
+    if(!prior||row.f>Number(prior.f)){byHash.set(h,row);changed=true}
+  }
+  if(!changed){standingsPending.clear();return}
+  const next=Array.from(byHash.values()).sort((a,b)=>Number(b.f)-Number(a.f)).slice(0,STANDINGS_CAP);
+  const serialized=JSON.stringify(next);
+  if(serialized===JSON.stringify(existing)){standingsPending.clear();return}
+  try{
+    localStorage.setItem(STANDINGS_KEY,serialized);
+    standingsPending.clear();
+    standingsLastWrite=Date.now();
+  }catch(e){}
+}
+function mergeStandings(rows){
+  for(const row of rows){
+    if(!row||typeof row.h!=='string'||!Number.isFinite(row.f))continue;
+    const prior=standingsPending.get(row.h);
+    if(!prior||row.f>prior.f)standingsPending.set(row.h,row);
+  }
+  if(!standingsPending.size)return;
+  const wait=Math.max(0,STANDINGS_WRITE_MS-(Date.now()-standingsLastWrite));
+  if(wait===0)flushStandings();
+  else if(!standingsTimer)standingsTimer=setTimeout(flushStandings,wait);
 }
 function updateCounters(){
   let pop=0;for(const a of agents)if(!a.dead)pop++;
@@ -679,6 +747,40 @@ function updateCounters(){
   stats.prevU=meanU;
 }
 function updateZoomInd(){const el=document.getElementById('zoom-ind');if(el)el.textContent=view.z.toFixed(1)+'×'}
+function drawScale(){
+  const cw=cv.width,ch=cv.height;if(!cw||!ch)return;
+  const rr=cv.getBoundingClientRect(),dpr=(rr&&rr.width)?(cw/rr.width):1;
+  const s0=Math.min(cw/GRID_W,ch/GRID_H),s=s0*view.z;if(!s)return;
+  const ox=cw/2-GRID_W*s/2+view.px*s,oy=ch/2-GRID_H*s/2+view.py*s;
+  const ppm=s/CELL_UM;
+  const STEPS=[0.5,1,2,5,10,15,30,45,90,180];let st=STEPS[STEPS.length-1];
+  for(let k=0;k<STEPS.length;k++){if(STEPS[k]*ppm>=72*dpr){st=STEPS[k];break}}
+  ctx.save();
+  ctx.lineWidth=Math.max(1,Math.round(dpr));
+  ctx.strokeStyle='rgba(232,184,40,0.45)';
+  ctx.strokeRect(Math.round(ox)+0.5,Math.round(oy)+0.5,Math.round(GRID_W*s)-1,Math.round(GRID_H*s)-1);
+  ctx.font=(9*dpr)+'px ui-monospace,Menlo,Consolas,monospace';
+  ctx.strokeStyle='rgba(136,255,160,0.6)';ctx.fillStyle='rgba(136,255,160,0.85)';
+  ctx.textBaseline='alphabetic';ctx.textAlign='center';
+  const xa=(0-ox)/ppm,xb=(cw-ox)/ppm;let n=0;
+  for(let i=Math.ceil(xa/st);i<=Math.floor(xb/st)&&n<40;i++,n++){
+    const ux=i*st,px=ox+ux*ppm;if(px<12*dpr||px>cw-40*dpr)continue;
+    ctx.beginPath();ctx.moveTo(px,ch-2*dpr);ctx.lineTo(px,ch-9*dpr);ctx.stroke();
+    ctx.fillText(String(Number(ux.toFixed(2))),px,ch-12*dpr);
+  }
+  ctx.textAlign='right';ctx.fillText('µm',cw-4*dpr,ch-12*dpr);
+  ctx.textAlign='left';
+  const ya=(0-oy)/ppm,yb=(ch-oy)/ppm;n=0;
+  for(let i=Math.ceil(ya/st);i<=Math.floor(yb/st)&&n<40;i++,n++){
+    const uy=i*st,py=oy+uy*ppm;if(py<44*dpr||py>ch-14*dpr)continue;
+    ctx.beginPath();ctx.moveTo(2*dpr,py);ctx.lineTo(9*dpr,py);ctx.stroke();
+    ctx.fillText(String(Number(uy.toFixed(2))),12*dpr,py+3*dpr);
+  }
+  ctx.restore();
+  const el=document.getElementById('scale-ind');
+  if(el){const vw=cw/ppm,vh=ch/ppm,cx=(cw/2-ox)/ppm,cy=(ch/2-oy)/ppm;
+    el.innerHTML='view '+vw.toFixed(1)+' × '+vh.toFixed(1)+' µm · center '+cx.toFixed(1)+', '+cy.toFixed(1)+' µm<br>grain '+CELL_UM+' µm/cell · tick '+TICK_S+' s · '+GRID_W+' × '+GRID_H+' lattice';}
+}
 function clampView(){
   view.z=Math.max(1,Math.min(12,view.z));
   const r=cv.getBoundingClientRect();
@@ -716,11 +818,13 @@ function loop(now){
       clampView();
     }
   }
-  render();updateCounters();updateTracker();updateInspector();updateLog();updateRoster();updateVault();
+  render();drawScale();updateCounters();updateTracker();updateInspector();updateLog();updateRoster();updateVault();
   requestAnimationFrame(loop);
 }
-function resize(){const r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.floor(r.width*dpr);cv.height=Math.floor(r.height*dpr);clampView();updateZoomInd()}
+function resize(){const r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);if(!(r.width>=10&&r.height>=10))return;cv.width=Math.floor(r.width*dpr);cv.height=Math.floor(r.height*dpr);clampView();updateZoomInd()}
 window.addEventListener('resize',resize);
+if(window.ResizeObserver){const cvRO=new ResizeObserver(function(){resize()});cvRO.observe(cv)}
+function resetPointerState(){try{ptrs.clear();dragFrom=null;panned=false;pinchDist=0;pinchMid=null;suppressClick=false}catch(e){}}
 btnPause.addEventListener('click',()=>{settings.paused=!settings.paused;btnPause.textContent=settings.paused?'▶ Resume':'⏸ Pause';btnPause.classList.toggle('on',settings.paused)});
 btnReset.addEventListener('click',()=>{seed();renderConst()});
 selSpeed.addEventListener('change',e=>{settings.speed=parseFloat(e.target.value)});
@@ -733,6 +837,7 @@ btnFollow.addEventListener('click',()=>{view.follow=!view.follow;btnFollow.class
 btnZoomIn.addEventListener('click',()=>{const r=cv.getBoundingClientRect();zoomAt(r.width/2,r.height/2,1.5)});
 btnZoomOut.addEventListener('click',()=>{const r=cv.getBoundingClientRect();zoomAt(r.width/2,r.height/2,1/1.5)});
 btnVReset.addEventListener('click',resetView);
+function panView(dx,dy){const r=cv.getBoundingClientRect();if(!r.width||!r.height)return;const s0=Math.min(r.width/GRID_W,r.height/GRID_H),s=s0*view.z;if(!s)return;view.px-=dx*(r.width/s)*0.18;view.py-=dy*(r.height/s)*0.18;clampView();updateZoomInd()}
 btnRepick.addEventListener('click',()=>{
   if(!kgCollected){kgFlash();return}
   const live=agents.filter(a=>!a.dead);if(!live.length)return;
@@ -758,15 +863,16 @@ document.getElementById('roster-body').addEventListener('click',e=>{
   lastRosterSig='';
 });
 insBody.addEventListener('click',e=>{
-  const t=e.target;if(t.id!=='btn-save'&&t.id!=='btn-own')return;
+  const t=e.target;if(t.id!=='btn-save'&&t.id!=='btn-own'&&t.id!=='btn-card')return;
   const a=agents.find(x=>x.id===selected);if(!a||a.dead){vault.msg='select a live agent first';vaultSave();lastVaultSig='';return}
+  if(t.id==='btn-card'){saveCard(a);return}
   const h=qhash(a.chrom);
   if(t.id==='btn-save'){
     if(vault.saved[h]){delete vault.saved[h];vault.msg='removed from watchlist · '+h}
-    else{vault.saved[h]={id:a.id,gen:a.generation,tick:stats.tick};vault.msg='SAVED · free · non-exclusive watchlist · '+h}
+    else{vault.saved[h]={id:a.id,gen:a.generation,tick:stats.tick,chrom:Array.from(a.chrom)};vault.msg='SAVED · free · non-exclusive watchlist · '+h}
   }else{
     const reg=vault.registry[h];
-    if(!reg){vault.registry[h]={owner:'you',id:a.id,gen:a.generation,tick:stats.tick};vault.msg='MINTED (demo) · '+h+' registered to you · one mint per hash · nothing on-chain'}
+    if(!reg){vault.registry[h]={owner:'you',id:a.id,gen:a.generation,tick:stats.tick,chrom:Array.from(a.chrom)};vault.msg='MINTED (demo) · '+h+' registered to you · one mint per hash · nothing on-chain'}
     else if(reg.owner==='you')vault.msg='OWNED BY YOU · #'+reg.id+' · mint rejected: hash already on registry';
     else vault.msg='OWNED BY ANOTHER · outbid path (demo) · '+h+' taken — mint rejected';
   }
@@ -838,6 +944,136 @@ cv.addEventListener('click',e=>{
   }else{selected=-1;lastInsSig=''}
 });
 resize();seed();renderConst();kgApply();updateZoomInd();requestAnimationFrame(loop);
+function snapCompose(c,labelLines){
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const W=c.width,H=c.height;
+  const FH=Math.max(48,Math.round(56*dpr));
+  const out=document.createElement('canvas');out.width=W;out.height=H+FH;
+  const g=out.getContext('2d');
+  g.drawImage(c,0,0);
+  g.fillStyle='#0e1610';g.fillRect(0,H,W,FH);
+  g.strokeStyle='#1c2a1c';g.lineWidth=Math.max(1,Math.round(dpr));
+  g.strokeRect(0.5,H+0.5,W-1,FH-1);
+  const r=FH*0.4,cx=r+8*dpr,cy=H+FH/2;
+  if(cardLogo&&cardLogo.complete&&cardLogo.naturalWidth>0){
+    g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);
+    g.fillStyle='#f4efe6';g.fill();g.clip();
+    const ar=(cardLogo.naturalWidth||1)/(cardLogo.naturalHeight||1);
+    const d=r*2*0.8;let dw,dh;
+    if(ar>=1){dh=d;dw=d*ar}else{dw=d;dh=d/ar}
+    g.drawImage(cardLogo,cx-dw/2,cy-dh/2,dw,dh);
+    g.restore();
+    g.strokeStyle='rgba(217,164,65,.8)';g.lineWidth=Math.max(1,Math.round(dpr));
+    g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.stroke();
+  }
+  const x0=cx+r+10*dpr;
+  let fs=Math.round(11*dpr);
+  g.textAlign='left';g.textBaseline='middle';
+  const fits=(t,s)=>{g.font='bold '+s+'px ui-monospace,Menlo,Consolas,monospace';return g.measureText(t).width<=W-x0-8*dpr};
+  while(fs>7&&!(labelLines.every(t=>fits(t,fs))))fs--;
+  const y0=H+FH*0.28,dy=FH*0.24;
+  g.fillStyle='#e8b840';g.font='bold '+fs+'px ui-monospace,Menlo,Consolas,monospace';
+  g.fillText(labelLines[0],x0,y0);
+  g.fillStyle='#b8d4b8';g.font=fs+'px ui-monospace,Menlo,Consolas,monospace';
+  for(let i=1;i<labelLines.length;i++)g.fillText(labelLines[i],x0,y0+dy*i);
+  return out;
+}
+document.getElementById('btn-snap').addEventListener('click',function(){
+  try{
+    const c=document.getElementById('cv');
+    if(!(c&&typeof c.toBlob==='function'))return;
+    const snapSend=(out)=>{if(typeof out.toBlob!=='function')return;out.toBlob(function(b){
+      if(!b)return;
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);
+      a.download='TerraQuest - Rise of Microbes.png';
+      document.body.appendChild(a);a.click();a.remove();
+      setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
+    },'image/png')};
+    const build=()=>{
+      const rr=c.getBoundingClientRect(),dpr=(rr&&rr.width)?(c.width/rr.width):1;
+      const cw=c.width,ch=c.height;
+      const s0=Math.min(cw/GRID_W,ch/GRID_H),s=s0*view.z,ppm=s/CELL_UM;
+      const vw=cw/ppm,vh=ch/ppm;
+      let h=2166136261>>>0;
+      for(let i=0;i<U.length;i++){let q=Math.round(U[i]*255);if(q<0)q=0;else if(q>255)q=255;h^=q;h=Math.imul(h,16777619)>>>0}
+      const st=(h>>>0).toString(16).padStart(8,'0');
+      const lines=[
+        'RISE OF MICROBES - TERRAIN SNAPSHOT',
+        'REGEN regrow '+C['regrow rate']+' - diffuse '+C['diffuse rate']+' - consume '+C['uptake rate']+'  |  GRAIN '+CELL_UM+' um/cell - VIEW '+vw.toFixed(1)+' x '+vh.toFixed(1)+' um',
+        'TICK '+stats.tick+' ('+(stats.tick/60).toFixed(2)+' model h)  |  SIM seed 0xc0ffee - state '+st
+      ];
+      snapSend(snapCompose(c,lines));
+    };
+    if(cardLogo&&cardLogo.complete)build();
+    else if(cardLogo){cardLogo.addEventListener('load',build,{once:true});cardLogo.addEventListener('error',build,{once:true});}
+  }catch(e){}
+});
+const CARD_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPEAAADZCAYAAADxNNZSAAAHVElEQVR4Ae3AA6AkWZbG8f937o3IzKdyS2Oubdu2bdu2bdu2bWmMnpZKr54yMyLu+Xa3anqmhztr1S+46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCoHLV/2XmhRNX/W8GQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FQOWq/0vMVf+fABBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBULnq/zPznMRV/5sAEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwFQuer/M3HV/2YABFddddX/VgAEV1111f9WAARXXXXV/1YAVK76v0Q8J3PV/2UABFddddX/VgAEV1111f9WAARXXXXV/1YAiKuuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rACpX/X9i/v3EVf9TABBcddVV/1sBEFx11VX/WwEQXHXVVf9bASCu+r/E/PcTV/1XASC46qqr/rcCILjqqqv+twIguOqqq/63AkBc9b+J+b9HXPVvBUBw1VVX/W8FQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FgLjqP4r57yf++5n/XOKq+wEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEgrnpBzH8v8f+D+a8n/m8AILjqqqv+twIguOqqq/63AiC46qqr/rcCQPzvZP77iav+K5j/euJ/BwCCq6666n8rAIKrrrrqfysAgquuuup/KwDE/wzmv5e46v8y899P/McDILjqqqv+twIguOqqq/63AiC46qqr/rcCoPJfz/zriauu+rcT/zrmfwcAgquuuup/KwCCq6666n8rAIKrrrrqfysAxH8+8y8TV131v5t5TuI/HwDBVVdd9b8VAMFVV131vxUAwVVXXfW/FQDiqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqAfwTCaxS4qyUmQwAAAABJRU5ErkJggg==';
+const cardLogo=new Image();cardLogo.src=CARD_LOGO;
+function saveCard(a){
+  try{
+    if(!(cardLogo.complete&&cardLogo.naturalWidth>0)){cardLogo.onload=function(){cardLogo.onload=null;saveCard(a)};return}
+    const W=640,H=780;
+    const cc=document.createElement('canvas');cc.width=W;cc.height=H;
+    const g=cc.getContext('2d');
+    g.fillStyle='#0a0e0a';g.fillRect(0,0,W,H);
+    g.strokeStyle='#e8b840';g.lineWidth=2;g.strokeRect(5.5,5.5,W-11,H-11);
+    g.save();
+    g.beginPath();g.arc(320,76,40,0,Math.PI*2);
+    g.fillStyle='#f4efe6';g.fill();
+    g.clip();
+    const ar=(cardLogo.naturalWidth||1)/(cardLogo.naturalHeight||1);
+    let dw=64,dh=64;
+    if(ar>=1){dh=64;dw=64*ar}else{dw=64;dh=64/ar}
+    g.drawImage(cardLogo,320-dw/2,76-dh/2,dw,dh);
+    g.restore();
+    g.strokeStyle='rgba(217,164,65,.8)';g.lineWidth=1;
+    g.beginPath();g.arc(320,76,40,0,Math.PI*2);g.stroke();
+    g.textAlign='center';
+    g.fillStyle='#e8b840';g.font='13px ui-monospace,Menlo,Consolas,monospace';
+    g.fillText('RISE OF MICROBES',320,146);
+    g.fillStyle='#88ffa0';g.font='bold 28px ui-monospace,Menlo,Consolas,monospace';
+    g.fillText('SPECIMEN #'+a.id,320,190);
+    g.fillStyle='#5a7a5a';g.font='11px ui-monospace,Menlo,Consolas,monospace';
+    g.fillText('presentation card - display only - not an NFT',320,214);
+    g.fillStyle='#050a05';g.fillRect(170,230,300,300);
+    g.strokeStyle='#1c2a1c';g.lineWidth=1;g.strokeRect(170.5,230.5,299,299);
+    const go=document.createElement('canvas');go.width=300;go.height=300;
+    drawGlyphTo(go.getContext('2d'),300,300,a.chrom);
+    g.drawImage(go,170,230);
+    g.textAlign='left';
+    g.fillStyle='#e8b840';g.font='11px ui-monospace,Menlo,Consolas,monospace';
+    g.fillText('CHROMOSOME - TCS '+TCS+' / TF '+TF+' / TR '+TR+' / DR '+DR,24,566);
+    const csecs=[['TCS',TCS_OFF,TCS],['TF',TF_OFF,TF],['TR',TR_OFF,TR],['DR',DR_OFF,DR]];
+    let ry=586;
+    for(const[nm,off,sz]of csecs){
+      g.fillStyle='#b8d4b8';g.font='10px ui-monospace,Menlo,Consolas,monospace';
+      g.fillText(nm+'×'+sz,24,ry+13);
+      const cw2=516/sz;
+      for(let i=0;i<sz;i++){
+        const v=a.chrom[off+i],mag=Math.min(1,Math.abs(v)*3);
+        g.fillStyle=v>=0?'rgb('+Math.floor(mag*40)+','+Math.floor(80+mag*140)+','+Math.floor(mag*40)+')':'rgb('+Math.floor(80+mag*140)+','+Math.floor(mag*40)+','+Math.floor(mag*40)+')';
+        g.fillRect(96+i*cw2,ry,Math.ceil(cw2),18);
+      }
+      ry+=30;
+    }
+    g.textAlign='center';
+    g.fillStyle='#5a7a5a';g.font='10px ui-monospace,Menlo,Consolas,monospace';
+    g.fillText('genome glyph is deterministic from the chromosome',320,736);
+    g.fillText('nothing minted - nothing on-chain',320,756);
+    cc.toBlob(function(b){
+      if(!b)return;
+      const al=document.createElement('a');
+      al.href=URL.createObjectURL(b);
+      al.download='TerraQuest - Rise of Microbes.png';
+      document.body.appendChild(al);al.click();al.remove();
+      setTimeout(function(){URL.revokeObjectURL(al.href)},4000);
+    },'image/png');
+  }catch(e){}
+}
+window.addEventListener('pageshow',function(){try{resetPointerState()}catch(e){}try{resize()}catch(e){}try{window.scrollTo(0,0)}catch(e){}});
+window.addEventListener('pagehide',function(){try{resetPointerState()}catch(e){}});
 </script>
 </body>
 </html>
