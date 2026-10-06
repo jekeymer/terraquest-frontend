@@ -1,0 +1,2586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swarm Arena — Play Layer Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #06080f;
+    --bg2: #0d111c;
+    --fg: #e6edf3;
+    --muted: #6e7891;
+    --line: rgba(255,255,255,0.08);
+    --line-strong: rgba(255,255,255,0.18);
+    --accent: #7be0ff;
+    --accent2: #ff7a85;
+    --accent3: #a3ff8a;
+    --accent4: #ffb86b;
+  }
+
+  html, body {
+    height: 100%;
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(60, 90, 140, 0.10), transparent 55%),
+      radial-gradient(ellipse at 80% 90%, rgba(120, 60, 90, 0.08), transparent 55%),
+      #04060c;
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  header {
+    position: absolute;
+    top: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    pointer-events: none;
+    z-index: 3;
+  }
+  header h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    color: var(--fg);
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+  header .sub {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  #back-seek {
+    position: fixed;
+    bottom: 26px;
+    left: 18px;
+    z-index: 20;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: rgba(4, 6, 12, 0.6);
+    pointer-events: auto;
+    transition: all 0.18s ease;
+  }
+  #back-seek:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  #stage {
+    position: relative;
+  }
+  canvas#game {
+    display: block;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 30px 80px -30px rgba(0,0,0,0.8);
+    cursor: crosshair;
+  }
+
+  /* HUD overlay */
+  .hud {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    user-select: none;
+  }
+  .hud .label {
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+  }
+  .hud .val {
+    color: var(--fg);
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 3px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.05em;
+  }
+  .hud .sub {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.15em;
+  }
+
+  #hud-timer { top: 18px; left: 18px; }
+  #hud-territory { top: 18px; right: 18px; text-align: right; }
+  #hud-card { top: 18px; left: 50%; transform: translateX(-50%); text-align: center; }
+  #hud-switch { bottom: 18px; left: 50%; transform: translateX(-50%); text-align: center; }
+
+  #hud-timer .val { color: var(--accent); }
+  #hud-territory .val .p { color: var(--accent); }
+  #hud-territory .val .r { color: var(--accent2); }
+  #hud-card .val { color: var(--accent4); font-size: 13px; }
+  #hud-switch .val.ready { color: var(--accent3); }
+
+  #src-credit {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* ─────── MENU OVERLAY ─────── */
+  #menu {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    background: rgba(4, 6, 12, 0.92);
+    padding: 24px 24px 40px;
+  }
+  #menu.hidden { display: none; }
+
+  .menu-inner {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+
+  .menu-header {
+    text-align: center;
+    margin-top: 20px;
+  }
+  .menu-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--fg);
+    margin-bottom: 8px;
+  }
+  .menu-sub {
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 620px;
+    line-height: 1.6;
+  }
+
+  .provenance-strip {
+    width: 100%;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+  .strip-title {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .strip-steps {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .strip-step {
+    flex: 1;
+    min-width: 110px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: left;
+    position: relative;
+  }
+  .strip-num {
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    margin-bottom: 4px;
+  }
+  .strip-label {
+    font-size: 11px;
+    color: var(--fg);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .strip-desc {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .strip-arrow {
+    align-self: center;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 0 4px;
+    flex: 0 0 auto;
+  }
+
+  .cards-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .card {
+    flex: 1 1 280px;
+    max-width: 310px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 14px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.045);
+  }
+  .card.selected {
+    border-color: var(--card-accent);
+    box-shadow: 0 0 0 1px var(--card-accent), 0 0 30px -10px var(--card-accent);
+    background: rgba(255,255,255,0.05);
+  }
+  .card-glow {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, var(--card-accent), transparent 70%);
+    opacity: 0.25;
+    pointer-events: none;
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+  .card-id {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .card-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--card-accent);
+    box-shadow: 0 0 10px var(--card-accent);
+  }
+  .card-name {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  .card-tag {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    position: relative;
+    z-index: 1;
+  }
+  .card-provenance {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9.5px;
+    color: var(--fg);
+    background: rgba(0,0,0,0.35);
+    padding: 8px 10px;
+    border-radius: 5px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+    border-left: 2px solid var(--card-accent);
+  }
+  .card-provenance .ok {
+    color: var(--accent3);
+    font-weight: 600;
+  }
+  .card-provenance .muted-sm {
+    color: var(--muted);
+    font-size: 9px;
+    margin-top: 3px;
+    display: block;
+  }
+  .mappings {
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .mappings-title {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .mapping {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    color: var(--fg);
+    padding: 3px 0;
+    line-height: 1.4;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: baseline;
+  }
+  .mapping .m-from { color: var(--muted); }
+  .mapping .m-arrow {
+    color: var(--card-accent);
+    margin: 0 2px;
+    font-weight: 700;
+  }
+  .mapping .m-to { color: var(--fg); font-weight: 500; }
+  .card-footer {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.4;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    position: relative;
+    z-index: 1;
+  }
+
+  .menu-actions {
+    margin-top: 4px;
+  }
+  .deploy-btn {
+    padding: 12px 28px;
+    background: transparent;
+    border: 1px solid var(--card-accent, var(--accent));
+    color: var(--card-accent, var(--accent));
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .deploy-btn:hover {
+    background: var(--card-accent, var(--accent));
+    color: var(--bg);
+    box-shadow: 0 0 30px -8px var(--card-accent, var(--accent));
+  }
+
+  .balance-note {
+    font-size: 10px;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 720px;
+    text-align: center;
+    line-height: 1.6;
+    padding: 12px 16px;
+    border: 1px dashed rgba(255, 184, 107, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 184, 107, 0.04);
+  }
+  .balance-note b { color: var(--accent4); font-style: normal; }
+
+  /* ─────── RESULTS ─────── */
+  #results {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 6, 12, 0.92);
+    padding: 24px;
+  }
+  #results.active { display: flex; }
+
+  .results-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 30px 32px;
+    max-width: 560px;
+    width: 100%;
+  }
+  .results-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .results-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .territory-bar {
+    height: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 8px;
+  }
+  .territory-bar .seg-player {
+    background: var(--player-color, var(--accent));
+    box-shadow: inset 0 0 12px rgba(255,255,255,0.15);
+  }
+  .territory-bar .seg-rival {
+    background: var(--rival-color, var(--accent2));
+    box-shadow: inset 0 0 12px rgba(255,255,255,0.15);
+  }
+  .territory-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 22px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .territory-legend .player { color: var(--player-color, var(--accent)); }
+  .territory-legend .rival { color: var(--rival-color, var(--accent2)); }
+
+  .what-mattered {
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid var(--accent4);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .what-mattered .label {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .what-mattered strong {
+    color: var(--accent4);
+    font-weight: 600;
+  }
+
+  .stat-line {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 22px;
+    line-height: 1.9;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    background: rgba(0,0,0,0.25);
+    padding: 12px 14px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+  .stat-line .row { display: flex; justify-content: space-between; }
+  .stat-line .val { color: var(--fg); font-weight: 600; }
+
+  .results-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .results-actions button {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--fg);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    font-weight: 600;
+  }
+  .results-actions button:hover {
+    background: rgba(255,255,255,0.08);
+  }
+  .results-actions button.primary {
+    border-color: var(--player-color, var(--accent));
+    color: var(--player-color, var(--accent));
+  }
+  .results-actions button.primary:hover {
+    background: var(--player-color, var(--accent));
+    color: var(--bg);
+  }
+
+  @media (max-width: 760px) {
+    .strip-arrow { display: none; }
+    .card { max-width: 100%; }
+    .results-card { padding: 22px; }
+  }
+</style>
+<style id="pipeline-contest-style">
+  html, body {
+    height: auto;
+    min-height: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #app {
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  #pipeline-contest {
+    width: min(980px, calc(100% - 32px));
+    margin: 0 auto 48px;
+    padding: 28px;
+    border: 1px solid rgba(123, 224, 255, 0.20);
+    background: #0d1115;
+    color: #e6edf3;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New", monospace;
+  }
+
+  .pipeline-contest-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .pipeline-contest-kicker,
+  .pipeline-contest-flag,
+  .pipeline-contest-label,
+  .pipeline-contest-subhead {
+    font-size: 9px;
+    line-height: 1.5;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .pipeline-contest-kicker,
+  .pipeline-contest-label,
+  .pipeline-contest-subhead {
+    color: #7be0ff;
+  }
+
+  .pipeline-contest-title {
+    margin-top: 5px;
+    color: #ffb86b;
+    font-size: clamp(20px, 4vw, 34px);
+    line-height: 1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .pipeline-contest-flag {
+    color: #ffb86b;
+    text-align: right;
+  }
+
+  .pipeline-contest-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .pipeline-contest-field {
+    display: grid;
+    gap: 7px;
+  }
+
+  .pipeline-contest-field select {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 0;
+    background: #06080f;
+    color: #e6edf3;
+    font: inherit;
+    font-size: 11px;
+  }
+
+  .pipeline-contest-field select:focus-visible,
+  .pipeline-contest-button:focus-visible {
+    outline: 2px solid #7be0ff;
+    outline-offset: 2px;
+  }
+
+  .pipeline-contest-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0 12px;
+  }
+
+  .pipeline-contest-button {
+    min-height: 40px;
+    padding: 9px 15px;
+    border: 1px solid #7be0ff;
+    border-radius: 0;
+    background: transparent;
+    color: #7be0ff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .pipeline-contest-button[data-log-button] {
+    border-color: #ffb86b;
+    color: #ffb86b;
+  }
+
+  .pipeline-contest-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+  }
+
+  .pipeline-contest-empty,
+  .pipeline-contest-message,
+  .pipeline-contest-log-status,
+  .pipeline-contest-footnote,
+  .pipeline-contest-log-empty {
+    color: #8d97aa;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+
+  .pipeline-contest-message {
+    min-height: 18px;
+    color: #ffb86b;
+  }
+
+  .pipeline-contest-log-status {
+    min-height: 16px;
+    margin-top: 8px;
+    color: #7be0ff;
+  }
+
+  .pipeline-contest-records {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .pipeline-contest-record {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #080b10;
+  }
+
+  .pipeline-contest-record h3 {
+    margin-bottom: 10px;
+    color: #7be0ff;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .pipeline-contest-record dl {
+    display: grid;
+    grid-template-columns: minmax(82px, auto) minmax(0, 1fr);
+    gap: 7px 10px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .pipeline-contest-record dt {
+    color: #8d97aa;
+    text-transform: uppercase;
+  }
+
+  .pipeline-contest-record dd {
+    min-width: 0;
+    color: #e6edf3;
+    overflow-wrap: anywhere;
+  }
+
+  .pipeline-contest-log {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .pipeline-contest-log-list {
+    display: grid;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .pipeline-contest-log-row {
+    padding: 8px 10px;
+    border-left: 2px solid #ffb86b;
+    background: #080b10;
+    color: #e6edf3;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .pipeline-contest-footnote {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  }
+
+  @media (max-width: 700px) {
+    #pipeline-contest {
+      width: min(100% - 20px, 980px);
+      padding: 20px 16px;
+    }
+
+    .pipeline-contest-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .pipeline-contest-flag {
+      text-align: left;
+    }
+
+    .pipeline-contest-grid,
+    .pipeline-contest-records {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Swarm Arena</h1>
+    <div class="sub">Phase-2 Play Layer · Mockup v1.4 · Real datagram → real agent</div>
+  </header>
+  <a id="back-seek" href="Seek.html">&larr; Seek &amp; track</a>
+
+  <div id="stage">
+    <canvas id="game" width="600" height="600"></canvas>
+
+    <div id="hud-timer" class="hud" style="display:none">
+      <div class="label">Round</div>
+      <div class="val" id="timer-val">1:30</div>
+    </div>
+
+    <div id="hud-card" class="hud" style="display:none">
+      <div class="label">Endowed Agent</div>
+      <div class="val" id="card-val">—</div>
+    </div>
+
+    <div id="hud-territory" class="hud" style="display:none">
+      <div class="label">Territory</div>
+      <div class="val">
+        <span class="p" id="terr-player">0%</span>
+        <span style="color:var(--muted);margin:0 6px">/</span>
+        <span class="r" id="terr-rival">0%</span>
+      </div>
+      <div class="sub" id="terr-unclaimed">unclaimed 100%</div>
+    </div>
+
+    <div id="hud-switch" class="hud" style="display:none">
+      <div class="label">Switch Timing · Run Length</div>
+      <div class="val" id="switch-val">—</div>
+      <div class="sub" id="switch-sub">click plate to set waypoint</div>
+    </div>
+  </div>
+
+  <div id="menu"></div>
+  <div id="results"></div>
+
+  <footer id="src-credit">background: Fig. 1A — expanding P. vortex colony · Sirota-Madi et al. 2010, BMC Genomics · image: J. Keymer</footer>
+</div>
+
+<section id="pipeline-contest" aria-labelledby="pipeline-contest-title">
+  <div class="pipeline-contest-head">
+    <div>
+      <p class="pipeline-contest-kicker">LOCAL REFEREE / DISPLAY ONLY</p>
+      <h2 class="pipeline-contest-title" id="pipeline-contest-title">PIPELINE CONTEST</h2>
+    </div>
+    <p class="pipeline-contest-flag">PROVISIONAL LABEL - FLAG FOR STEWARD</p>
+  </div>
+
+  <form data-pipeline-contest>
+    <div class="pipeline-contest-grid">
+      <label class="pipeline-contest-field">
+        <span class="pipeline-contest-label">CONTESTANT A</span>
+        <select id="pipeline-contest-a" name="contestantA"></select>
+      </label>
+      <label class="pipeline-contest-field">
+        <span class="pipeline-contest-label">CONTESTANT B</span>
+        <select id="pipeline-contest-b" name="contestantB"></select>
+      </label>
+    </div>
+
+    <div class="pipeline-contest-actions">
+      <button class="pipeline-contest-button" id="pipeline-contest-check" name="checkVerdict" type="button">CHECK VERDICT</button>
+      <button class="pipeline-contest-button" id="pipeline-contest-log" name="logMatch" type="button" data-log-button disabled>LOG MATCH</button>
+    </div>
+
+    <p class="pipeline-contest-empty" data-contest-empty hidden></p>
+    <p class="pipeline-contest-message" data-contest-message aria-live="polite"></p>
+
+    <div class="pipeline-contest-records" data-contest-records></div>
+
+    <div class="pipeline-contest-log">
+      <h3 class="pipeline-contest-subhead">MATCH LOG</h3>
+      <div class="pipeline-contest-log-list" data-match-log></div>
+      <p class="pipeline-contest-log-status" data-log-status aria-live="polite"></p>
+    </div>
+  </form>
+
+  <p class="pipeline-contest-footnote">runs are browser-local - the arena reads Seek's log only when both are served from the same host</p>
+</section>
+
+<script>
+'use strict';
+
+// ============================================================
+// !! BALANCE IS UNVALIDATED — PLACEHOLDER NUMBERS ONLY !!
+// Per Section 13 of the design doc, real balance waits for the
+// swarm simulation. Do NOT tune these by hand; tune via the
+// swarm model. All values below are mock placeholders.
+// ============================================================
+const CONFIG = {
+  ROUND_DURATION: 90,           // seconds per round
+  PLATE_FRAC: 0.42,             // plate radius / canvas min-dim
+
+  NUTRIENT_COUNT: 6,
+  NUTRIENT_PICKUP_FRAC: 0.04,   // pickup radius / canvas size
+
+  // ── Player card speeds (px/s) ─────────────────────────────────
+  SPEED_VORTEX: 38,
+  SPEED_SNAKE: 95,
+  SPEED_ARROW: 65,
+
+  // ── Player card brushes (territory paint radius, px) ───────────
+  BRUSH_VORTEX: 14,
+  BRUSH_SNAKE: 5,
+  BRUSH_ARROW: 10,
+
+  // ── Switch timing trait (seconds between direction commits) ───
+  SWITCH_VORTEX: 8.0,
+  SWITCH_SNAKE: 14.0,
+  SWITCH_ARROW: 5.0,
+
+  // ── Idle behavior params ───────────────────────────────────────
+  VORTEX_ORBIT_W: 0.6,          // rad/s (vortex spin)
+
+  ARROW_BURST: 2.0,             // seconds of burst after nutrient lock
+  ARROW_BURST_MULT: 1.7,        // speed mult during burst
+
+  // ── Rival ──────────────────────────────────────────────────────
+  RIVAL_SPEED: 55,
+  RIVAL_BRUSH: 9,
+  RIVAL_SWITCH: 6.0,
+  RIVAL_TURN_RATE: 2.0,
+  RIVAL_NUTRIENT_BOOST: 4,      // brush boost after pickup (px)
+
+  // ── Misc ───────────────────────────────────────────────────────
+  TURN_LOCK_FACTOR: 0.15,       // turn rate multiplier while switch is locked
+  PLATE_BOUNCE: 0.6,            // angle preservation on plate bounce
+};
+
+// ============================================================
+// v1.4 — MEASURED MOTION CALIBRATION (CHANGELOG)
+// v1.3 established the motion layer (MOTION config block, ambient
+// CV-style outline discs, visual-only emission head snakes, soft
+// stage re-center, raw-layer shimmer, motion only during PLAYING).
+// v1.4 calibrates the MOTION dials from measured optical flow:
+//   Measured from 49 exported left-panel frames of hatoclusters.mp4
+//   (320x212 px, 48 consecutive pairs, Lucas-Kanade, Δt = 60 s per
+//   dataset description "captures every minute for 8 hours").
+//   - 4 emission launches detected at frame pairs 7/14/19/36 →
+//     spacings 7/5/17 capture-minutes, mean ~9.7 capture-minutes.
+//   - Longest arrowhead trajectory: 93.7 px over 16 tracked
+//     intervals; mean speed 0.71 px/min, peak 4.52 px/min.
+//   - 0 global stage shifts inside this 49-frame window.
+//   - Vortex rotation: weak/unresolved at this resolution.
+//   - Head-to-tail ratio: not measured this pass.
+// Compression rule (honest): absolute real-world speeds are far
+// slower than a 90-second game round, so the game dials preserve
+// the MEASURED RATIOS (emission-interval : snake-travel-duration =
+// 9.7 : 16 ≈ 1 : 1.65; peak/mean speed ratio ~6.4 available for
+// future use) while absolute speeds stay compressed for
+// readability. Numbers rescale the moment the true Δt subsampling
+// factor or the physical µm/px scale lands.
+// ============================================================
+const MOTION = {
+  // measured emission cadence: 4 launches / spacings 7+5+17 = 29
+  // → mean 9.7 capture-min, compressed into a playable round
+  EMISSION_INTERVAL_S: 24,      // mean seconds between colony emissions
+  // time-to-first-launch not measured; kept at ~0.4x mean (v1.3 policy)
+  EMISSION_FIRST_S: 10,         // first emission per colony
+  EMISSION_JITTER: 0.4,         // ±40% on each interval
+  // measured mean 0.71 px/min / peak 4.52 px/min on a 320 px-wide
+  // frame; compressed for readability (scale factor in changelog)
+  SNAKE_SPEED_PXS: 12,          // slow snake travel speed
+  // 40 / 24 ≈ 1.667 ≈ measured 16 / 9.7 ≈ 1.655 — snakes visibly
+  // outlive one emission cadence, as in the capture
+  SNAKE_LIFETIME_S: 40,         // max snake lifetime
+  SNAKE_MAX_PER_COLONY: 3,      // cap of active snakes per colony
+  SNAKE_SEGMENT_COUNT: 14,      // body chain length
+  SHIMMER_ALPHA: 0.035,         // very soft raw-layer blob alpha
+  // 0 stage shifts measured inside the 49-frame window → re-center
+  // stays a design element, not a measured one
+  RECENTER_TRIGGER_FRAC: 0.72,  // trigger threshold of plate radius
+  RECENTER_MAX_FRAC: 0.03,      // max camera offset (fraction of canvas size)
+  RECENTER_RATE: 0.8,           // ease rate per second
+};
+
+// v1.5 — MORPH AVATAR SILHOUETTES (2026-10-04, display only)
+// Shape language now encodes the colony morph per card behavior so the
+// two arena avatars read as different organisms at a glance:
+//   arrow  -> barbed chevron (steward label: ArrowHead = Explorer morph,
+//             grounded in raw-frame reads: chevron/V fronts + filament trails)
+//   vortex -> compact wedge + forward sweep arc (radar echo of the dish)
+//   snake  -> slim elongated arrow
+//   rival  -> twin-notch arrowhead (never visually confusable with player)
+// Zero movement, speed, brush, balance, HUD or menu change - drawAgent
+// paths only. Same 10-14px scale band as v1.4 so territory math is untouched.
+const RIVAL_COLOR = '#ff7a85';
+
+// ── Founding-text plate background (Fig. 1A, treated) ────────────
+// v1.1: steward-supplied grayscale version of Fig. 1A from
+// Sirota-Madi et al. 2010, clipped to the dish. Fallback chain
+// keeps the procedural plate if neither source loads (offline).
+// v1.2: the photo is fused INTO the radar instead of sitting
+// under it — screen blend turns the colony into phosphor, the
+// grid is re-promoted, and an animated sweep reads the dish.
+const PLATE_BG_SOURCES = [
+  'https://drive.google.com/uc?export=download&id=10HEDQIK6jMU0QtF8ylQQpEWVV_xDhp2i',
+  'https://drive.google.com/thumbnail?id=10HEDQIK6jMU0QtF8ylQQpEWVV_xDhp2i&sz=w1600',
+];
+let plateBgImg = null;
+function loadPlateBg() {
+  let idx = 0;
+  const tryNext = () => {
+    if (idx >= PLATE_BG_SOURCES.length) return;
+    const img = new Image();
+    img.onload = () => { plateBgImg = img; buildPlateVisuals(); };
+    img.onerror = () => { idx += 1; tryNext(); };
+    img.src = PLATE_BG_SOURCES[idx];
+  };
+  tryNext();
+}
+
+const CARDS = [
+  {
+    id: 'VORTEX-011',
+    name: 'Vortex Hold',
+    color: '#7be0ff',
+    iso: 'ISO-7732',
+    isoDate: '2024-09-04',
+    speed: CONFIG.SPEED_VORTEX,
+    switchTiming: CONFIG.SWITCH_VORTEX,
+    brush: CONFIG.BRUSH_VORTEX,
+    behavior: 'vortex',
+    tagline: 'Holds position. Growth aura radiates while standing still.',
+    mappings: [
+      ['expansion 1.1 mm/h',  'growth aura +1.4/min'],
+      ['CV label: vortex',   'behavior: Vortex Hold'],
+      ['switch timing 8.0 s', 'run length 8 s'],
+      ['tracks: low mobility','speed 38 px/s'],
+    ],
+    provenance: 'isolate ISO-7732 → validity gate OK → datagram VORTEX-011',
+  },
+  {
+    id: 'SNAKE-023',
+    name: 'Snake Travel',
+    color: '#a3ff8a',
+    iso: 'ISO-4419',
+    isoDate: '2024-11-22',
+    speed: CONFIG.SPEED_SNAKE,
+    switchTiming: CONFIG.SWITCH_SNAKE,
+    brush: CONFIG.BRUSH_SNAKE,
+    behavior: 'snake',
+    tagline: 'Fast straight runs. Rarely changes direction.',
+    mappings: [
+      ['expansion 3.6 mm/h',  'growth +3.6/min'],
+      ['CV label: snake',     'behavior: Snake Travel'],
+      ['switch timing 14.0 s', 'long run length'],
+      ['tracks: linear',      'speed 95 px/s'],
+    ],
+    provenance: 'isolate ISO-4419 → validity gate OK → datagram SNAKE-023',
+  },
+  {
+    id: 'ARROW-007',
+    name: 'Arrowhead Push',
+    color: '#ffb86b',
+    iso: 'ISO-2210',
+    isoDate: '2024-07-15',
+    speed: CONFIG.SPEED_ARROW,
+    switchTiming: CONFIG.SWITCH_ARROW,
+    brush: CONFIG.BRUSH_ARROW,
+    behavior: 'arrow',
+    tagline: 'Auto-steers to nearest nutrient. Burst on lock.',
+    mappings: [
+      ['expansion 2.4 mm/h',   'growth +2.4/min'],
+      ['CV label: arrowhead',  'behavior: Arrowhead Push'],
+      ['switch timing 5.0 s',  'quick retarget'],
+      ['tracks: directional',  'medium speed 65 px/s'],
+    ],
+    provenance: 'isolate ISO-2210 → validity gate OK → datagram ARROW-007',
+  },
+];
+
+// ── State ────────────────────────────────────────────────────────
+const S = {
+  mode: 'MENU',             // MENU | PLAYING | RESULTS
+  selectedCardIdx: 1,
+  playerCard: null,
+  player: null,
+  rival: null,
+  nutrients: [],
+  waypoint: null,
+  timeLeft: CONFIG.ROUND_DURATION,
+  elapsed: 0,
+  playerPickups: 0,
+  rivalPickups: 0,
+  finalTerritory: null,
+  plateRadius: 0,
+  canvasSize: 600,
+  pickupRadius: 22,
+
+  // v1.3 motion state (additive, no gameplay impact)
+  playerSnakes: [],
+  rivalSnakes: [],
+  playerEmissionTimer: 0,
+  rivalEmissionTimer: 0,
+  recenterOffset: { x: 0, y: 0 },
+  motionTime: 0,
+  shimmer: [
+    { driftAngle: 0.2, driftRadius: 0.35, driftSpeed: 0.05, size: 80,  phase: 0.0, pulseSpeed: 0.7 },
+    { driftAngle: 2.1, driftRadius: 0.50, driftSpeed: 0.04, size: 110, phase: 1.3, pulseSpeed: 0.5 },
+    { driftAngle: 4.5, driftRadius: 0.30, driftSpeed: 0.03, size: 95,  phase: 2.7, pulseSpeed: 0.6 },
+  ],
+};
+
+let canvas, ctx;
+let territoryCanvas, territoryCtx;
+let plateCanvas, plateCtx;
+let territoryOwners;
+let plateCellCount = 0;
+let plateR2Norm = 0;
+let lastFrame = 0;
+const GRID_RES = 200;
+
+// ── Init / Resize ────────────────────────────────────────────────
+function init() {
+  canvas = document.getElementById('game');
+  ctx = canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize', () => { resize(); renderMenu(); });
+  canvas.addEventListener('click', onCanvasClick);
+  renderMenu();
+  loadPlateBg();
+  requestAnimationFrame(loop);
+}
+
+function resize() {
+  const max = Math.min(window.innerHeight - 110, window.innerWidth - 40, 640);
+  const size = Math.max(380, max);
+  canvas.width = size;
+  canvas.height = size;
+  S.plateRadius = size * CONFIG.PLATE_FRAC;
+  S.canvasSize = size;
+  S.pickupRadius = Math.max(14, size * CONFIG.NUTRIENT_PICKUP_FRAC);
+
+  territoryCanvas = document.createElement('canvas');
+  territoryCanvas.width = size;
+  territoryCanvas.height = size;
+  territoryCtx = territoryCanvas.getContext('2d');
+
+  plateR2Norm = CONFIG.PLATE_FRAC * CONFIG.PLATE_FRAC;
+  buildPlateCells();
+  buildPlateVisuals();
+}
+
+function buildPlateCells() {
+  plateCellCount = 0;
+  for (let j = 0; j < GRID_RES; j++) {
+    for (let i = 0; i < GRID_RES; i++) {
+      const cpx = (i + 0.5) / GRID_RES - 0.5;
+      const cpy = (j + 0.5) / GRID_RES - 0.5;
+      if (cpx*cpx + cpy*cpy <= plateR2Norm) plateCellCount++;
+    }
+  }
+}
+
+function buildPlateVisuals() {
+  plateCanvas = document.createElement('canvas');
+  plateCanvas.width = canvas.width;
+  plateCanvas.height = canvas.height;
+  plateCtx = plateCanvas.getContext('2d');
+
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  const r = S.plateRadius;
+
+  // Outer lab gradient
+  plateCtx.fillStyle = '#070a14';
+  plateCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Plate interior subtle radial
+  const grad = plateCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, 'rgba(20, 30, 50, 0.55)');
+  grad.addColorStop(0.7, 'rgba(10, 16, 28, 0.45)');
+  grad.addColorStop(1, 'rgba(10, 16, 28, 0.20)');
+  plateCtx.fillStyle = grad;
+  plateCtx.beginPath();
+  plateCtx.arc(cx, cy, r, 0, Math.PI * 2);
+  plateCtx.fill();
+
+  // v1.1: Fig. 1A as treated plate background — clipped to the
+  // dish, grayscale + contrast dropped + slight blur.
+  // v1.2: fused into the radar with a screen blend — dark photo
+  // areas vanish into the plate, bright filaments glow like
+  // phosphor, so the figure reads as the instrument itself.
+  if (plateBgImg) {
+    plateCtx.save();
+    plateCtx.beginPath();
+    plateCtx.arc(cx, cy, r, 0, Math.PI * 2);
+    plateCtx.clip();
+    try { plateCtx.filter = 'grayscale(1) contrast(0.72) brightness(1.32) blur(0.6px)'; } catch (e) {}
+    const iw = plateBgImg.naturalWidth || plateBgImg.width;
+    const ih = plateBgImg.naturalHeight || plateBgImg.height;
+    if (iw > 0 && ih > 0) {
+      const scale = (r * 2) / Math.min(iw, ih);
+      const dw = iw * scale, dh = ih * scale;
+      plateCtx.globalCompositeOperation = 'screen';
+      plateCtx.globalAlpha = 0.34;
+      plateCtx.drawImage(plateBgImg, cx - dw / 2, cy - dh / 2, dw, dh);
+      plateCtx.globalCompositeOperation = 'source-over';
+    }
+    try { plateCtx.filter = 'none'; } catch (e) {}
+    plateCtx.globalAlpha = 1;
+    // v1.2: light unify pass — re-tints the photo into the plate
+    // tone so it reads as radar phosphor, not a photo layer
+    plateCtx.beginPath();
+    plateCtx.arc(cx, cy, r, 0, Math.PI * 2);
+    const scrim = plateCtx.createRadialGradient(cx, cy, r * 0.15, cx, cy, r);
+    scrim.addColorStop(0, 'rgba(7, 10, 20, 0.16)');
+    scrim.addColorStop(0.65, 'rgba(7, 10, 20, 0.10)');
+    scrim.addColorStop(1, 'rgba(7, 10, 20, 0.40)');
+    plateCtx.fillStyle = scrim;
+    plateCtx.fill();
+    plateCtx.restore();
+  }
+
+  // Polar grid (concentric + radial) — v1.2: re-promoted so the
+  // radar reads straight through the colony photo
+  plateCtx.strokeStyle = 'rgba(110, 175, 215, 0.12)';
+  plateCtx.lineWidth = 1;
+  for (let rr = r * 0.25; rr <= r; rr += r * 0.25) {
+    plateCtx.beginPath();
+    plateCtx.arc(cx, cy, rr, 0, Math.PI * 2);
+    plateCtx.stroke();
+  }
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+    plateCtx.beginPath();
+    plateCtx.moveTo(cx, cy);
+    plateCtx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    plateCtx.stroke();
+  }
+
+  // Radar origin marker (v1.2)
+  plateCtx.fillStyle = 'rgba(123, 224, 255, 0.5)';
+  plateCtx.beginPath();
+  plateCtx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+  plateCtx.fill();
+
+  // Plate ring
+  plateCtx.strokeStyle = 'rgba(120, 180, 220, 0.5)';
+  plateCtx.lineWidth = 2;
+  plateCtx.beginPath();
+  plateCtx.arc(cx, cy, r, 0, Math.PI * 2);
+  plateCtx.stroke();
+
+  // Outer ring (subtle)
+  plateCtx.strokeStyle = 'rgba(120, 180, 220, 0.18)';
+  plateCtx.lineWidth = 1;
+  plateCtx.beginPath();
+  plateCtx.arc(cx, cy, r + 10, 0, Math.PI * 2);
+  plateCtx.stroke();
+
+  // Tick marks at cardinals
+  plateCtx.strokeStyle = 'rgba(120, 180, 220, 0.6)';
+  plateCtx.lineWidth = 2;
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+    const x1 = cx + Math.cos(a) * r;
+    const y1 = cy + Math.sin(a) * r;
+    const x2 = cx + Math.cos(a) * (r + 6);
+    const y2 = cy + Math.sin(a) * (r + 6);
+    plateCtx.beginPath();
+    plateCtx.moveTo(x1, y1);
+    plateCtx.lineTo(x2, y2);
+    plateCtx.stroke();
+  }
+}
+
+// ── Menu rendering ───────────────────────────────────────────────
+function renderMenu() {
+  const menu = document.getElementById('menu');
+  menu.classList.remove('hidden');
+  const card = CARDS[S.selectedCardIdx];
+  menu.innerHTML = `
+    <div class="menu-inner">
+      <div class="menu-header">
+        <div class="menu-title">Choose Your Datagram</div>
+        <div class="menu-sub">Each card is a real microbial intelligence capture. The agent's traits are the measured fields — nothing invented. Section 13 mapping rule: powers express what was measured.</div>
+      </div>
+
+      <div class="provenance-strip">
+        <div class="strip-title">Provenance · 4-step capture pipeline</div>
+        <div class="strip-steps">
+          <div class="strip-step">
+            <div class="strip-num">01 / ISOLATE</div>
+            <div class="strip-label">Physical Sample</div>
+            <div class="strip-desc">Lab-grown microbial colony, video-tracked under microscope.</div>
+          </div>
+          <div class="strip-arrow">→</div>
+          <div class="strip-step">
+            <div class="strip-num">02 / GATE</div>
+            <div class="strip-label">DePIN Validity</div>
+            <div class="strip-desc">Measurement integrity & sign-off by distributed validator nodes.</div>
+          </div>
+          <div class="strip-arrow">→</div>
+          <div class="strip-step">
+            <div class="strip-num">03 / DATAGRAM</div>
+            <div class="strip-label">Signed Capture</div>
+            <div class="strip-desc">Expansion rate, CV morphotype, switch timing, robotic tracks.</div>
+          </div>
+          <div class="strip-arrow">→</div>
+          <div class="strip-step">
+            <div class="strip-num">04 / AGENT</div>
+            <div class="strip-label">Endowed Player</div>
+            <div class="strip-desc">Traits = measured fields. Behavior = measured pattern.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-row">
+        ${CARDS.map((c, i) => `
+          <div class="card ${i === S.selectedCardIdx ? 'selected' : ''}" data-idx="${i}" style="--card-accent: ${c.color}">
+            <div class="card-glow"></div>
+            <div class="card-header">
+              <div class="card-id">${c.id}</div>
+              <div class="card-color-dot"></div>
+            </div>
+            <div class="card-name">${c.name}</div>
+            <div class="card-tag">datagram · ${c.iso}</div>
+            <div class="card-provenance">
+              <span class="ok">GATE OK</span>  ${c.provenance}
+              <span class="muted-sm">captured ${c.isoDate} · signed payload</span>
+            </div>
+            <div class="mappings">
+              <div class="mappings-title">Measured field → Endowed trait</div>
+              ${c.mappings.map(([a, b]) => `
+                <div class="mapping">
+                  <span class="m-from">${a}</span>
+                  <span class="m-arrow">→</span>
+                  <span class="m-to">${b}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="card-footer">${c.tagline}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="menu-actions">
+        <button class="deploy-btn" id="deploy-btn" style="--card-accent: ${card.color}">Deploy ${card.name} →</button>
+      </div>
+
+      <div class="balance-note">
+        <b>⚠ Mock traits, measured motion.</b> Card trait values remain placeholders pending the swarm simulation (Section 13). The MOTION block (emission cadence, snake travel duration) is now calibrated from measured optical flow on 49 real hatocompleto frames — see v1.4 changelog in source.
+      </div>
+    </div>
+  `;
+
+  menu.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('click', (e) => {
+      e.stopPropagation();
+      S.selectedCardIdx = parseInt(c.dataset.idx, 10);
+      renderMenu();
+    });
+  });
+
+  document.getElementById('deploy-btn').addEventListener('click', () => {
+    S.playerCard = CARDS[S.selectedCardIdx];
+    startRound();
+  });
+}
+
+// ── Round lifecycle ──────────────────────────────────────────────
+function startRound() {
+  S.mode = 'PLAYING';
+  S.timeLeft = CONFIG.ROUND_DURATION;
+  S.elapsed = 0;
+  S.waypoint = null;
+  S.playerPickups = 0;
+  S.rivalPickups = 0;
+  S.finalTerritory = null;
+
+  // v1.3 motion init — purely visual, no gameplay impact
+  S.playerSnakes = [];
+  S.rivalSnakes = [];
+  S.playerEmissionTimer = MOTION.EMISSION_FIRST_S *
+    (1 + (Math.random() * 2 - 1) * MOTION.EMISSION_JITTER);
+  S.rivalEmissionTimer = MOTION.EMISSION_FIRST_S *
+    (1 + (Math.random() * 2 - 1) * MOTION.EMISSION_JITTER);
+  S.recenterOffset.x = 0;
+  S.recenterOffset.y = 0;
+  S.motionTime = 0;
+
+  initAgents();
+  initNutrients();
+  clearTerritory();
+
+  document.getElementById('menu').classList.add('hidden');
+  document.getElementById('results').classList.remove('active');
+  document.querySelectorAll('.hud').forEach(h => h.style.display = '');
+
+  // Update HUD vars that don't change per-frame
+  document.getElementById('card-val').textContent = `${S.playerCard.id} · ${S.playerCard.name}`;
+  document.getElementById('switch-val').textContent = `${S.playerCard.switchTiming.toFixed(1)}s window`;
+  document.getElementById('switch-sub').textContent = `click plate to set waypoint`;
+}
+
+function endRound() {
+  S.mode = 'RESULTS';
+  S.finalTerritory = computeTerritoryStats();
+  showResults();
+  document.querySelectorAll('.hud').forEach(h => h.style.display = 'none');
+}
+
+function backToMenu() {
+  S.mode = 'MENU';
+  document.getElementById('results').classList.remove('active');
+  document.querySelectorAll('.hud').forEach(h => h.style.display = 'none');
+  renderMenu();
+}
+
+function initAgents() {
+  const offset = S.plateRadius * 0.55;
+  S.player = makeAgent(S.playerCard, false, offset, 0, Math.random() * Math.PI * 2);
+  S.rival = makeAgent({
+    id: 'RIVAL',
+    name: 'Rival Colony',
+    color: RIVAL_COLOR,
+    speed: CONFIG.RIVAL_SPEED,
+    switchTiming: CONFIG.RIVAL_SWITCH,
+    brush: CONFIG.RIVAL_BRUSH,
+    behavior: 'rival',
+    isRival: true,
+  }, true, -offset, Math.PI, Math.random() * Math.PI * 2);
+}
+
+function makeAgent(card, isRival, x, y, angle) {
+  return {
+    card, isRival,
+    x, y,
+    angle,
+    targetAngle: angle,
+    timeSinceSwitch: 999,
+    pickups: 0,
+    waypoint: null,
+    idlePhase: Math.random() * Math.PI * 2,
+    burstTimer: 0,
+    lockedNutrient: null,
+    tempBrushBoost: 0,
+    brush: card.brush,
+  };
+}
+
+function initNutrients() {
+  S.nutrients = [];
+  const r = S.plateRadius * 0.7;
+  for (let i = 0; i < CONFIG.NUTRIENT_COUNT; i++) {
+    const a = (i / CONFIG.NUTRIENT_COUNT) * Math.PI * 2 + Math.random() * 0.4;
+    const dist = r * (0.45 + Math.random() * 0.5);
+    S.nutrients.push({
+      x: Math.cos(a) * dist,
+      y: Math.sin(a) * dist,
+      value: 100,
+      pulse: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function clearTerritory() {
+  territoryCtx.clearRect(0, 0, canvas.width, canvas.height);
+  territoryOwners = new Uint8Array(GRID_RES * GRID_RES);
+}
+
+// ── Game loop ────────────────────────────────────────────────────
+function loop(t) {
+  const dt = Math.min(0.05, (t - lastFrame) / 1000 || 0);
+  lastFrame = t;
+
+  if (S.mode === 'PLAYING') {
+    update(dt);
+    render();
+  } else {
+    // Idle plate background for menu / results — unshifted & static
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (plateCanvas) ctx.drawImage(plateCanvas, 0, 0);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+function update(dt) {
+  S.elapsed += dt;
+  S.timeLeft -= dt;
+  S.motionTime += dt;
+  if (S.timeLeft <= 0) {
+    S.timeLeft = 0;
+    endRound();
+    return;
+  }
+
+  updateAgent(S.player, dt, false);
+  updateAgent(S.rival, dt, true);
+
+  // v1.3 motion updates — additive, purely visual
+  updateEmissions(dt);
+  updateSnakes(S.playerSnakes, dt);
+  updateSnakes(S.rivalSnakes, dt);
+  updateRecenter(dt);
+
+  updateHUD();
+}
+
+function updateAgent(a, dt, isRival) {
+  // Reached waypoint?
+  if (a.waypoint) {
+    const d = Math.hypot(a.waypoint.x - a.x, a.waypoint.y - a.y);
+    if (d < 22) a.waypoint = null;
+  }
+  if (!isRival && S.waypoint && !a.waypoint) {
+    a.waypoint = S.waypoint;
+  }
+
+  // Decide target
+  let target = null;
+  if (a.waypoint) {
+    target = a.waypoint;
+  } else if (isRival) {
+    target = rivalTarget();
+  } else {
+    target = idleTarget(a);
+  }
+  if (target) {
+    a.targetAngle = Math.atan2(target.y - a.y, target.x - a.x);
+  }
+
+  // Switch timing gate
+  a.timeSinceSwitch += dt;
+  const canSwitch = a.timeSinceSwitch >= a.card.switchTiming;
+
+  let diff = a.targetAngle - a.angle;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+
+  const baseTurn = isRival
+    ? CONFIG.RIVAL_TURN_RATE
+    : a.card.behavior === 'snake' ? 0.7
+    : a.card.behavior === 'vortex' ? 1.2
+    : 3.0;
+  const turnRate = canSwitch ? baseTurn : baseTurn * CONFIG.TURN_LOCK_FACTOR;
+  const maxTurn = turnRate * dt;
+  const turn = Math.max(-maxTurn, Math.min(maxTurn, diff));
+  a.angle += turn;
+
+  // Switch event detection
+  if (canSwitch && Math.abs(diff) > 0.5 && Math.abs(turn) > 0.08) {
+    a.timeSinceSwitch = 0;
+  }
+
+  // Speed + burst
+  let speed = a.card.speed;
+  if (a.burstTimer > 0) {
+    speed *= CONFIG.ARROW_BURST_MULT;
+    a.burstTimer -= dt;
+  }
+
+  a.x += Math.cos(a.angle) * speed * dt;
+  a.y += Math.sin(a.angle) * speed * dt;
+
+  // Plate clamp + bounce
+  const dist = Math.hypot(a.x, a.y);
+  const maxR = S.plateRadius - 10;
+  if (dist > maxR) {
+    const nx = a.x / dist, ny = a.y / dist;
+    a.x = nx * maxR;
+    a.y = ny * maxR;
+    const normalAngle = Math.atan2(ny, nx);
+    a.angle = 2 * normalAngle - a.angle + Math.PI;
+    while (a.angle > Math.PI) a.angle -= Math.PI * 2;
+    while (a.angle < -Math.PI) a.angle += Math.PI * 2;
+    a.timeSinceSwitch = 0;
+  }
+
+  // Paint territory
+  paintTerritory(a, isRival);
+
+  // Temp brush decay
+  if (a.tempBrushBoost > 0) {
+    a.tempBrushBoost = Math.max(0, a.tempBrushBoost - dt * 2);
+  }
+
+  // Nutrient pickups
+  for (const n of S.nutrients) {
+    if (n.value <= 0) continue;
+    const dx = n.x - a.x, dy = n.y - a.y;
+    if (dx*dx + dy*dy <= S.pickupRadius * S.pickupRadius) {
+      n.value = 0;
+      a.pickups++;
+      if (isRival) {
+        S.rivalPickups++;
+        a.tempBrushBoost = CONFIG.RIVAL_NUTRIENT_BOOST;
+      } else {
+        S.playerPickups++;
+      }
+      if (a.card.behavior === 'arrow' && !isRival) {
+        a.burstTimer = Math.max(a.burstTimer, CONFIG.ARROW_BURST);
+      }
+      if (a.card.behavior === 'arrow') {
+        a.burstTimer = Math.max(a.burstTimer, CONFIG.ARROW_BURST * 0.6);
+      }
+    }
+  }
+}
+
+function idleTarget(a) {
+  const t = performance.now() / 1000;
+  if (a.card.behavior === 'vortex') {
+    // Spin in place around current position
+    const r = 35;
+    return {
+      x: a.x + Math.cos(t * CONFIG.VORTEX_ORBIT_W + a.idlePhase) * r,
+      y: a.y + Math.sin(t * CONFIG.VORTEX_ORBIT_W + a.idlePhase) * r,
+    };
+  }
+  if (a.card.behavior === 'snake') {
+    return {
+      x: a.x + Math.cos(a.angle) * 200,
+      y: a.y + Math.sin(a.angle) * 200,
+    };
+  }
+  if (a.card.behavior === 'arrow') {
+    const n = nearestNutrient(a);
+    if (n) {
+      if (a.lockedNutrient !== n) {
+        a.burstTimer = CONFIG.ARROW_BURST;
+        a.lockedNutrient = n;
+      }
+      return { x: n.x, y: n.y };
+    }
+    return { x: a.x + Math.cos(a.angle) * 100, y: a.y + Math.sin(a.angle) * 100 };
+  }
+  return { x: 0, y: 0 };
+}
+
+function rivalTarget() {
+  let best = null, bestScore = -Infinity;
+  for (const n of S.nutrients) {
+    if (n.value <= 0) continue;
+    const dx = n.x - S.rival.x, dy = n.y - S.rival.y;
+    const d = Math.hypot(dx, dy);
+    if (d > S.plateRadius * 0.95) continue;
+    const score = n.value - d * 0.4;
+    if (score > bestScore) { bestScore = score; best = n; }
+  }
+  return best ? { x: best.x, y: best.y } : null;
+}
+
+function nearestNutrient(a) {
+  let best = null, bestD = Infinity;
+  for (const n of S.nutrients) {
+    if (n.value <= 0) continue;
+    const dx = n.x - a.x, dy = n.y - a.y;
+    const d = Math.hypot(dx, dy);
+    if (d < bestD) { bestD = d; best = n; }
+  }
+  return best;
+}
+
+// ── Territory painting ───────────────────────────────────────────
+function paintTerritory(a, isRival) {
+  const cx = canvas.width / 2 + a.x;
+  const cy = canvas.height / 2 + a.y;
+  const color = isRival ? RIVAL_COLOR : S.playerCard.color;
+  const brush = a.brush + (a.tempBrushBoost || 0);
+
+  // Visual paint (opaque for clear ownership)
+  territoryCtx.fillStyle = color;
+  territoryCtx.beginPath();
+  territoryCtx.arc(cx, cy, brush, 0, Math.PI * 2);
+  territoryCtx.fill();
+
+  // Grid update for stats
+  const owner = isRival ? 2 : 1;
+  const gx = (cx / canvas.width) * GRID_RES;
+  const gy = (cy / canvas.height) * GRID_RES;
+  const gr = (brush / canvas.width) * GRID_RES;
+  const gr2 = gr * gr;
+  const minI = Math.max(0, Math.floor(gx - gr));
+  const maxI = Math.min(GRID_RES - 1, Math.ceil(gx + gr));
+  const minJ = Math.max(0, Math.floor(gy - gr));
+  const maxJ = Math.min(GRID_RES - 1, Math.ceil(gy + gr));
+
+  for (let j = minJ; j <= maxJ; j++) {
+    for (let i = minI; i <= maxI; i++) {
+      const cdx = i + 0.5 - gx, cdy = j + 0.5 - gy;
+      if (cdx*cdx + cdy*cdy > gr2) continue;
+      const cpx = (i + 0.5) / GRID_RES - 0.5;
+      const cpy = (j + 0.5) / GRID_RES - 0.5;
+      if (cpx*cpx + cpy*cpy > plateR2Norm) continue;
+      territoryOwners[j * GRID_RES + i] = owner;
+    }
+  }
+}
+
+function computeTerritoryStats() {
+  let player = 0, rival = 0;
+  for (let i = 0; i < territoryOwners.length; i++) {
+    const v = territoryOwners[i];
+    if (v === 1) player++;
+    else if (v === 2) rival++;
+  }
+  const claimed = player + rival;
+  return {
+    playerCount: player,
+    rivalCount: rival,
+    total: plateCellCount,
+    claimed,
+    playerPct: claimed > 0 ? (player / claimed) * 100 : 0,
+    rivalPct: claimed > 0 ? (rival / claimed) * 100 : 0,
+    playerOcc: (player / plateCellCount) * 100,
+    rivalOcc: (rival / plateCellCount) * 100,
+    unclaimed: ((plateCellCount - claimed) / plateCellCount) * 100,
+  };
+}
+
+// ── Radar sweep (v1.2) ───────────────────────────────────────────
+// Slow rotating beam over the plate. Drawn UNDER territory fills
+// so the race always wins over decoration. Conic gradient gives
+// the classic trailing fade; falls back to edge-line only.
+function drawSweep() {
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  const t = performance.now() / 1000;
+  const a = (t * 0.45) % (Math.PI * 2);
+  const spread = Math.PI / 3;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, S.plateRadius, 0, Math.PI * 2);
+  ctx.clip();
+  try {
+    const g = ctx.createConicGradient(a - spread, cx, cy);
+    g.addColorStop(0.00, 'rgba(123, 224, 255, 0)');
+    g.addColorStop(0.13, 'rgba(123, 224, 255, 0.035)');
+    g.addColorStop(0.163, 'rgba(123, 224, 255, 0.11)');
+    g.addColorStop(0.1667, 'rgba(123, 224, 255, 0)');
+    g.addColorStop(1.00, 'rgba(123, 224, 255, 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - S.plateRadius, cy - S.plateRadius, S.plateRadius * 2, S.plateRadius * 2);
+  } catch (e) { /* no conic gradient support: edge line only */ }
+  ctx.strokeStyle = 'rgba(123, 224, 255, 0.20)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(a) * S.plateRadius, cy + Math.sin(a) * S.plateRadius);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── v1.3: Raw-layer shimmer (above plate, below sweep) ──────────
+// 2-3 very soft radial white blobs slowly drifting inside the dish.
+// Evokes the raw microscopy panel of the reference video without
+// hurting readability (alpha is well below 0.05).
+function drawShimmer() {
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = S.plateRadius;
+  const t = S.motionTime;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+
+  for (const s of S.shimmer) {
+    const a = s.driftAngle + t * s.driftSpeed;
+    const px = cx + Math.cos(a) * (s.driftRadius * r);
+    const py = cy + Math.sin(a) * (s.driftRadius * r);
+    const pulse = 0.7 + 0.3 * Math.sin(t * s.pulseSpeed + s.phase);
+    const alpha = MOTION.SHIMMER_ALPHA * pulse;
+
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, s.size);
+    grad.addColorStop(0,   `rgba(230, 240, 255, ${alpha})`);
+    grad.addColorStop(0.5, `rgba(230, 240, 255, ${alpha * 0.5})`);
+    grad.addColorStop(1, 'rgba(230, 240, 255, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(px, py, s.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ── v1.3: Ambient CV-style swarm discs around each agent ─────────
+// Rotating ring of stroke-only outline segments (CV-segmentation
+// look) at radius ~1.6x brush. Drawn above territory fills, beneath
+// the agent's direction triangle so readability is preserved.
+function drawSwarmDisc(a, isRival) {
+  if (!a) return;
+  const cx = canvas.width / 2 + a.x;
+  const cy = canvas.height / 2 + a.y;
+  const r = (a.brush + (a.tempBrushBoost || 0)) * 1.6;
+  const color = isRival ? RIVAL_COLOR : S.playerCard.color;
+
+  // Rotation rate varies by behavior
+  let rotSpeed;
+  if (isRival) rotSpeed = 1.0;
+  else if (a.card.behavior === 'vortex') rotSpeed = 2.5;   // fastest
+  else if (a.card.behavior === 'arrow')  rotSpeed = 1.2;   // medium
+  else if (a.card.behavior === 'snake')  rotSpeed = 0.6;   // slowest
+  else rotSpeed = 1.0;
+
+  const rot = S.motionTime * rotSpeed + a.idlePhase;
+  const segments = 10;
+  const arcLen = (Math.PI * 2 / segments) * 0.6; // ~40% gap
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.45;
+  for (let i = 0; i < segments; i++) {
+    const a0 = rot + (i / segments) * Math.PI * 2;
+    const a1 = a0 + arcLen;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, a0, a1);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── v1.3: Emission events & head snakes ──────────────────────────
+// Each colony runs an independent timer; on expiry, spawn a head
+// snake at the agent's position with committed heading = agent's
+// current angle. Snakes are STRICTLY VISUAL — no territory
+// painting, no nutrient interaction, no collision, no stats.
+function updateEmissions(dt) {
+  // Player colony
+  S.playerEmissionTimer -= dt;
+  if (S.playerEmissionTimer <= 0) {
+    if (S.playerSnakes.length < MOTION.SNAKE_MAX_PER_COLONY) {
+      spawnSnake(S.player, false);
+    }
+    S.playerEmissionTimer = MOTION.EMISSION_INTERVAL_S *
+      (1 + (Math.random() * 2 - 1) * MOTION.EMISSION_JITTER);
+  }
+  // Rival colony
+  S.rivalEmissionTimer -= dt;
+  if (S.rivalEmissionTimer <= 0) {
+    if (S.rivalSnakes.length < MOTION.SNAKE_MAX_PER_COLONY) {
+      spawnSnake(S.rival, true);
+    }
+    S.rivalEmissionTimer = MOTION.EMISSION_INTERVAL_S *
+      (1 + (Math.random() * 2 - 1) * MOTION.EMISSION_JITTER);
+  }
+}
+
+function spawnSnake(agent, isRival) {
+  const snake = {
+    x: agent.x,
+    y: agent.y,
+    angle: agent.angle,        // committed heading — never changes
+    age: 0,
+    dissolve: 0,                // 0 = full visible, 1 = fully gone
+    dissolving: false,
+    trail: [{ x: agent.x, y: agent.y }],
+    swayPhase: Math.random() * Math.PI * 2,
+  };
+  if (isRival) S.rivalSnakes.push(snake);
+  else         S.playerSnakes.push(snake);
+}
+
+function updateSnakes(snakes, dt) {
+  for (let i = snakes.length - 1; i >= 0; i--) {
+    const s = snakes[i];
+    s.age += dt;
+
+    // Move head (continues during dissolve for a clean fade-out)
+    s.x += Math.cos(s.angle) * MOTION.SNAKE_SPEED_PXS * dt;
+    s.y += Math.sin(s.angle) * MOTION.SNAKE_SPEED_PXS * dt;
+
+    // Push into trail with spacing — gives us ~14 body segments
+    const last = s.trail[s.trail.length - 1];
+    const moved = Math.hypot(s.x - last.x, s.y - last.y);
+    if (moved >= 2.5) {
+      s.trail.push({ x: s.x, y: s.y });
+      if (s.trail.length > MOTION.SNAKE_SEGMENT_COUNT + 1) {
+        s.trail.shift();
+      }
+    }
+
+    // Trigger dissolve on rim contact or lifetime expiry
+    const dist = Math.hypot(s.x, s.y);
+    if (!s.dissolving &&
+        (dist > S.plateRadius - 8 || s.age > MOTION.SNAKE_LIFETIME_S)) {
+      s.dissolving = true;
+    }
+    if (s.dissolving) {
+      s.dissolve += dt;          // ~1s fade
+      if (s.dissolve >= 1.0) {
+        snakes.splice(i, 1);
+      }
+    }
+  }
+}
+
+// ── v1.3: Soft stage re-center ───────────────────────────────────
+// Track the most advanced active snake; when its head radius exceeds
+// RECENTER_TRIGGER_FRAC of plate radius, ease a global render offset
+// opposite its heading, clamped to RECENTER_MAX_FRAC of canvas size.
+// Eases back toward zero otherwise. Applied as ctx.translate around
+// all world rendering in render(); click coords compensated in
+// onCanvasClick.
+function updateRecenter(dt) {
+  let bestDist = -Infinity;
+  let bestSnake = null;
+  for (const list of [S.playerSnakes, S.rivalSnakes]) {
+    for (const s of list) {
+      const d = Math.hypot(s.x, s.y);
+      if (d > bestDist) { bestDist = d; bestSnake = s; }
+    }
+  }
+
+  let targetX = 0, targetY = 0;
+  if (bestSnake && bestDist > S.plateRadius * MOTION.RECENTER_TRIGGER_FRAC) {
+    const headAngle = Math.atan2(bestSnake.y, bestSnake.x);
+    const maxOffset = MOTION.RECENTER_MAX_FRAC * canvas.width;
+    targetX = -Math.cos(headAngle) * maxOffset;
+    targetY = -Math.sin(headAngle) * maxOffset;
+  }
+
+  const ease = Math.min(1, MOTION.RECENTER_RATE * dt);
+  S.recenterOffset.x += (targetX - S.recenterOffset.x) * ease;
+  S.recenterOffset.y += (targetY - S.recenterOffset.y) * ease;
+}
+
+// ── v1.3: Snake render (filled arrowhead head + tapering body) ──
+function drawSnake(s, color) {
+  const baseAlpha = Math.max(0, 1 - s.dissolve);
+  if (baseAlpha <= 0) return;
+
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const totalPts = s.trail.length;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+
+  // Body — stroke-only tapering chain with subtle sinusoidal sway
+  for (let i = 1; i < s.trail.length; i++) {
+    const p     = s.trail[i];     // newer endpoint
+    const pPrev = s.trail[i - 1]; // older endpoint
+    const segT = i / Math.max(1, totalPts); // 0 = newest, 1 = oldest
+
+    const segWidth = Math.max(0.6, 4.5 * (1 - segT * 0.92));
+    const segAlpha = baseAlpha * (1 - segT * 0.7);
+
+    // Perpendicular axis for sway offset
+    const segAngle = Math.atan2(p.y - pPrev.y, p.x - pPrev.x);
+    const perpX = -Math.sin(segAngle);
+    const perpY =  Math.cos(segAngle);
+    const sway  = Math.sin(s.age * 2.0 + i * 0.4 + s.swayPhase) * (0.8 + segT * 2.5);
+
+    ctx.globalAlpha = segAlpha;
+    ctx.lineWidth = segWidth;
+    ctx.beginPath();
+    ctx.moveTo(cx + p.x     + perpX * sway, cy + p.y     + perpY * sway);
+    ctx.lineTo(cx + pPrev.x + perpX * sway, cy + pPrev.y + perpY * sway);
+    ctx.stroke();
+  }
+
+  // Head — dense filled arrowhead at committed heading
+  ctx.globalAlpha = baseAlpha;
+  ctx.save();
+  ctx.translate(cx + s.x, cy + s.y);
+  ctx.rotate(s.angle);
+  ctx.beginPath();
+  ctx.moveTo(11, 0);
+  ctx.lineTo(2, -6);
+  ctx.lineTo(2, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// ── Render ───────────────────────────────────────────────────────
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // v1.3: single ctx.translate around ALL world rendering so the
+  // soft re-center keeps the arrowhead in view. Menu/results stay
+  // unshifted because they render outside this function.
+  ctx.save();
+  ctx.translate(S.recenterOffset.x, S.recenterOffset.y);
+
+  ctx.drawImage(plateCanvas, 0, 0);
+  drawShimmer();                                   // v1.3: above plate
+  drawSweep();                                     // v1.2: under territory
+  ctx.drawImage(territoryCanvas, 0, 0);
+
+  for (const n of S.nutrients) drawNutrient(n);
+
+  // v1.3: ambient swarm discs — above territory, beneath direction triangle
+  drawSwarmDisc(S.player, false);
+  drawSwarmDisc(S.rival, true);
+
+  drawAgent(S.rival, true);
+  drawAgent(S.player, false);
+
+  // v1.3: emitted head snakes (strictly visual)
+  for (const s of S.playerSnakes) drawSnake(s, S.playerCard.color);
+  for (const s of S.rivalSnakes)  drawSnake(s, RIVAL_COLOR);
+
+  if (S.waypoint) drawWaypoint(S.waypoint);
+
+  ctx.restore();
+}
+
+function drawNutrient(n) {
+  const cx = canvas.width / 2 + n.x;
+  const cy = canvas.height / 2 + n.y;
+  const t = performance.now() / 1000;
+  const pulse = 0.75 + 0.25 * Math.sin(t * 2.2 + n.pulse);
+
+  if (n.value > 0) {
+    // Halo
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 22 * pulse);
+    grad.addColorStop(0, 'rgba(120, 230, 150, 0.55)');
+    grad.addColorStop(1, 'rgba(120, 230, 150, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 22 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cluster of small circles
+    ctx.fillStyle = '#7be0a0';
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + n.pulse;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(a) * 5, cy + Math.sin(a) * 5, 3.5 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#c8ffd8';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.2 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Spent
+    ctx.fillStyle = 'rgba(80, 100, 90, 0.35)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawAgent(a, isRival) {
+  const cx = canvas.width / 2 + a.x;
+  const cy = canvas.height / 2 + a.y;
+  const color = isRival ? RIVAL_COLOR : S.playerCard.color;
+
+  // Outer glow
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 22);
+  grad.addColorStop(0, hexToRgba(color, 0.7));
+  grad.addColorStop(0.5, hexToRgba(color, 0.25));
+  grad.addColorStop(1, hexToRgba(color, 0));
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Direction triangle
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(a.angle);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  if (isRival) {
+    // v1.5 rival morph silhouette: twin-notch arrowhead (distinct from every player shape)
+    ctx.moveTo(12, 0); ctx.lineTo(3, -6); ctx.lineTo(6.5, 0); ctx.lineTo(3, 6);
+  } else if (a.card && a.card.behavior === "arrow") {
+    // v1.5 explorer morph: barbed chevron arrowhead (steward-labeled ArrowHead = Explorer morph)
+    ctx.moveTo(14, 0); ctx.lineTo(1, -7); ctx.lineTo(5, 0); ctx.lineTo(1, 7);
+  } else if (a.card && a.card.behavior === "vortex") {
+    // v1.5 vortex morph: compact wedge
+    ctx.moveTo(10, 0); ctx.lineTo(3, -5.5); ctx.lineTo(3, 5.5);
+  } else {
+    // v1.5 snake morph: slim elongated arrow
+    ctx.moveTo(13, 0); ctx.lineTo(3, -4); ctx.lineTo(3, 4);
+  }
+  ctx.closePath();
+  ctx.fill();
+  if (!isRival && a.card && a.card.behavior === "vortex") {
+    ctx.strokeStyle = color; ctx.globalAlpha = 0.7;
+    ctx.beginPath(); ctx.arc(0, 0, 9, -0.9, 0.9); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(0, 0, isRival ? 4 : 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Burst indicator (arrow only)
+  if (a.burstTimer > 0) {
+    const f = a.burstTimer / CONFIG.ARROW_BURST;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.7 * f;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 12 + (1 - f) * 12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawWaypoint(w) {
+  const cx = canvas.width / 2 + w.x;
+  const cy = canvas.height / 2 + w.y;
+  const t = performance.now() / 1000;
+  const pulse = 0.6 + 0.4 * Math.sin(t * 5);
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${0.45 * pulse})`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 14 * pulse, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = `rgba(255, 255, 255, ${0.35 * pulse})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = `rgba(255, 255, 255, ${0.85 * pulse})`;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function updateHUD() {
+  const t = computeTerritoryStats();
+  document.getElementById('timer-val').textContent = formatTime(S.timeLeft);
+  document.getElementById('terr-player').textContent = `${t.playerOcc.toFixed(0)}%`;
+  document.getElementById('terr-rival').textContent = `${t.rivalOcc.toFixed(0)}%`;
+  document.getElementById('terr-unclaimed').textContent = `unclaimed ${t.unclaimed.toFixed(0)}%`;
+
+  const swLeft = Math.max(0, S.playerCard.switchTiming - S.player.timeSinceSwitch);
+  const swVal = document.getElementById('switch-val');
+  if (swLeft <= 0.05) {
+    swVal.textContent = 'READY';
+    swVal.classList.add('ready');
+    document.getElementById('switch-sub').textContent = 'agent can commit new direction';
+  } else {
+    swVal.textContent = `switch in ${swLeft.toFixed(1)}s`;
+    swVal.classList.remove('ready');
+    document.getElementById('switch-sub').textContent = `run length window · click to redirect`;
+  }
+}
+
+function formatTime(t) {
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// ── Results ──────────────────────────────────────────────────────
+function showResults() {
+  const results = document.getElementById('results');
+  const t = S.finalTerritory;
+  const playerWon = t.playerOcc > t.rivalOcc;
+
+  const headline = playerWon ? 'Victory' : 'Defeat';
+  const headlineColor = playerWon ? S.playerCard.color : RIVAL_COLOR;
+  const whatMattered = generateWhatMattered(playerWon);
+
+  results.innerHTML = `
+    <div class="results-card" style="--player-color: ${S.playerCard.color}; --rival-color: ${RIVAL_COLOR}">
+      <div class="results-title" style="color: ${headlineColor}">${headline}</div>
+      <div class="results-sub">Round complete · ${S.playerCard.id} · ${S.playerCard.name}</div>
+
+      <div class="territory-bar">
+        <div class="seg-player" style="width: ${t.playerOcc.toFixed(1)}%"></div>
+        <div class="seg-rival" style="width: ${t.rivalOcc.toFixed(1)}%"></div>
+      </div>
+      <div class="territory-legend">
+        <span class="player">${S.playerCard.id} · ${t.playerOcc.toFixed(1)}% of plate</span>
+        <span class="rival">RIVAL · ${t.rivalOcc.toFixed(1)}% of plate</span>
+      </div>
+
+      <div class="what-mattered">
+        <span class="label">What mattered</span>
+        ${whatMattered}
+      </div>
+
+      <div class="stat-line">
+        <div class="row"><span>Time survived</span><span class="val">${CONFIG.ROUND_DURATION}s</span></div>
+        <div class="row"><span>Player nutrients</span><span class="val">${S.playerPickups} / ${CONFIG.NUTRIENT_COUNT}</span></div>
+        <div class="row"><span>Rival nutrients</span><span class="val">${S.rivalPickups} / ${CONFIG.NUTRIENT_COUNT}</span></div>
+        <div class="row"><span>Switch-timing trait</span><span class="val">${S.playerCard.switchTiming}s</span></div>
+        <div class="row"><span>Brush radius</span><span class="val">${S.playerCard.brush} px</span></div>
+      </div>
+
+      <div class="results-actions">
+        <button class="primary" id="restart-btn">Restart Round</button>
+        <button id="change-btn">Change Card</button>
+      </div>
+    </div>
+  `;
+
+  results.classList.add('active');
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    startRound();
+  });
+  document.getElementById('change-btn').addEventListener('click', () => {
+    backToMenu();
+  });
+}
+
+function generateWhatMattered(playerWon) {
+  const c = S.playerCard;
+  const pickups = S.playerPickups;
+  const rivalPickups = S.rivalPickups;
+
+  if (c.behavior === 'vortex') {
+    if (playerWon) {
+      return `Vortex's <strong>growth aura (${c.brush}px brush)</strong> converted holding time into claimed center. ${pickups} nutrient pickups sustained the spin and out-occupied the rival's routing.`;
+    } else {
+      return `Vortex's <strong>low mobility (${c.speed} px/s)</strong> couldn't contest the plate edges. Rival's <strong>${rivalPickups} nutrient pickups</strong> + steady expansion out-paced the hold.`;
+    }
+  }
+  if (c.behavior === 'snake') {
+    if (playerWon) {
+      return `Snake's <strong>long run length (${c.switchTiming}s switch window)</strong> at <strong>${c.speed} px/s</strong> swept plate edges faster than the rival could route to contest them.`;
+    } else {
+      return `Snake's <strong>narrow ${c.brush}px trail</strong> lost contested center zones to the rival's larger brush. Edge coverage wasn't enough on its own.`;
+    }
+  }
+  if (c.behavior === 'arrow') {
+    if (playerWon) {
+      return `Arrow's <strong>auto-target + burst</strong> converted <strong>${pickups} nutrient pickups</strong> into a tempo the rival's steady-expansion heuristic couldn't match.`;
+    } else {
+      return `Arrow's <strong>quick retarget (${c.switchTiming}s)</strong> chased nutrients; rival's <strong>steady expansion</strong> out-occupied the plate between bursts.`;
+    }
+  }
+  return '';
+}
+
+// ── Input ────────────────────────────────────────────────────────
+function onCanvasClick(e) {
+  if (S.mode !== 'PLAYING') return;
+  const rect = canvas.getBoundingClientRect();
+  // v1.3: compensate for the soft stage re-center offset so clicks
+  // still resolve to the correct plate coordinate after the camera
+  // has eased. Without this, a waypoint would land "ahead" of where
+  // the player sees it.
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width) - canvas.width / 2 - S.recenterOffset.x;
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height) - canvas.height / 2 - S.recenterOffset.y;
+  if (Math.hypot(x, y) > S.plateRadius) return;
+  S.waypoint = { x, y };
+}
+
+init();
+</script>
+<script id="pipeline-contest-script">
+(function () {
+  "use strict";
+
+  const form = document.querySelector("[data-pipeline-contest]");
+  if (!form) return;
+
+  const selectA = form.elements.contestantA;
+  const selectB = form.elements.contestantB;
+  const checkButton = form.elements.checkVerdict;
+  const logButton = form.elements.logMatch;
+  const emptyLine = form.querySelector("[data-contest-empty]");
+  const messageLine = form.querySelector("[data-contest-message]");
+  const recordsBox = form.querySelector("[data-contest-records]");
+  const matchLog = form.querySelector("[data-match-log]");
+  const logStatus = form.querySelector("[data-log-status]");
+  let runs = [];
+  let currentVerdict = null;
+
+  function hasOwn(record, key) {
+    return Object.prototype.hasOwnProperty.call(record, key);
+  }
+
+  function pad(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function localStamp(value) {
+    const date = new Date(Number(value));
+    if (!Number.isFinite(date.getTime())) return "??-?? ??:??";
+    return pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " +
+      pad(date.getHours()) + ":" + pad(date.getMinutes());
+  }
+
+  function shortHash(value, length) {
+    const text = typeof value === "string" && value ? value : "missing";
+    return text.slice(0, length);
+  }
+
+  function compactParams(value) {
+    let text = "{}";
+    try {
+      const encoded = JSON.stringify(value || {});
+      if (typeof encoded === "string") text = encoded;
+    } catch (error) {
+      text = "{}";
+    }
+    return text.length > 120 ? text.slice(0, 117) + "..." : text;
+  }
+
+  function readRuns() {
+    try {
+      const raw = localStorage.getItem("tq_seek_runs_v1");
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter(function (record) { return record && typeof record === "object"; })
+        .sort(function (left, right) { return Number(right.t || 0) - Number(left.t || 0); })
+        .slice(0, 50);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function optionLabel(record) {
+    const pipeline = typeof record.pipeline === "string" ? record.pipeline : "unknown-pipeline";
+    const hash = shortHash(record.runHash, 8);
+    const score = hasOwn(record, "score") ? " | score " + String(record.score) : "";
+    return pipeline + " | " + hash + " | " + localStamp(record.t) + score;
+  }
+
+  function addPlaceholder(select, text) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = text;
+    select.appendChild(option);
+  }
+
+  function populateSelects() {
+    selectA.replaceChildren();
+    selectB.replaceChildren();
+    addPlaceholder(selectA, "select a run");
+    addPlaceholder(selectB, "select a run");
+
+    runs.forEach(function (record, index) {
+      const optionA = document.createElement("option");
+      const optionB = document.createElement("option");
+      optionA.value = String(index);
+      optionB.value = String(index);
+      optionA.textContent = optionLabel(record);
+      optionB.textContent = optionLabel(record);
+      selectA.appendChild(optionA);
+      selectB.appendChild(optionB);
+    });
+
+    const noRuns = runs.length === 0;
+    selectA.disabled = noRuns;
+    selectB.disabled = noRuns;
+    checkButton.disabled = noRuns;
+    emptyLine.hidden = !noRuns;
+    emptyLine.textContent = noRuns
+      ? "no runs on this origin - run the CV pipeline in Seek on this host first"
+      : "";
+  }
+
+  function selectedRecord(select) {
+    if (select.value === "") return null;
+    const index = Number(select.value);
+    return Number.isInteger(index) && runs[index] ? runs[index] : null;
+  }
+
+  function detailRow(list, label, value) {
+    const term = document.createElement("dt");
+    const detail = document.createElement("dd");
+    term.textContent = label;
+    detail.textContent = value;
+    list.appendChild(term);
+    list.appendChild(detail);
+  }
+
+  function recordCard(label, record) {
+    const card = document.createElement("article");
+    const heading = document.createElement("h3");
+    const list = document.createElement("dl");
+    card.className = "pipeline-contest-record";
+    heading.textContent = label;
+    card.appendChild(heading);
+
+    if (!record) {
+      detailRow(list, "status", "select a contestant");
+      card.appendChild(list);
+      return card;
+    }
+
+    detailRow(list, "pipeline", typeof record.pipeline === "string" ? record.pipeline : "missing");
+    detailRow(list, "version", typeof record.version === "string" ? record.version : "missing");
+    detailRow(list, "params", compactParams(record.params));
+    detailRow(list, "capture", shortHash(record.hashes && record.hashes.capture, 12));
+    detailRow(list, "kept", record.kept === true ? "true" : "false");
+    detailRow(list, "score", hasOwn(record, "score") ? String(record.score) : "no score stored");
+    card.appendChild(list);
+    return card;
+  }
+
+  function renderRecords(recordA, recordB) {
+    recordsBox.replaceChildren(
+      recordCard("CONTESTANT A ATTESTATION", recordA),
+      recordCard("CONTESTANT B ATTESTATION", recordB)
+    );
+  }
+
+  function sameWindow(recordA, recordB) {
+    if (!recordA.hashes || !recordB.hashes) return false;
+    return ["A", "B", "C"].every(function (key) {
+      return typeof recordA.hashes[key] === "string" &&
+        recordA.hashes[key] === recordB.hashes[key];
+    });
+  }
+
+  function resetVerdict() {
+    currentVerdict = null;
+    logButton.disabled = true;
+    logStatus.textContent = "";
+  }
+
+  function checkVerdict() {
+    const recordA = selectedRecord(selectA);
+    const recordB = selectedRecord(selectB);
+    resetVerdict();
+    renderRecords(recordA, recordB);
+
+    if (!recordA || !recordB) {
+      messageLine.textContent = "select both contestants";
+      return;
+    }
+
+    if (!sameWindow(recordA, recordB)) {
+      messageLine.textContent = "window mismatch - both contestants must run the identical frame window";
+      return;
+    }
+
+    const scoreAStored = hasOwn(recordA, "score");
+    const scoreBStored = hasOwn(recordB, "score");
+    const bothFlow = recordA.pipeline === "lk-flow-cluster" &&
+      recordB.pipeline === "lk-flow-cluster";
+    const numericScores = typeof recordA.score === "number" &&
+      typeof recordB.score === "number";
+
+    if (bothFlow && numericScores) {
+      let winner = "DRAW";
+      if (recordA.score > recordB.score) winner = "A";
+      if (recordB.score > recordA.score) winner = "B";
+
+      messageLine.textContent = winner === "A"
+        ? "CONTESTANT A WINS (score " + recordA.score + " vs " + recordB.score + ")"
+        : winner === "B"
+          ? "CONTESTANT B WINS (score " + recordB.score + " vs " + recordA.score + ")"
+          : "DRAW (score " + recordA.score + " vs " + recordB.score + ")";
+
+      currentVerdict = {
+        a: recordA,
+        b: recordB,
+        scoreA: recordA.score,
+        scoreB: recordB.score,
+        winner: winner,
+        window: {
+          A: recordA.hashes.A,
+          B: recordA.hashes.B,
+          C: recordA.hashes.C
+        }
+      };
+      logButton.disabled = false;
+      return;
+    }
+
+    if (recordA.pipeline === "frame-diff-blob" || recordB.pipeline === "frame-diff-blob") {
+      messageLine.textContent = "frame-diff-blob carries no velocity measure (score 0 by standing rule) - not refereeable yet";
+      return;
+    }
+
+    if (!scoreAStored || !scoreBStored) {
+      messageLine.textContent = "run predates the score field - re-run it in Seek";
+      return;
+    }
+
+    messageLine.textContent = "stored score is not numeric - re-run it in Seek";
+  }
+
+  function readMatches() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem("tq_swarm_matches_v1") || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function renderMatchLog() {
+    const matches = readMatches()
+      .filter(function (match) { return match && typeof match === "object"; })
+      .sort(function (left, right) { return Number(right.t || 0) - Number(left.t || 0); })
+      .slice(0, 10);
+
+    matchLog.replaceChildren();
+    if (!matches.length) {
+      const empty = document.createElement("p");
+      empty.className = "pipeline-contest-log-empty";
+      empty.textContent = "no matches logged on this origin";
+      matchLog.appendChild(empty);
+      return;
+    }
+
+    matches.forEach(function (match) {
+      const row = document.createElement("div");
+      row.className = "pipeline-contest-log-row";
+      row.textContent = localStamp(match.t) + " | " +
+        shortHash(match.a, 8) + " vs " + shortHash(match.b, 8) +
+        " | scores " + String(match.scoreA) + " / " + String(match.scoreB) +
+        " | winner " + String(match.winner);
+      matchLog.appendChild(row);
+    });
+  }
+
+  function logMatch() {
+    if (!currentVerdict) return;
+
+    try {
+      const matches = readMatches();
+      matches.push({
+        t: Date.now(),
+        a: currentVerdict.a.runHash,
+        b: currentVerdict.b.runHash,
+        scoreA: currentVerdict.scoreA,
+        scoreB: currentVerdict.scoreB,
+        winner: currentVerdict.winner,
+        window: currentVerdict.window
+      });
+      if (matches.length > 50) matches.splice(0, matches.length - 50);
+      localStorage.setItem("tq_swarm_matches_v1", JSON.stringify(matches));
+      logStatus.textContent = "match logged in this browser";
+      renderMatchLog();
+    } catch (error) {
+      logStatus.textContent = "match log unavailable in this browser";
+    }
+  }
+
+  selectA.addEventListener("change", function () {
+    resetVerdict();
+    messageLine.textContent = "";
+    renderRecords(selectedRecord(selectA), selectedRecord(selectB));
+  });
+
+  selectB.addEventListener("change", function () {
+    resetVerdict();
+    messageLine.textContent = "";
+    renderRecords(selectedRecord(selectA), selectedRecord(selectB));
+  });
+
+  checkButton.addEventListener("click", checkVerdict);
+  logButton.addEventListener("click", logMatch);
+
+  runs = readRuns();
+  populateSelects();
+  renderRecords(null, null);
+  renderMatchLog();
+})();
+</script>
+</body>
+</html>

@@ -392,7 +392,7 @@
     .hash-note { margin: 13px 0 0; }
 
     .keep-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
-    #actionStatus{font-family:var(--mono);font-size:11px;color:var(--muted)}
+    #actionStatus,#scoreStatus{font-family:var(--mono);font-size:11px;color:var(--muted)}
 
     .pipeline-head {
       display: flex;
@@ -581,7 +581,13 @@
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.0/lib/index.iife.min.js"></script>
-</head>
+<style id="sk-framescale">
+#frameA,#frameB,#frameC,#flowCanvas,#clusterCanvas{width:calc(100% - 36px);max-width:444px;margin-left:36px;margin-bottom:22px;}
+.slot{position:relative;}
+.sk-frame-overlay{position:absolute;left:0;top:0;pointer-events:none;z-index:5;background:transparent;border:0;max-width:none;}
+.sk-save{display:inline-block;margin:0 0 14px 36px;padding:4px 12px;font:600 11px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;color:#e8a51c;background:rgba(232,165,28,.06);border:1px solid rgba(232,165,28,.55);border-radius:3px;cursor:pointer;}
+.sk-save:hover{background:rgba(232,165,28,.16);}
+</style></head>
 <body>
   <div class="shell">
     <header>
@@ -594,6 +600,7 @@
           <a class="entry" href="index.html">RISE OF MICROBES</a>
           <a class="entry" href="collections.html">COLLECTIONS</a>
           <a href="vault.html#cv-vault">My workbench</a>
+          <a href="arena.html">Swarm Arena</a>
         </nav>
         <div class="console-chip" role="img" aria-label="TerraScope console render"></div>
       </div>
@@ -617,7 +624,7 @@
                 <button type="button" class="cam-control" data-slot="A" style="display:none">camera</button>
               </div>
             </div>
-            <canvas id="frameA" class="input-canvas" width="480" height="360" aria-label="frame A input"></canvas>
+            <canvas id="frameA" class="input-canvas" width="480" height="360" aria-label="frame A input"></canvas><button type="button" class="sk-save" data-sk-save="frameA">SAVE</button>
             <p class="provenance" id="provenanceA">built-in demo frame A - seeded in-page mini swarm, not the registered sim engine</p>
           </article>
 
@@ -631,7 +638,7 @@
                 <button type="button" class="cam-control" data-slot="B" style="display:none">camera</button>
               </div>
             </div>
-            <canvas id="frameB" class="input-canvas" width="480" height="360" aria-label="frame B input"></canvas>
+            <canvas id="frameB" class="input-canvas" width="480" height="360" aria-label="frame B input"></canvas><button type="button" class="sk-save" data-sk-save="frameB">SAVE</button>
             <p class="provenance" id="provenanceB">built-in demo frame B - seeded in-page mini swarm, not the registered sim engine</p>
           </article>
 
@@ -645,7 +652,7 @@
                 <button type="button" class="cam-control" data-slot="C" style="display:none">camera</button>
               </div>
             </div>
-            <canvas id="frameC" class="input-canvas" width="480" height="360" aria-label="frame C input"></canvas>
+            <canvas id="frameC" class="input-canvas" width="480" height="360" aria-label="frame C input"></canvas><button type="button" class="sk-save" data-sk-save="frameC">SAVE</button>
             <p class="provenance" id="provenanceC">built-in demo frame C - seeded in-page mini swarm, not the registered sim engine</p>
           </article>
         </div>
@@ -781,11 +788,11 @@
         <div class="canvas-grid">
           <article class="slot">
             <h3 class="result-label" id="resultLabel1">DENOISED THREE-FRAME FIELD - ARROWED VECTOR FIELD</h3>
-            <canvas id="flowCanvas" class="result-canvas" width="480" height="360" aria-label="optical flow result"></canvas>
+            <canvas id="flowCanvas" class="result-canvas" width="480" height="360" aria-label="optical flow result"></canvas><button type="button" class="sk-save" data-sk-save="flowCanvas">SAVE</button>
           </article>
           <article class="slot">
             <h3 class="result-label" id="resultLabel2">CLUSTER OUTPUT</h3>
-            <canvas id="clusterCanvas" class="result-canvas" width="480" height="360" aria-label="cluster result"></canvas>
+            <canvas id="clusterCanvas" class="result-canvas" width="480" height="360" aria-label="cluster result"></canvas><button type="button" class="sk-save" data-sk-save="clusterCanvas">SAVE</button>
           </article>
         </div>
         <div class="keep-row">
@@ -793,6 +800,7 @@
           <button id="mintButton" type="button" class="tab-btn" disabled>MINT</button>
           <button id="cvVaultButton" type="button" class="tab-btn" onclick="location.href='vault.html'">CV VAULT</button>
           <span id="actionStatus">run CV first - KEEP stores the run in this browser, MINT signs a real devnet mint</span>
+          <span id="scoreStatus" aria-live="polite">score: 0 (diff tab)</span>
         </div>
       </section>
 
@@ -802,8 +810,11 @@
           <table>
             <tbody>
               <tr><th scope="row">input frame A</th><td id="hashA">not run</td></tr>
+              <tr id="manifestRowA"><th scope="row">frame A manifest</th><td id="manifestA">-</td></tr>
               <tr><th scope="row">input frame B</th><td id="hashB">not run</td></tr>
+              <tr id="manifestRowB"><th scope="row">frame B manifest</th><td id="manifestB">-</td></tr>
               <tr><th scope="row">input frame C</th><td id="hashC">not run</td></tr>
+              <tr id="manifestRowC"><th scope="row">frame C manifest</th><td id="manifestC">-</td></tr>
               <tr><th scope="row" id="thMid1">flow A-B</th><td id="hashFlowAB">not run</td></tr>
               <tr><th scope="row" id="thMid2">flow B-C</th><td id="hashFlowBC">not run</td></tr>
               <tr><th scope="row" id="thMid3">denoised field render</th><td id="hashDenoised">not run</td></tr>
@@ -816,7 +827,7 @@
       </section>
     </main>
 
-    <footer>KEEP is browser-local (this browser only). MINT is live on devnet: the connected wallet pays the fee, the registered demo device co-signs, ~0.0188 SOL rent comes off the device key per mint - score is passed as 0 until the score formula lands (pending). CV runs in your browser; nothing here touches mainnet.</footer>
+    <footer>KEEP is browser-local (this browser only). MINT is live on devnet: the connected wallet pays the fee, the registered demo device co-signs, ~0.0188 SOL rent comes off the device key per mint - the current run score is passed as a separate mint instruction argument (flow 0..1000; diff 0). CV runs in your browser; nothing here touches mainnet.</footer>
   </div>
 
     <div class="cam-modal" id="camModal" hidden>
@@ -862,7 +873,7 @@
         stages: { grayscale: true, denoise: true, diff: null, flow: "lk", cluster: "angle" },
         source: "in-page pipeline (Lucas-Kanade flow + angle clustering)",
         pipeline_version: "cv-pipeline v0.2",
-        score_formula: "PENDING",
+        score_formula: "round(1000*(0.5*V+0.25*R+0.25*S))",
         knobs: { window: 15, grid: 16, VMIN: 0.50, clamp: 40, refinement: 1, theta: 0.20, minCluster: 2, neighborhood: 4 }
       }
     };
@@ -870,6 +881,7 @@
     const RUNS_KEY = "tq_seek_runs_v1";
     const RUNS_CAP = 200;
     let lastRunRecord = null;
+    let flowScore = 0;
     let lastOutputs = null; let annotOn = false; const annotBtn = document.getElementById("annotToggle"); const annotNote = document.getElementById("annotNote");
     Object.defineProperties(PARAMS, {
       defaults: {
@@ -940,6 +952,7 @@
     const keepButton = document.getElementById("keepButton");
     const mintButton = document.getElementById("mintButton");
     const actionStatus = document.getElementById("actionStatus");
+    const scoreStatus = document.getElementById("scoreStatus");
     const parameterInputs = {
       diffBlur: document.getElementById("paramDiffBlur"),
       diffAmp: document.getElementById("paramDiffAmp"),
@@ -1117,6 +1130,8 @@
         thMid4.textContent = "blob output render";
         resultLabel1.textContent = "THRESHOLD MASK - DIFF A-B";
         resultLabel2.textContent = "BLOB OUTPUT - BOTH INTERVALS";
+        resultLabel1.dataset.saveLabel = "FRAME DIFF - threshold mask result";
+        resultLabel2.dataset.saveLabel = "FRAME DIFF - blob output result";
         renderCardText.textContent = "3 inputs · 2 diff fields · 2 output renders · combined capture hash";
       } else {
         thMid1.textContent = "flow A-B";
@@ -1125,6 +1140,8 @@
         thMid4.textContent = "cluster output render";
         resultLabel1.textContent = "DENOISED THREE-FRAME FIELD - ARROWED VECTOR FIELD";
         resultLabel2.textContent = "CLUSTER OUTPUT";
+        resultLabel1.dataset.saveLabel = "OPTICAL FLOW - denoised field result";
+        resultLabel2.dataset.saveLabel = "CLUSTER OUTPUT - rendered clusters";
         renderCardText.textContent = "3 inputs · 2 flow fields · 2 output renders · combined capture hash";
       }
 
@@ -1217,6 +1234,7 @@
     let defaultTrioFilled = false;
 
     function buildDemoTrio() {
+      frameMeta.A = frameMeta.B = frameMeta.C = null;
       if (defaultTrioFilled) return false;
       defaultTrioFilled = true;
       const trio = generateDemoAgents();
@@ -1301,6 +1319,7 @@
         const loaded = await decodeImageFile(file);
         const dimensions = drawLetterboxed(canvas, loaded.image);
         sources[slot] = { kind: "file", bytes: loaded.bytes, present: true, src: file.name };
+        frameMeta[slot] = null;
         caption.textContent = `loaded file: ${file.name} (${dimensions.imageWidth}x${dimensions.imageHeight}) - uniform-scale letterbox, original bytes hashed`;
         runStatus.textContent = "ready - press RUN CV";
       } catch (error) {
@@ -1634,6 +1653,9 @@
       const offsets = PARAMS.offsets;
       let clusterCount = 0;
       let singletonTally = 0;
+      let activeSpeedSum = 0;
+      let angleSineSum = 0;
+      let angleCosineSum = 0;
 
       for (let start = 0; start < flow.cells.length; start += 1) {
         if (visited[start] || !flow.cells[start].active) continue;
@@ -1652,6 +1674,9 @@
           const currentColumn = currentIndex % flow.columns;
           const current = flow.cells[currentIndex];
           const currentAngle = Math.atan2(current.v, current.u);
+          activeSpeedSum += current.speed;
+          angleSineSum += Math.sin(currentAngle);
+          angleCosineSum += Math.cos(currentAngle);
 
           for (const [deltaColumn, deltaRow] of offsets) {
             const neighborColumn = currentColumn + deltaColumn;
@@ -1685,7 +1710,7 @@
         }
       }
 
-      return { labels, clusterCount, singletonTally };
+      return { labels, clusterCount, singletonTally, activeSpeedSum, angleSineSum, angleCosineSum };
     }
 
     function dimFrame(context, sourceCanvas, brightness) {
@@ -2014,13 +2039,14 @@
         features: extractFeatures(grayA),
         hashes: { A: hashes.A, B: hashes.B, C: hashes.C, capture: hashes.capture },
         runHash: hex(runHashBytes),
+        score: flowScore,
         kept: false
       };
       appendRunRecord(lastRunRecord);
       cvStash = { runHash: lastRunRecord.runHash, t: lastRunRecord.t, outputHash: outputHashHex, imageBlob: await canvasToBlob(document.getElementById("clusterCanvas")) };
       keepButton.disabled = false;
       mintButton.disabled = false;
-      actionStatus.textContent = "run ready - KEEP stores this run in this browser, MINT signs a devnet mint (score 0 pending)";
+      actionStatus.textContent = "run ready - KEEP stores this run in this browser, MINT signs a devnet mint";
     }
 
     function serializeFlow(flow) {
@@ -2240,6 +2266,27 @@
         : "simple view - as shipped";
       redrawResults();
     });
+    function updateManifestLabels(hashes) {
+      var noManifestLine = "not attested - no manifest line";
+      ["A", "B", "C"].forEach(function (slot) {
+        var cell = document.getElementById("manifest" + slot);
+        if (!cell) return;
+        var meta = frameMeta[slot];
+        var computed = hashes && hashes[slot];
+        if (!meta || !meta.key || !meta.name || !computed) {
+          cell.textContent = noManifestLine;
+          return;
+        }
+        var manifestSha = MANIFEST_SHA[meta.key + "/" + meta.name];
+        if (!manifestSha) {
+          cell.textContent = noManifestLine;
+          return;
+        }
+        var verdict = manifestSha === computed ? "match" : "DIFFERS";
+        cell.textContent = "manifest " + meta.key + "/" + meta.name + " - " + verdict;
+      });
+    }
+
     function commitResults(flowOutput, clusterOutput, hashes) {
       const flowContext = flowCanvas.getContext("2d", { alpha: false });
       const clusterContext = clusterCanvas.getContext("2d", { alpha: false });
@@ -2267,6 +2314,7 @@
         hashCells.capture.textContent = unavailable;
       }
 
+      updateManifestLabels(hashes);
     }
 
 
@@ -2302,6 +2350,8 @@
 
           commitResults(maskCanvas, blobCanvas, hashes);
           if (annotOn) redrawResults();
+          flowScore = 0;
+          scoreStatus.textContent = "score: 0 (diff tab)";
           await recordSuccessfulRun(grayA, hashes);
           runStatus.textContent = `complete - ${blobsAB.length} blobs A-B, ${blobsBC.length} blobs B-C, mask ${onCount} px on`;
         }
@@ -2330,6 +2380,18 @@
         await nextPaint();
         const clustering = clusterFlow(denoisedFlow);
 
+        // Score = round(1000 * (0.5 * V_norm + 0.25 * R_norm + 0.25 * S_norm)).
+        const activeCellCount = denoisedFlow.activeCount;
+        const meanFlowSpeed = activeCellCount > 0 ? clustering.activeSpeedSum / activeCellCount : 0;
+        const speedRange = PARAMS.clamp - PARAMS.VMIN;
+        const V_norm = speedRange > 0 ? clamp((meanFlowSpeed - PARAMS.VMIN) / speedRange, 0, 1) : 0;
+        const R_norm = activeCellCount > 0
+          ? clamp(Math.hypot(clustering.angleCosineSum, clustering.angleSineSum) / activeCellCount, 0, 1)
+          : 0;
+        const totalGridCells = denoisedFlow.cells.length;
+        const S_norm = totalGridCells > 0 ? clamp(activeCellCount / totalGridCells, 0, 1) : 0;
+        const computedFlowScore = Math.round(1000 * (0.5 * V_norm + 0.25 * R_norm + 0.25 * S_norm));
+
         runStatus.textContent = `rendering - ${denoisedFlow.activeCount} denoised active cells, ${clustering.clusterCount} clusters`;
         await nextPaint();
         const denoisedOutput = makeCanvas();
@@ -2344,6 +2406,8 @@
 
         commitResults(denoisedOutput, clusterOutput, hashes);
         if (annotOn) redrawResults();
+        flowScore = computedFlowScore;
+        scoreStatus.textContent = `score: ${flowScore} / 1000 (passed to mint)`;
         await recordSuccessfulRun(grayA, hashes);
         const singletonWord = clustering.singletonTally === 1 ? "cell" : "cells";
         runStatus.textContent = `complete - A-B ${flowAB.activeCount} active, B-C ${flowBC.activeCount} active, denoised ${denoisedFlow.activeCount} active, ${clustering.clusterCount} clusters, ${clustering.singletonTally} singleton ${singletonWord} dropped`;
@@ -2430,14 +2494,14 @@
       return wallet;
     }
 
-        function mintIx(captureHash,ts,sigBytes,sessionRef,mintDescText){
+        function mintIx(captureHash,ts,score,sigBytes,sessionRef,mintDescText){
       var dat=web3.PublicKey.findProgramAddressSync([enc('capture'),captureHash],programKey)[0];
       var capMint=web3.PublicKey.findProgramAddressSync([enc('capture_mint'),captureHash],programKey)[0];
       var holderAta=ataSync(capMint,deviceKp.publicKey);
       var META=new web3.PublicKey(METAPLEX);
       var meta=web3.PublicKey.findProgramAddressSync([enc('metadata'),META.toBytes(),capMint.toBytes()],META)[0];
       var desc=enc(mintDescText||DESC_TEXT);
-      var data=cat(Uint8Array.from(DISC_MINT),captureHash,le(ts,8),le(0,2),sessionRef,Uint8Array.from([0]),Uint8Array.from([1]),le(desc.length,4),desc,sigBytes);
+      var data=cat(Uint8Array.from(DISC_MINT),captureHash,le(ts,8),le(score,2),sessionRef,Uint8Array.from([0]),Uint8Array.from([1]),le(desc.length,4),desc,sigBytes);
       return new web3.TransactionInstruction({
         programId:programKey,
         keys:[
@@ -2484,7 +2548,7 @@
         recentBlockhash: blockhash.blockhash
       });
       transaction.add(edIx);
-      transaction.add(mintIx(captureHash, timestamp, sigBytes, sessionRef, DESC_TEXT));
+      transaction.add(mintIx(captureHash, timestamp, score, sigBytes, sessionRef, DESC_TEXT));
       const signed = await provider.signTransaction(transaction);
       signed.partialSign(deviceKp);
       const signature = await conn.sendRawTransaction(signed.serialize());
@@ -2534,7 +2598,7 @@
         ]);
         const runHashBytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(attestationPayload)));
         lastRunRecord.runHash = hex(runHashBytes);
-        const signature = await sendMint(runHashBytes, 0);
+        const signature = await sendMint(runHashBytes, flowScore);
         actionStatus.textContent = `minted - ${signature.slice(0,8)}...${signature.slice(-8)}`;
 
         const records = readRunLog();
@@ -2618,6 +2682,7 @@
       closeCamera();
       canvasPngBytes(canvas).then((bytes) => {
         sources[slot] = { kind: "camera", src: "camera", bytes, present: true };
+        frameMeta[slot] = null;
         caption.textContent = `camera capture (${videoWidth}x${videoHeight}) - browser-local, uniform-scale letterbox, PNG bytes hashed`;
         runStatus.textContent = `frame ${slot} captured from camera - press RUN CV`;
         updateRunEnabled();
@@ -3266,6 +3331,10 @@
       ] }
     ];
 
+    // attestation manifests (b2 CI commit aebdd09) - display-only snapshot, keyed section/filename
+    const MANIFEST_SHA = {"c1/image0009.jpg":"1978e19fad63c9d4d9ff31689193e918de2be2b56aa742e2283e8f52ec9dc29e","c1/image0010.jpg":"562b1faffd41169a415e0e6b50c328377397c96e817ca3775ef4f8c13b3ef6a8","c1/image0011.jpg":"f2569bd142db6060fea6fd0116ddfa8b808a07e52f842a1f151f708c26a99bf6","c1/image0012.jpg":"13a7e58505792d7a5d4c9e72338dec444e0ef96488891c47d744fd3fe6d3d20a","c1/image0013.jpg":"c18ea754045173114acec1223b65437f4cdd5d1ef9b78d2008dfbbd794a15147","c1/image0014.jpg":"e3a0d60e7835e3fa79755bd4c1d7c09e2ebd8606c87ee74cbc6e851f0bfb9045","c1/image0015.jpg":"3770d896ca63765dbd31b56a60bcbb6cacdd28f38a43037414bb08ee5ccb01b1","c1/image0016.jpg":"930cc5615015eccc223d91adce409b93101e4cafe6965bca63f57ee9eec9dc0a","c1/image0017.jpg":"5000bc2dd193e1fe9ca513dc2aadb66e28fe1229a5d26b81f5696490448fd23f","c1/image0018.jpg":"d95f6dcf83db928a4f7fa1f56766b2cba9b8dc8bfcfa8eaa0eb61cc56af03a73","c1/image0019.jpg":"75364cc4b291d4bf5832eb191f46a4f8ca7438ec649c22d067f126ee38a676c0","c1/image0020.jpg":"72003ed322e58bd404c43bdf6cabb1966f474f929839f82462e28b1ba5b6d745","c2/image0024.jpg":"8b4e3e530f4157106c197c5b3d44389c2ab98d2184ebef508dad102e908c03b8","c2/image0025.jpg":"ea68e4642e0bb7e8f6dacb316dd661d80c1051538f708ffe3047576102d026fb","c2/image0026.jpg":"51782969c82e7b131237648748fbcf16e5b025eb92ffac7fffe250261e806afc","c2/image0027.jpg":"6cadacb05ec701303afe1e31bcc43d698ba4356cf6237a606f97daa81e6b2aa8","c2/image0028.jpg":"6fc0b7012a3974e2cac13c52c0ff6927fd809e340dec18b71e6d2cbb52343aa7","c2/image0029.jpg":"e7388d16219a3a317604cb18ee79d950835ce1cde873ba67075acda9d6d8a2e0","c2/image0030.jpg":"0806869e39c26e06333edea36940f822c35e82e2dd3f79c100424e48fcffbf36","c2/image0031.jpg":"7b5490c87555cc35c52890d9252a8253c5c6014474c3ceefc30f04f43ea66662","c2/image0032.jpg":"2a12df047c0a2a54e31142f6c0a9f0802ade1cbe859d5fe0ca295d6fb4039817","c2/image0033.jpg":"778987d7381be711646560f768f293c446d5cc96553b42ae61ec65a7ed26ad37","c2/image0034.jpg":"bc8e720740c76012b4c40040c1f9c14df01dc784353ae3988cf0322737699835","c2/image0035.jpg":"5934a968157c733acd4ec058b94c4e7c8648f70f300a8cf55d606f2d36507552","si113/image00.jpg":"832811c0dfff37036dfadeccdc02215f30f476e4abe7f8cb26854fc7e3335710","si113/image01.jpg":"14f2141c1c19c62ae0c7e50e504047e8e423a7da5127dad7c8dbe651fdceb259","si113/image02.jpg":"17c200d71943caea8f38c43bd5914fe24fa78e5dfe4db0fabd49f6e5dc0b8e12","si113/image03.jpg":"b6266c3e3e48eba7951183935118f7dac9804675257dc14a55f40cf23450a1b1","si113/image04.jpg":"e6fdaded324768b3ed1b201c254592ba7e68916cbcb323c2a202380f6088f8c0","si113/image05.jpg":"76fce4f68d70c1f70163fa9b115de58ff6ac1c2146f41ecbb5d80d6c0fd1cebd","si113/image06.jpg":"f90cbd0481f6f6e526c73a2a5b51fa4b0144991e358ec57baaadc7d61604ea2f","si113/image07.jpg":"cfe332f429088025d29daea72cad157a9a9cea10da5e74666b7673fab17ff540","si113/image08.jpg":"6a56e774f9a2375fd2c2487a4e21a1cab71eae65199a4ba030e6d7996f1bf525","si113/image09.jpg":"f572214727d2a7d35daa6eca3de2912c22c98f6e63b425626657f4df5cfa7ca5","si113/image10.jpg":"562dd2aebffeeb8a817f792a02305ddc165e767b6a9e2d46e46aac9ad272e51b","si113/image11.jpg":"45cbff2ff71ad05b8ffac7b1aa1031d463cfb4af750214cb84c05858a63e255e","si113/image12.jpg":"7071cc4dc5967fb52066d80973691e9d1e5a4d5da00d937c7683b96bbbaf3dd6","si113/image13.jpg":"d0dd4768b78b0b0bbd7591d7d2d01d8b8fb034223bbe465849a17014374f6515","si113/image14.jpg":"c7bb97b2ef89b5ca0e9e6fb1fbce021d805d3c5646fdcd47e058c36f7f66696d","si113/image15.jpg":"df18fbbf8e18126266997571af3c799dfd83f56b5a2e8fe7ffac2cf2e26d3f29","si113/image16.jpg":"a16603058835c0117e0f893e661cf1525de7294ccb543c75358891e7dd2992ca","si113/image17.jpg":"c1af6533a947b88446dc956edf1ebe0b9262c7c56149a53a2370d62ba7121083","si113/image18.jpg":"d7e87a3b5181f75896f06f9d1d379276dfce5a26b7314a1c855c0865eb172085","si113/image19.jpg":"72cb4058eb5c7c9fc3b4d678a8a6e09da87355897ef32549b373024542f15f42","si113/image20.jpg":"31972b0dd597ab13bcac03504198cdbc4de60c4f87790519d4ed1e35b62ecfda","si113/image21.jpg":"6d9953c0f12b8fe73b1c55fd06bb9a364fd091ad47d15b16c6f50b7f3b36942f","si113/image22.jpg":"b875eb7c427f4e8b8583684c16d211434ffddaebbc73fcba1e7f4218e478d294","si113/image23.jpg":"3a221827665773ee14f5a077ca984181e78a60372f935ec78c6c047dc4a2cab9","si113/image24.jpg":"fc9a326698b17d01d016647bcec367354581a4eae254bf6a2394716c8f9f532d","si113/image25.jpg":"c5128b5cc5903d08c79a337897f0b04ec95a710dfc01a9a8130232e7289008c0","si113/image26.jpg":"4366bc2cdafd4dd968288cd7280ac78864506251ffb2b50377fceefb396f45bd","si113/image27.jpg":"d82adbe4bcc3b8321ed226c3d59892c600d4d79a08d29cd4b0b64ecfafa9bbe3","si113/image28.jpg":"55cfb80a6e22425f9ef5868a233066727643c0794159ca4058593eb238a9155a","si113/image29.jpg":"675bc626755836346a655d27ea9d498def9db170059addd023ca3f768be6c254","si113/image30.jpg":"eec07e79e5ada1dfa8756a01a9aa0133455aba15b5a6b1ccdd8493295bdbc3a8","si113/image31.jpg":"03ed5750f6f66f52562a200102c956f5a5e22a5dae8648166aaf18921f0a6a94","si113/image32.jpg":"9824bb7d7d8e617356b194917a5e8afd6c2de5d07c4b265c060e52bb9a12a19f","si113/image33.jpg":"d78975f72d07790cfe37b4ca6202c15ff9c671278fd209423fde050c09ff2425","si113/image34.jpg":"a227ec390c2ebf80bb0d1d10c1a2a06c87c27ad6f24af38ac11436b44687c4a2","si113/image35.jpg":"4437f59ae58a41a81098a5be75ac308eed5ce86a2d293bc1e03b12e4759c808c","si113/image36.jpg":"4914d1b7b9b744bb04d36fa9e15ba62d8db2ce23a60f5b8e0fe499b20cde0386","si113/image37.jpg":"204ed558ff9c44d5b4c680a8003bca5a8751cfb09d9748991613cef596784e93","si113/image38.jpg":"1fc00b48a7910b253488cdac415e66b220b7d5b4c04d3ca31a6e19f26709fa7d","si113/image39.jpg":"2b76b82f471a788a7e2d2981474396560ecd0587a96be14d3cf3bdc07273f9dc","si113/image40.jpg":"60a498848f89086d0d5b71d8811766bb366af66f440c49aa9a986afef509ad86","si113/image41.jpg":"d13d60f3d6c2ca37205f74c97302c88de17b12e1553f76bc7ffab0a683e1036d","si113/image42.jpg":"1ccf0e9738c7c86a8ae28bfd8ca1e6535ee569a622bbffa7afda665e5ef86d2f","si113/image43.jpg":"906cf20584f0f13d000f2dec4f2e5b7570e3564e4257e79ac430928685b23a5c","si113/image44.jpg":"d5b6047327889fbddbd357c5b48889c227fc4f83c0d36485a3d45641de43ef01","si113/image45.jpg":"21589c165b9687b9559c28574a5cc41ccc8ecfb37f3233195465b74a95a1a4c4","si113/image46.jpg":"b07ea1d8f60d0459bff3e6159958f177764c9bc5b6932da8a676b29eef5851ce","si113/image47.jpg":"8376855ecc4836b471e970ac8de59c91466cc595c48f40cdff2be93c09513b9f","si113/image48.jpg":"3267040da2b8dd4b532b74cf75bc76f022b852ec93e7ebe442eb3aa41598c655","si113/image49.jpg":"901379f22edf3de2f977b936cd907c1f31e0985e20f752107bd98a755053a946","si113/image50.jpg":"07597a994a0d7627b02007e631c3aab106e9e0d94386de6038388195f63e558f","si113/image51.jpg":"08ac397ae1766d9fe9e813a152077704f90a8dd509a8803ccbda1e743e1049f6","si113/image52.jpg":"f00b032cbb0e1f1409f62240bd6ae9e928d595b42b833fc8930beb96cb3b6175","si113/image53.jpg":"89ad30e2a8d307f7b98984dad3a4a4d0ae99292ca5798129df724a4dbc4756df","si113/image54.jpg":"84a16d9fbc53f55b7a68ba1a9141bf27ead53e7f70f68cfa892df2a001e90654","si113/image55.jpg":"675ba484f1b79b9f59d8f52bd2af3784ae4ecc1d2b7bce3a4c0ad8fe34046d05","si113/image56.jpg":"4218092c04bdcd4084940e4f68636bc0e62fac07242a1b1bdbc1a468531fabe6","si113/image57.jpg":"08efa9b6605e205127069ab8486a5391c83b3f554308729ad82817b353acd7cc","si113/image58.jpg":"5b7aef4faea36975c59afaff4349da2c6889cc1674c4028858145927ad12075b","si113/image59.jpg":"aae7dee4f429152a2d4a0e745035fdc477737f5691640dc2c71a98fec67cfd56","si113/image60.jpg":"cfec7ece4999fda6fc68b4ec3878101ccd94646521289de8f2bc9dd6139e5beb","si184/imagev400.jpg":"8076204bdd1dc7e64b1be94839437db732de53e0ec1295f64b99834dfc691c47","si184/imagev401.jpg":"70edab1c6b12c06f28cc467ab44785a87c7975db8eb1ac8f93befd647dd0b1c4","si184/imagev402.jpg":"c1bf802065a22b974e834e00053fb118b7b5a1c193e192f3a7a83a615e1357d5","si184/imagev403.jpg":"dff7b155f704e12d73f71290e44d4955e46e2f80579d2d4031030598846b8706","si184/imagev404.jpg":"e328e97354df1ddd6a5211c0a163fa28937eb883f0d476dc5802a87669dd1d39","si184/imagev405.jpg":"4ec4c5c1af93f70d193f9bb0e29e18669ed5bfc526fde352f30303a38a28df7c","si184/imagev406.jpg":"0b108833a19961ed3f2ef5149a8f9cff39fca180a37b69751b9abc8b49eb86d2","si184/imagev407.jpg":"5e1b9531602df424a8312fd8a4e87d966c52554bd6c7a5dff2a03b954f9bb15c","si184/imagev408.jpg":"1e5333c9abda2130bee85084b2b7ef4ee5b97b43c6e1f21738c33e9803fe3c24","si184/imagev409.jpg":"6bd6714361cd442f206d31517ad95e239a2180f1cadee06500d2fcc0b12926d2","si184/imagev410.jpg":"80fd49dc054cfddaf9e4d1256f89fbc66d5b41bb6805ace8b781807378d11224","si184/imagev411.jpg":"b15a98f7432c9586589cf77453977188a4de4a56d0a8f08542d2a33370687804","si184/imagev412.jpg":"6f877ff2db91b5626334079fd494d11ad2bdcd6d9cc0bc7511391bfc206e95b0","si184/imagev413.jpg":"48a5e256faab884128dc34150445fe2147e380ce78da0c70decac3b77d471308","si184/imagev414.jpg":"dc66b92ca3d356f950213b854471500173652e4788780ce3126ac688887a65f4","si184/imagev415.jpg":"e5626d5f115b07040192c37e62add10d462f9aab1177d48d0f9e3295f6ad349f","si184/imagev416.jpg":"bf6a23c9692fd2ad483103b68c998bc4732662a85d8feaedd6281611a6e47436","si184/imagev417.jpg":"739030677ff4bf98665ccbba3c8ce621eba2c82fdf42cfd1d280e45149118539","si184/imagev418.jpg":"2ca99dc0edd73e9c31187c55f29dd828d9def3da0da02d7a91ba3bb96a1b1aea","si184/imagev419.jpg":"97f99ab70077bb323dc1f44bececbcfd68dc334d349d17cd852d5efcc09bfe67","si184/imagev420.jpg":"cdcb88e7be1e70c70dc6bbb1db91b4d539cfe47b613d52313c85f29c5492e91b","si184/imagev421.jpg":"ed6f16f470bb93d171ad0d6c9b8a38df795104ea3642f95d6a908da5c6042ec8","si184/imagev422.jpg":"4bbe65c28048d5822ae54aed9d245f4425b266253af7847550d926f5187f04cb","si184/imagev423.jpg":"073fff4915d309328b25299a5fa0a3a25509e9fb0d9cef52fe1dec3e2250c22b","si184/imagev424.jpg":"509e00826217f43d47b0f5c6ce46035002f92d15f60940628a37b4c4980dd6e8","si184/imagev425.jpg":"d163f46f087ee9c25a3d39185faccb3f6cef2d6917362ce4ad8a7f8caa8f9aba","si184/imagev426.jpg":"0053f4cddcb6242085adacb5ed363d13a5aacb0fdfc935def9ed5ab242e18d1e","si184/imagev427.jpg":"910b49cd819bdb06afb849c438839d2113da20c348a1a6706b6014bb5624cb54","si184/imagev428.jpg":"81ae15c7bbd67c23297af8c44276a8f2b0f3deab36ff8122684fa59c9aba43ae","si184/imagev429.jpg":"7fb46e00aa7f3f1448779f6965da6e367d8f2501285ea0ac46e1663314006a4a","si184/imagev430.jpg":"73041b5198a8c0cb525f2dbd5737b353177e6f3cf63442134282e2d628d433f0","si184/imagev431.jpg":"00d7a0dcdee845d7486bf8e8c61256ecd03d60bd4760737431d12791dd215fbc","si184/imagev432.jpg":"b33b0b59eca02b9e91d03da9dfe18f8b8763ccc88224730d66ebb36a5c4649ac","si184/imagev433.jpg":"1f9a7f8a8d4983a7b826e4af50e17d7b2e0eca686768b27fe21a7da58892a542","si184/imagev434.jpg":"37906b0431eaa2fdb96f6d9b5db11187a708d3c272fb6bfb64721442031f1590","si184/imagev435.jpg":"99d86dc24e0e2211bfa25c047424cbe0d4f6bdba00a66867c7ec23f91c2f6a82","si184/imagev436.jpg":"ace85d8c1de1a6d7f07e086e82cdaec1452a071069e95be41d17722b5a141224","si184/imagev437.jpg":"717f88530ff1cebc68bb10ab3e4f5f07472811630a871ca668210b86b364e99d","si184/imagev438.jpg":"05bc2427c399efc84af25577356f2ced5f4be579408677fb2657150091a9e3d4","si184/imagev439.jpg":"4571a4b1150e8fc1190acbca310b4e0cf1b5c242e6e118d1d112e2ab8c75abf4","si184/imagev440.jpg":"b3d28c15a784e163bb81f35632e9a0210af0f98d3d92c42f10d05419d6fb6263","si184/imagev441.jpg":"3042dcdf7cb649c35fa178b107ee15b91c66cfa3f1e0cdf91fc5632c807d6bbe","si184/imagev442.jpg":"192fb643170288340218f1480d4152b9630b1e47aea0741af67d00a98e10df17","si184/imagev443.jpg":"c85bbcdd1aebe7ee3cfae1df6362b70035b075e767c87914ce04253b4b1533df","si184/imagev444.jpg":"ec72510de789e00ecbcafd26d137755d49d28b21d6b5dd2fe59ce7a15251663f","si184/imagev445.jpg":"0c358efc8dc92cab4854497af63d62c5d579fb6aeed7bce33f77d4aa513a2950","si184/imagev446.jpg":"52ab0093002dd825856afc5dc443426257a59b829e726b4d352b991d86148c73","si184/imagev448.jpg":"0cb0d765162bf8638b83e76e7e3cbb8655ee7f7f886ee5862e866833ce4c2bed","si184/imagev449.jpg":"e4a71bf3d15f953dc7429a9482894d5fba14be5cba80631117746d50f614d26e","si184/imagev450.jpg":"3f29b9d4edca96d81ac8498341ac123cb73a28a0e22ca7f621a818ee3ed1fdc0","si184/imagev451.jpg":"dd113053630986489448df8e2f394d5fd4308c97a418eb1867002d319c0ce8ff","si184/imagev452.jpg":"88a3aeda26ac8c967fe49ea48368227310f027543bdb1384f968826162525228","si184/imagev453.jpg":"95eaae17d4f3f36c23e1f2570258fe3fa799aff43d2263e6c9f57fbff25d189d","si184/imagev454.jpg":"3860c4563d3a1b9ef8bb27440dd65190d1e8755d5d69e7fa9b6b85e0570246ca","si184/imagev455.jpg":"5c312df56abbf2dac637c0bb6e28dc571292679591c1908057ff52ce3fd59027","si184/imagev456.jpg":"226e2df766dcd566affe4e882b437a41b9b4b01cd69bb5363a3370e72823505c","si184/imagev457.jpg":"50a2a44d7ccad93b1aceaba3350990883600b4bc537fbd4d4e4e3d58c436e425","si184/imagev458.jpg":"13638d9abc2a4776ce6d7c6441565dd01a19f9eb5bb8695a94452a9fc70dbefb","si184/imagev459.jpg":"bd4d0327dd01f6290bc174d57005989966ce2d49ce66ef9e73b11d68d8a8265b","si184/imagev460.jpg":"2ab1ea9ef7f1106359e4e0e0bde5d0018e990481811583f8cbf4d1ffe461f58d","si71/test00000.jpg":"44d40d8c7660af6c7ec3e25e3f61b9e9685df459bbaed5b0467560514012033b","si71/test00001.jpg":"28e9b0a37dbbb64347e79c8f9635cc25737526bbb8c24f80c87137281610405b","si71/test00002.jpg":"a50245915ae80fb8690a276483a1b5b8683dd081390137b553a3115301baa2c0","si71/test00003.jpg":"edf8e4061fe384dfe8d2ba19a72ea777e5abfb0a8e7079cc861dc3d9747bdf74","si71/test00004.jpg":"f2c65facf1c75e68fdcafe26722455670cc39b1e3b46d74cda4c5b5786615140","si71/test00005.jpg":"599878fab75b140708867ab3ccfe00e33989402bdd740a87c4a0099baaebbd74","si9o/image0000.jpg":"9df1eb88905132d7c5ecdd9382ab61ae8c678f1f524afebbb5c582f0d4aa8397","si9o/image0001.jpg":"8185c6678cea77d784e61536419057ca92ac2f8eb279f78570b1343b4e027ab0","si9o/image0002.jpg":"493751045a0c157bc980f85e3af79737337f145890b3e77d328a3e11eeabf47c","si9o/image0003.jpg":"bc6918f24dbded9421afb87799e0a4ea37d0e5b96597c2f3e9d67e650b276a7b","si9o/image0004.jpg":"cd092fb2ed8b5f2869945bbb861c14e8df6edb8c8bde97533d4074005fb448ae","si9o/image0005.jpg":"4a492495d3eb3f4d0651f9d925fd676e6a830a8575cfd01f7b9da83a5b4bd2b0","si9o/image0006.jpg":"359ab3be27022e0b04dc5dd423520bfcd93f7c77322dc8d56f472005a403b2a6","si9o/image0007.jpg":"6428a72b7db5c606f6ce688c4b9df55f63c2b1511732fea77e4fa3c332c23597","si9o/image0008.jpg":"a88a153060bde81c4b4449d899cf09023257f89d78db71d434aa9c5f6c407cfd","si9o/image0009.jpg":"83c873b9e89837a9369810b329b18b158f5ab4e46592a9252aec2de4def38a1c","si9o/image0010.jpg":"7d7792f1607c1700ed0b0973737dea11353a03b6410dd9ed28658f593b6992f7","si9o/image0011.jpg":"8fb79eec459ded5a377dd4852af3a387040d50df799389a414096866964e16d9","si9o/image0012.jpg":"a2c0a290ab65732509039bc4afd0a1a2f178820207ab6d8cde0e3d2c161fddb5","si9o/image0013.jpg":"05161ee0058d971a772a42528ade60462b66c9e8559dbddcb4d8545db77183f9","si9o/image0014.jpg":"a4cc3486a0bd290a265ba16b8c773a33e856eb1df05cced86ca28ac3b980894b","si9o/image0015.jpg":"e4dbc38a78370d99a49b40615aa2632dbb3f1b2e866e06a88a148e26b64d372c","si9o/image0016.jpg":"b4aaca55be6db5282b20a49a3fcbdf954470885fef645734af3b35b1198cf9f5","si9o/image0017.jpg":"c3abe85cfbe9e3de36a3e4a4996726316dbf9e3558f8844b61c0f1b1374ce8ec","si9o/image0018.jpg":"6fc307a2b3b267144ada9f092e2c7faedbff16a858cfe0d6f17ae3ece0e1aa6d","si9o/image0019.jpg":"7ab930b5f3ec855d2c39110870dc423686d013f7995020d468319f9d93130a9a","si9o/image0020.jpg":"a9ef6c100c22ee8239e2451018de433e859cac11d9eaef1068bc264648fa3bcc","si9o/image0021.jpg":"eca20592bde326bd2df8301cc3b423fba33591c4d9ef6263eda14fb40387cb91","si9o/image0022.jpg":"86b4c10b1bef948abee149aae5d3c4790dafc1492238728e957595e824360a8f","si9o/image0023.jpg":"87958eda6ac1aa2ff00319460d000e1070d3637d29b2fbf2cf1d856ebbd038d1","si9o/image0024.jpg":"19f15d8418129897ea80eb1b9361772b4f9b7c31ede4b3a977d7205c4e4c9873","si9o/image0025.jpg":"3cfb8fd67063f29ba25fbc6beb34cc891486632e7d78793651d49af61662ffa7","si9o/image0026.jpg":"af95b259d90b7ec1ec6178bd2ec145656e49d4f378aa3cb5b4141b275a52bd26","si9o/image0027.jpg":"778675798176c18476f18a60ef59f01aa0d32acda30832efbf785efc0ec2c1e1","si9o/image0028.jpg":"8074fe45fbcaa23e8078410cbdfa763afdc57ef704724b0cd5e656ef523bdb52","si9o/image0029.jpg":"648820eb9c46f2a5205af146a8428b38be35e8c1f65a7ad4c949865d3109f594","si9o/image0030.jpg":"e7651dfc9429a9e5af0c2589c048bf4f7f9b773fae3f0f0157de7d5f554a00fd","si9o/image0031.jpg":"62305310be59364ba78ef5cfd2e0b2bf34f0a8a86a8065cd4d4ceec16d867f66","si9o/image0032.jpg":"3f0eb9b1f09bfbd916469b416df36a17e79bb1246de3c9576a88314d1e92438d","si9o/image0033.jpg":"b490b79c4fb8916effe3bb89f2ae56d7703d460f65527bce04f3f90461bb9b77","si9o/image0034.jpg":"c9c698ac00a12c096f09be00d7536ae68e4df964ca951ec79d52644bceee8a60","si9o/image0035.jpg":"47519a02a842c479846115577677253da8ddee2be150b86af6655936a17f4b24","si9o/image0036.jpg":"32c693921c0d440b94a18ca0e1b54a0f9ca145a97fd671eb0deae0eaa3d23f9a","si9o/image0037.jpg":"dba6228b71c7cfe32273fba6b7c0263bb8de29b5f3e99c820c0e8109e7dfedc3","si9o/image0038.jpg":"09e2ec03351b2ca7a5a6ce32f641d42d8cb9508db770df5d4e36dd38bfaa3fc3","t121/image0000.jpg":"4410eb9e76dac47499ae0b96b004286050eccc01890f14bf612744a13bea7873","t121/image0001.jpg":"d99b877a6193b7c3c833a47a9228731300539c022a1c9a325cf73914f94c8739","t121/image0002.jpg":"c40f0d2a7d0d9dc00fcb4c4d5eb5f2d243ceaa89201d3b911ec53b9ceddb2c51","t121/image0003.jpg":"130b5f77758931875384292814b742f203ce86d2981d3b584f63f6be8c689f9c","t121/image0004.jpg":"8b77105850673fc55deda9ef8cd69d84eef4d1529a67077a88a9da661a162a3e","t121/image0005.jpg":"105aa3055c92252c9e1e900e082a5ccd747b2a7ccd87914560e93841b7a6e31b","t121/image0006.jpg":"0aa0dd4f75002e47b2789ba5f22cac25c23c56b0e49d02f53ac1176f5e1d40d5","t121/image0007.jpg":"b0cb43306f90bbd93ab42e030197bb48c224040299e2aa74d3e05421966f45b8","t121/image0008.jpg":"f875e9f924a0c87b45f0dbc42253ef7e31dc985029f1ef21c4b064d5c43bc579","t121/image0009.jpg":"51be64f74827e0ac7e7c9c9f95c8c890082d0d7271acd2e6b499764fb67ef927","t121/image0010.jpg":"8373750098e6cbf27494a105e7badcbfce5ea9171ffbf794e7181872fe897ac3","t121/image0011.jpg":"d0d3981524a51cc44e99e7f788fd3be1120d79b9a82fac17883f633df3731240","t121/image0012.jpg":"b9cbfccde471a70fb1dd415caffa7673423afdde0c5dfbca23dfa9f5e808251a","t121/image0013.jpg":"72bde50993721d8037f84d6910ed132597ef6e79a91d871ed72adba40b9d11ec","t121/image0014.jpg":"c006e4948fc174f27e14e4fab0c07e369aafa8fbef69d682a1c64547d304eab3","t121/image0015.jpg":"597857eee869a814caf00f9763c82f43ea896f48c363b9ad27f0bb688ed687e7","t121/image0016.jpg":"fe7825ac9118bb985f0ffc8f1e2336796619b969c653b0466bdd99f7845409ce","t121/image0017.jpg":"52cf0221bb1fcee0298db459666eeaf7f59f703764baf9714e20e23bdeb2538f","t121/image0018.jpg":"e3057be318061903134d27c43f4a72e2f59a824d5b7272c1ecae268d552a4cab","t121/image0019.jpg":"ce32350974386ad82c8bcb820b3592f5885891535236c94c3b2d1c11735319dc","t121/image0020.jpg":"e5506254c4ee600b5645d9c727b34dbac5fa40fe550c58d9c0f2afa95124e185","t121/image0021.jpg":"c3786a350a5a000cfef2f09a30c7ad696a54778bb65def6693e8b3df9e4c0669","t121/image0022.jpg":"1e243d5a3fa9728b2d64c1ce9c8ae4ab9298cfd31d6f5e5941de33ab4d0d9fbc","t121/image0023.jpg":"802ef66bde01915eac0e90cc7097147789b68720e9f37530e7b17b44de86db87","t121/image0024.jpg":"e4391c93a70042e173fad4d5196b12f72a40fa2e3dedb391556a630bec016741","t121/image0025.jpg":"fb771e2d6d4f8c96b77a3ba00054e0fbb5f441cc53bb6ac00f53393ea2f05aa0","t121/image0026.jpg":"a5da18c37e167567d121e5fc8e84e1af18ca2c804679abcfd26ff2b7fdbab246","t121/image0027.jpg":"8ee1e4d23283ad5bb1ed250e7ba41bf008973ae7dfdc86194175947525b357ab","t121/image0028.jpg":"cc7ce6aa50a4249583139fb3a669f6c153f0a631f4b1a72e418dfa65ab497234","t121/image0029.jpg":"43d34e2235ff5207a19f7eb434f59286c29d2b6374314b9594eaf7ee9d661f03","t121/image0030.jpg":"eced5ddd00fc40e7bd9d66cdb6b53aaef6223bd8d9ecc1486cc115a76f3d4774","t121/image0031.jpg":"0cdc1b9c411aa6294bd6ad537414528ef1bba69bc06175f5353bccd08af9ba16","t121/image0032.jpg":"bb34aeaa935487969c0577bffa2aeae1eed2d6812d8ea27bdd8487f8e98cefea","t121/image0033.jpg":"b758a1926917f97311f215f5eb345652e0407d47005dd976f5a2a62763e0783e","t121/image0034.jpg":"1f58a53695042911ce1e303ac300340d42478ec025eed1774eac8435c70ea886","t121/image0035.jpg":"a3bdc8ac351417a921010ef9e77e714e9b37c46629ef7ccdff2367f19be1ad25","t122/image0000.jpg":"e14b446f624c251122fec7e6920999f335c00cd2726bdc11e41bb01d1eef6c2a","t122/image0001.jpg":"3eb3530d2c2383addf1abaa3b3fb0018b1e20853f98bb1c9e72a7149c13af724","t122/image0002.jpg":"7245fa18cfcfa3d52f3cb2effd0f63f2da9bc01c266e11561dc05cda75b94657","t122/image0003.jpg":"6d918f85c5b6b56746c41070f056fb0a7d78f2d89dde47ec910004cc3b1104b0","t122/image0004.jpg":"333d35043a94d0a44455bb317d909d309179152bc7f7fb29bdbfbfb3c78855ab","t122/image0005.jpg":"75e89f74d4811477b7574c60260ab75565ae1e04cf8aeca3de5972c6c2fe346c","t122/image0006.jpg":"748d05af32cd699a04f57d80f52800b8d6c51c40aed86df8757730fef8a5dbd9","t122/image0007.jpg":"dcc76bc6e986ec981776008cb1777c86f478677655dd926bd6c9393bcf1d8919","t122/image0008.jpg":"965ed964b3b25b7881ecfc118b85762129f4005571b2ef95175ea1d63a0fce97","t122/image0009.jpg":"66e4c65e3023b5b722a8cf0aa654173484240a7bcefcdc7dfcdb698f9be3fe48","t122/image0010.jpg":"1e9e740ec7e34ad3072c3f1f46a42694e9d155cf5d6d28ac9d8319c2f2805c38","t122/image0011.jpg":"570a9542734cab2979f34b616664f3000734afe4f3ceed1b3fa841b8f699a82c","t122/image0012.jpg":"ba35cadb8c65d224280b2f927602fcd3232ece3a040be4de6fce33cd729517d4","t122/image0013.jpg":"765f88b2fb663d369ad823266d7cd5d900eac436d43aa84d084cdf753cfe26fb","t122/image0014.jpg":"8282d765c050a67103cbb8555b407c5f4da0cdbeb831b227f1af7cdc26a4d228","t122/image0015.jpg":"b8958ed628d6029548f53a702fc4df6cac7c54a7eff31433f8281d624259bb62","t122/image0016.jpg":"6e3393b433a8822da112ec8bd2b1e8fef536657e5314e5dcd0a8f4dee89056f1","t122/image0017.jpg":"7ac0ce9053bd1b6aa1d68958845575df338187c4c0fbab544bab01ed41a59fe0","t122/image0018.jpg":"b3552c28d1e6465fa5471caacff544de9ebf097153d1705fcad6b2b693f8bbba","t122/image0019.jpg":"e0c66864ed746bfd3c3d01957bc7d211b42953be9ffa2223796f49b8976fb531","t122/image0020.jpg":"e82c0f6dc9a0734f93ea78ff144ec5d317c71daa4adca10b3473ea2de2eb860e","t122/image0021.jpg":"d1cf8668ea9d55d4d8955015691e96c2960e6e5387dfbfce838418921b48b6d9","t122/image0022.jpg":"f46d097bba4508db17b63b27d1314ac7943a435d9446306ed7d8dc20002223f9","t122/image0023.jpg":"141bd44d373ac7a97722da31894a77368ac91c1b9301e1ebefc120184692bdb1","t122/image0024.jpg":"a56788af83092f82a9abaac6ef94207651c705aedcbe18dc7f2185efba9e31c7","t122/image0025.jpg":"4311008f668efda3bedc17cf720764d3bbcb854b8d0b3ce6100a6e5e0c7f9e85","t122/image0026.jpg":"f1a80646b9c60fc308554891766ebf34665f92211fa09d6321b4cbd95a872bd8","t122/image0027.jpg":"93d87f9ee1ddac9586119b681972c199393a9cf699be64edc32fba4cacfaa31c","t122/image0028.jpg":"f4a6e1c2f1d02a65d347972bd8732a16f24b91dab360c90ddf875312f64f82bb","t122/image0029.jpg":"cfbe9d88e323cc576f9361f3ef978067d110e41f0de4819849c34c207a8fdf0d","t122/image0030.jpg":"f09ec81a3f023cf4d423bc210a53b506674f6400567fc03fd58f0ab89d50187b","t122/image0031.jpg":"b119f7a07f0d08c8e747276f83ed6d1537b525c0204ee99bbf15575a1acd53a5","t122/image0032.jpg":"d7be47f063828ff5e569b36dbe66c89b5d4cf92242794d503765a8f82579969d","t122/image0033.jpg":"7f219705d060df0a0abd6913a42f7e43ed2de167db3823c2c02300b6ad15f7f4","t122/image0034.jpg":"c4aa1fb7220fbfe48a1a48a4947893ad35e97bd621044679397a06c5a2eb0256","t122/image0035.jpg":"ffa063b2cf333c3c2cfbbe0fdc77996fd6c79463b85b2091202be43ceaa0d82a","t122/image0036.jpg":"772b54a3cc0dfe715fc64ecf59fbf2d3073be260e4e7a090390be055bdf709cc","t122/image0037.jpg":"2d1687aa5916c0325a4672b5aa2cfd9718b8b6d74ba5f48095f1115274174cf3","t122/image0038.jpg":"8ac4e6a7bb4bb01bdab807a34cbd67a98124f930937443eb979aca4c50d6cbeb","t122/image0039.jpg":"a69cb58d689561c0bbc395cf34634b495b6dbe0a0b63a5d785004170c9549050","t122/image0040.jpg":"add1e3d664fd34ca7450e26efe5e13f4aaa52c630437aeabe0370929bb108e4e","t122/image0041.jpg":"003d593bb6a92ab06e7f22da1463684f19a07fb60c77e8bfb0368076b2e19b9c","t122/image0042.jpg":"2be45303971c2406bd8c804dd4befb1f1fe0a0163e36bc34e76862e4a6dd3648","t122/image0043.jpg":"a077723e94b89a26c28bfaacdebdd64c2b11802e96b3e53752bd3ff8d620a18b","t122/image0044.jpg":"7ca923beb5e234c1bc17a0c9e10d8c330335569d9103b1a207374107bf716cd3","t122/image0045.jpg":"22c600f6c095ed94682c50876c379b323c0ccd0b53269cf0b1e520d0b631dd66","t122/image0046.jpg":"2ea3b061f821db3cce68031c2748ec9082eabddb4f69b1735320b93916d3d8e9","t135/image20000.jpg":"a69adfda4d0fc48a448ffe455a8b4cfcbdb3605f587cf31fb0401dbee8809818","t135/image20001.jpg":"89ed81b7f1ce4b1621a7119a9a25bd0aef00720b741e8d74b16d5bb6e695b165","t135/image20002.jpg":"821fa2310e3b0ddf74e4cc6eec74e4b0398689f502a0f33df2883160892aa4b9","t135/image20003.jpg":"8cfa0162049a44ed8b3c2b676a6903fd8e8e91f3b36e894401028ccc546d28e2","t135/image20004.jpg":"ee292ec8015e3eda04afeeff1ba3cd57f69a410547fe20daf2d5860afb52aa44","t135/image20005.jpg":"bfd926590b4817bbbbe19f229d1979b185a8cc9dfd76bc0c36a577b40ca9e463","t135/image20006.jpg":"335ffc0b0a7e7af7fc5165b7bf5cc7c0e69465b8df5c87a93bf72a5cf4a9d92e","t135/image20007.jpg":"2026fdaf0dfc25494b87d85c71bfd0fcaa9c605f651e56dc0e7a5c4965859f0a","t135/image20008.jpg":"c78b4d76aab586fe69a21a5652922b9fa0981cf544f8cf6278b2ac655176d404","t135/image20009.jpg":"ff3f6885677470a364d5505b121982e90f75e3a7732d8a5e260e7eebc2cdb43a","t135/image20010.jpg":"f63a205626727b5bc5e65071ebe930dcf0926b810296bc92c04887a3e7296d12","t135/image20011.jpg":"46f325d1ff284bc735a9af289a0dbcdb7ffcba739fcad90a09b620fb3dec6abd","t135/image20012.jpg":"e0673e0783affebf36a0dac92f20810a9f2803a1d67cedebe3a0b9983c7e4d82","t135/image20013.jpg":"fc339bcfdca5aabb4ecf98c02df9889a81f3393574f95312c1a7fb53dd37fd52","t135/image20014.jpg":"bb021fa04758cccc5e95420ca2823545a01befcca93a9fdb2a75671e46986038","t135/image20015.jpg":"75899a1864e30cf3e68c5968f68346cde31f203eab6c7e5f6a3d47c0566c82bb","t135/image20016.jpg":"779a4640f2c432370c365d8c18524be8b51560fb9007acb9a7c478fd25b8df89","t135/image20017.jpg":"aa5391b72cc5da9017cf86927bf100210a9a616a4825ecc2bb72575043c0a90b","t135/image20018.jpg":"fae8551bd18d060eb0f9be2953457c92ad9ad5b2672faea7e425c5ded63c0db9","t135/image20019.jpg":"e727b4cadad066ab136694a171d8832dcd5178de3a87d22e44687130a8aa572c","t135/image20020.jpg":"7f542d9cf60bd877ac4cd59acd58df7f6465648276cb3cb4d426795d04787f25","t135/image20021.jpg":"dd9b05bf8e0a3bd6284bca9aef57ce4123ce8f41126cd352a93fd40eced9f83f","t135/image20022.jpg":"3266ac050c1c9f77927713fa8b47191195dea141cd11e05e245eb078ce7e88bf","t135/image20023.jpg":"6d83f8c2c9403fd7d04c79d773ba1986325c6b2f737bf9569f56e6d08092fcbe","t135/image20024.jpg":"d2182d10f1a9b50a391ab30796e48409f2d50f70bfb8d8703eb650230c81b2c3","t135/image20025.jpg":"2f6e2ea5c38981d9ba025baf6c56ace4f1ccec241281d4a419ba2624f4b9cd37","t135/image20026.jpg":"d87181771c4e1245f4b7b04d3008e55a7728ac7ab5d2c4ba6cf95975fc923dbd","t135/image20027.jpg":"e36cf0dcf557790e90730463bff29f226be75101c9c8a641b5e7e96bc4152c2e","t135/image20028.jpg":"8eb95dee692689da3959e0a5219c437b075cff23092a98c444df8e0fe7486864","t135/image20029.jpg":"d7b2407909fbc90d6b3ed8b420e7462f0e057f5e326ed6c99639a979d550f1ef","t135/image20030.jpg":"7e82b635684b6fa96f1a192ed6d715014e9e8c79ee8c1228c6c493ca198ca2b9","t135/image20031.jpg":"5961628586565a3148e368d7177484ca715b13191bb304f86656ba19e514d8a5","t135/image20032.jpg":"28da2ef38ed72764fa015475184779da543ad6eacf63bee87cbf35651d234fb3","t135/image20033.jpg":"f44d96be09d760356aadeffb6c7dcf96b96ac489345ff5230d7cd19c66456ee1","t135/image20034.jpg":"c7f38ca91d9dcc7f10f6c89f528b1aaa4d84094a3223680fb851a80d71679dcd","t135/image20035.jpg":"f9ef018f72099d80911feca40c462e5aefa73e3b5732c4fcc6b04aa5153845f8","t135/image20036.jpg":"1c99bdea346962c8111672873a7137afc6015dd4f421359a1de4864bbe387d5e","t135/image20037.jpg":"28c2baed987caa9944016bd2799c70408231d5fef34fce557282481178900187","t135/image20038.jpg":"9d5011808871964c12da80398fc15385d13cbb10ae6ca62ac14ca1abe4892848","t135/image20039.jpg":"e1bc846f3b3b1175bf2addecedfed1f7b34504608c13ef9930011a322806717a","t135/image20040.jpg":"8da6891574ce318f2f087b05d5c2aa6fd44de5a8a03b11fb2da9761c8de80d66","t135/image20041.jpg":"d183aab03a17876b8051eae7d1428a7d7979c433789233194d13641260da5a25","t135/image20042.jpg":"79aa6bf4047337187cade81e63d7d60002d186d73c9e60b41b15176d3b6d45f4","t135/image20043.jpg":"18e560a5170141bddaff3ac1ed48e77f64c5ffd90481f0501d00fefb087fbdb7","t135/image20044.jpg":"bf7834a98358512d9c5df1f2d1aabcc73e9f3ca555303c750aa75199b9631e59","t135/image20045.jpg":"439337931c11aa22e947dc9b0ced27ca98af31a72825f7c84ac01056cad966cb","t135/image20046.jpg":"e616037d33369636c858a2287a72b27192784cd74a4c15657be439797eb7f8c4","t135/image20047.jpg":"1e96ceb9caadc2760002968c61d88edd84e0ba17a65988a613ce7867dc023378","t135/image20048.jpg":"2850cc90b0fbb45b3863dec941c674c3cbe4b6ae3daf21442298db924ecd3b4a","t135/image20049.jpg":"470bf92af1b53debaea0a98d876f60eccde78fd8adf91274bdc4879840994019","t135/image20050.jpg":"fc2ab2df6086ef4f950f53bdb30aeb37996429389400e3c1eac1d4ab54dd93a8","t202/image20000.jpg":"57435d6dc1bbff1a5d672f1c9f5c91ec91b7dd6b9c680b9b625da620edb3bba6","t202/image20001.jpg":"be7ea42dda72209ef019f75c694bd77bec328d7a668283d1e9057781143175a5","t202/image20002.jpg":"1e464854bd938f6e644c8e6ebe77449ebbd65cf288551bd49f28573f603114c5","t202/image20003.jpg":"d846bd27fdb48997b956a6659a6a3d62e6891e9041cc0ace5f9250d91b87c8ac","t202/image20004.jpg":"20456464360023992f7361f40326abb04d4d4d66c23714726df91a0ddf52500d","t202/image20005.jpg":"34b3d05e652c91d6bf6eff27e8fe2f16c2558ecd875df57745446ba5cd2e8d55","t202/image20006.jpg":"3463822181a1cd398c9d7a3e3a8fc8624e38d88dd2bd6a3b1b2ae60f6df70651","t202/image20007.jpg":"9a5a84cb1046bf0e86223b61ca4fd11dfeaa111c284e3d38574b7ff209a7db13","t202/image20008.jpg":"702f51d7b23d6460d162fe8d4432a752ad4da4135c40a453d358f32bc6737a11","t202/image20009.jpg":"084611f951aa9f8cc892de8dcaca07e1b4fdb8f9473ca1252d24346a6b8dff51","t202/image20010.jpg":"e60cec342f1fd833b636ac2a48acabeb08fb62fbc26602b22a41feaf4bbfdd99","t202/image20011.jpg":"6249fb35dbc00caa2deef764ede07bf152ec756269fcb4dbae0fa46d8eac7c7c","t202/image20012.jpg":"c964925aa890c46d91f777ee28157fdd41e8ca1335bff64c43e276d35252feaf","t202/image20013.jpg":"1042af881d67eeafc7380fe61aea4893e7330dead7f43ebebc2fe33c7257c78f","t202/image20014.jpg":"d3d58b0f0fcb69692224d95e45e3d62fe56ca392bfffe08ca125341d16f97e45","t202/image20015.jpg":"978dfaae11075cec236c0e945c6c089391fc00c5fd48f62eaf96a683e328c5a8","t202/image20016.jpg":"7994a2b335f2b1873da4fe745e0629ae608deeda66468d21d5ee74d3d4cb7330","t202/image20017.jpg":"786de56a1170caf0e9cf633f902ebca5f41ff7bbc3b8b52971ef962429cfe3ef","t202/image20018.jpg":"607e649687a033ce884e515b02e79c6d004073405381ad12a52fba904815806e","t202/image20019.jpg":"76078761bf41a773417fedd2250c6422639a75fb9fe5b3f078a12527f3182f12","t202/image20020.jpg":"0dc3bdbdec817f44319cbdbd359866a4c33e9b331a58003dfb344901e7d0f82c","t202/image20021.jpg":"8f456d9c8736aa34286383cd3a4d86bf6725ba300b64bdef85921923a4fcd178","t202/image20022.jpg":"71614d3a5da6e0838030d0b43724fe26c28d81b5bff48906475aa5be300ad69f","t202/image20023.jpg":"a044772b64490ec164e19cca96e89e1c70d83eee8b0e1fe3127b0d1aa5b6ed4f","t202/image20024.jpg":"499b5d660f59a9a0089f6600e635b57f69c044aa36658bbb7c6234761ecb2ff2","t202/image20025.jpg":"180c2c29098e14c6145afc811cc32ad3ea00ccd42bf4bdd8a7212611fcb47abf","t202/image20026.jpg":"de01497a8efaa4f6d673f87414e5b015242b16b137c639716bd8854ad77f3465","t202/image20027.jpg":"2669e89cc08ac132e4789b54d71acb614ac05b151e5cedff3749627fef1f13b3","t202/image20028.jpg":"31e5c20cb6050339dd40ef7858bcc0c0d88e012a4616ee4b7a7d72554505ffd3","t202/image20029.jpg":"2a9932e4c0227938826a4373db75f309dff2d70c1d9300c0dc37dd7bcfa3f70e","t202/image20030.jpg":"33dbcbe7d642b10c355e5a34f4dd3eb6e07c7feb32671eb94c940d1723ed806b","t202/image20031.jpg":"43db4177e3e9403bfda5952bde562841fa4631d3af450cc516a676fea1b25492","t264/img0000.jpg":"fb4be30fc7cd396911bef32df01a25f69848b48c207abbf73da6404b638b4943","t264/img0001.jpg":"7da2f29a08cc7b0bf20719f45942d013615bf613d22c92d604285b48dee58f5c","t264/img0002.jpg":"a90837a2b7d4dca36d851c804fe5ba8bb36f5c8830cdca60b9607d642e8a6401","t264/img0003.jpg":"32befbcf88237ee2c689af37ff3abcf0714ac6ef896790d637b695c3e7ecc728","t264/img0004.jpg":"583b3566e80aba9f947c5a00c17226f84fbb9b1c68abbbbbde489c2763926d69","t264/img0005.jpg":"adb56540e45f0ce27e864e35ecae7ee56366f2b9c0181b6ee0f30e69584d5510","t264/img0006.jpg":"9afba394d570d6dab59332457073b13ff24ff491bad8d5c5f42534489eaf380a","t264/img0007.jpg":"335000193d42ead9aec3a8cfbe148eeb799ec836668cb1e92eccc5c8581f93c0","t264/img0008.jpg":"3bbcbcdc4342393506ce30b6ac682461694f3bf2a8db2ac3c6be685f4d768e2b","t264/img0009.jpg":"6de82884abe9e9d70ce4b1262d548475d69643d3e843130d56ac7ed438b26687","t264/img0010.jpg":"a9caef603f23ea3a52c57b2333d6c0d9da3f7b335f70d7634b3d7721f953e5cc","t264/img0011.jpg":"83bbf7be409b9898cebc6434005da438397bfe3aacac855f86f5457a2283f0b6","t264/img0012.jpg":"6900a2a084e91a8b45547c9da90247a1e8801218fe5158fede3856de67596373","t264/img0013.jpg":"be49c6e19e6358b35663ccee80c96d0b258a278feedc3dc0eb2ea0cbba38939d","t264/img0014.jpg":"c341885cde690a9fd6948de28c8779ec3235bdff9fcca35cd1dd6a5539e63ff5","t264/img0015.jpg":"13bd21676811b7fb21f055ce80dbd5560756a0930996822ed09d190edc152fb0","t264/img0016.jpg":"fdd3ae262559471f44ac1ddc067d115ad485e2ea1e36160a1726238c6019c74e","t264/img0017.jpg":"5f9703e2e2e0e8064f948f9a4f4ea9f09b592addf3e8975b26ae85dde6dc6536","t264/img0018.jpg":"cc32213054cbe5291660d2c26e727326c686005a74a5b7d5617cdfac76ec1f93","t264/img0019.jpg":"b31c994b755894b7f44ae193592489088f00bb5caa6c9570901171dc7e2c38e1","t264/img0020.jpg":"5b526e669f335a74bd86082dce12df09357415683ad3be1c7974c7c26f8a1136","t264/img0021.jpg":"c8da19203fce57633061f73218737cf52f52c531a0c4b54d76700585c43eef7e","t264/img0022.jpg":"bc9eff55949b3347a7f93d0d595c87b8746167adc6b0251b13a508082ec5adeb","t264/img0023.jpg":"aac82bc97e868fcce8daec9338ce9dbce6026af4aa86ec8e081f392e039932bb","t264/img0024.jpg":"63abcbd829b87bc66b2c5be8647ba2e8f8f5db827ee42f2c4e9f0f5d42674280","t264/img0025.jpg":"64b3b4f42434e08a1952969e6754b23143b4d41aaa6865cbcfeb398e77b42617","t264/img0026.jpg":"26994b7a12485b8fd83fcbce0876b4fd66d3b5fb07f6177dc53db9c861bb0ec0","t264/img0027.jpg":"da9c1da490fc2048f42c73ec80aa67078bf050f0d1bc653a4ab5f33f2b61e69e","t264/img0028.jpg":"ff0204c49f5ba59a6d63fdc2497eb7071a63f52fe6cc4d4890943236b771c045","t264/img0029.jpg":"5792f63d462cc76a82d25d282f17c358e167dc06069ff139d46328a7c661680a","t264/img0030.jpg":"ba62bcc4bb88927d3df3ad156646e6a872ff330de82799c7441f6d58a2012f33","t264/img0031.jpg":"fcfe24821ce9907b24d544746ba7350b9685c3d4679da562140580e6e19b1944","t264/img0032.jpg":"2c0379080bf8f3a1f3a0aeae824f914b8d4baba1c3ed10e6ce2bc067881c2fb4","t264/img0033.jpg":"de408398491f0bde99b6e407b9f573acbfe08e9c26cadb734fc9087d13168438","t264/img0034.jpg":"71e8f5391079abd5de5637292aada34e2ecc869cac578e27bcf5d5ddb2238b62","t264/img0035.jpg":"642b681519d4d861da3d3340003e268fa1dad7db2d4cc959cc97f9f9c7963241","t264/img0036.jpg":"2f5c0485960a5bf47f0b80dd59f6850d4253ba5813fe0aed41764f01e214cda9","t264/img0037.jpg":"52a0ab4584a8755c24cad388913b770347f72fc8436ae0568b952df16fd21de6","t264/img0038.jpg":"35b335038d7ab18354a18462ffb56072a9db06f3eadfe2b1f24ef88ebdece7b2","t264/img0039.jpg":"d98ad2333066eca7c109845c487ac14dba01ce44c096683a413e3d253a205ee6","t264/img0040.jpg":"178161d34a194913ce3e1c09fc160b54642af3bebd4471a1dacb335d05b7fb37","t264/img0041.jpg":"eb9198bc3d29101a46e91da2fbd9c9409a285ade0da6d30b4153dcd1862e2f48","t264/img0042.jpg":"834b2673c1587f5974340f468d550d10ad1ca76986f64de3dbf0efae3b055649","t264/img0043.jpg":"9ce3a324ce5a48eb98f6cced42735a9762e2f94f1892b11e71d9ccc92ee7fe23","t264/img0044.jpg":"9af2da776bc764f618687ac33c1cacf988269071c4d7f5a79b246ec86a2f65cb","t26o/image10000.jpg":"6014b459abed0f3e05fa9dfdf107e48650165e5c488f354902e8f8e9a4e7e0e3","t26o/image10001.jpg":"5daa54bd9a1ed7a3ddfafd41366edb0b26c4e9b8c8b5c28fe37e94afe8087951","t26o/image10002.jpg":"90cc6272d6d23f8e65a3e9b230234a20665aa49c1ecf545e4bc9e98c2e09c3b4","t26o/image10003.jpg":"947726122f61148547327a47707c398cd2d4d9109f10377833b2a1c7f65e5126","t26o/image10004.jpg":"a71d503df0c879c5dad05ab970f83cbb22197ade6b10bdae972ef41c6a7e1e42","t26o/image10005.jpg":"7b0614a9677e8ab5b702a97b8393d245e8fcd8071f14d844a1e1695ba859e505","t26o/image10006.jpg":"8ef86dc9ff8585014f662ea840b04062d22b3bc79f32d4e1109e73b5dbd7e3d2","t26o/image10007.jpg":"175d4d6202fedbe0800422aa3b47c788463be82b9fe10a23add1619d952049eb","t26o/image10008.jpg":"cd9a01e862f0949b34c7072bb16121667c962cae556a18a0fd69a51275adc98c","t26o/image10009.jpg":"e0f310f5a0bb5453e7f0826cb501c1788eb24fae7e454ec88772a0df7cb95294","t26o/image10010.jpg":"3669661e90974953ae74b802ba87faf2914cbc6a497feede84b0e0da754cacb8","t26o/image10011.jpg":"47f7c3e1f53320178dc2eaccd1071d49337bd185225bcc67a66b6817a07ba839","t26o/image20000.jpg":"7d75883e7ff254d2aec9b4196cb83275367171b6747ee1f1ee121118c616a66f","t26o/image20001.jpg":"ce7d520dd7231f0d1e748d130516c8a56c4503ac12db8b405195a7f5434cbfd3","t26o/image20002.jpg":"6de829a9c758aeec046f4f5fa0c7b610b9a9be61a507aa62380215578c4dea15","t26o/image20003.jpg":"258d5effb8242fc6cca74fbd026b6bffc8f3534867154e01dfeed5da88d5a747","t26o/image20004.jpg":"9b77965d314d0335191d47ba21da3b353d649117e68bba8d87fe87b7b515c709","t26o/image20005.jpg":"1713116a56899875420e7b6c070f73eaaac2beff6f8ba58566111d9c40d9c592","t26o/image20006.jpg":"a278569421c5a11a12cab2df98e61de74f7f6c29f86a11f74d6896a72075c63b","t26o/image20007.jpg":"6a7a32c179624d8e7a8920fc420f02d8795296f115d28495bf309f03bb22cbba","t26o/image20008.jpg":"d43d3e1597b52a8ef72f32c790558daa83837d0cdf5c6827a4772fd9184926b2","t26o/image20009.jpg":"f0d946084b0f48db3e0ceb2d687b66ef0a4d8543e43582ed048549f0ff70c992","t26o/image20010.jpg":"e6d9d4b7bc5dde277d03c6ae64949d5d108265ef85432518ba33c1cd016463ba","t26o/image20011.jpg":"a7ec3da2d014cb9d0f4104ab21dfd301db1bf69203fd5db252004f0a98ec9904","t26o/image20012.jpg":"ac85fe9be9b8a6bd4944b92187a1a2b51ad304fe7b723622689cee5d12802545","t26o/image20013.jpg":"434df5a320066aba8a1c0b02a0093d71fcfe148556da395ed9e40c7cf025530d","t26o/image20014.jpg":"be50b33519860688e60b2c3e3b03d23a3cbd161b6573952d0f6b5ccd8f895c19","t26o/image20015.jpg":"6d7d0d6c480d87ca4f075f1c97210b3cf5acc9649d232447c83368072a7b64ac","t26o/image20016.jpg":"21457722430a564d47298d51d65aa1aa7e8b7aef4c10f8bf29ee3841da31a72a","t26o/image20017.jpg":"0b33c054acf54654688fcc8c6c75f2831388bdf7c8f1f0aa2bbdcf6287c9b639","t26o/image20018.jpg":"575f444900c5c3824e9b1d596f1f62c6e4153db9b19005d907880afbf5330e97","t26o/image20019.jpg":"d136bd080aed888a3a8b425a4248bb2b9205352d5c65da5803795eb13c26d3bf","t26o/image20020.jpg":"bf0a5290a59ec1e2baeb6ec3d5067c33fd17922a11c0e66ac75532e4b6c715c2","t26o/image20021.jpg":"bb2676b56ba0c3194b4e0c886b458f24b1ba79394f88c2b861314de85c36d9af","t26o/image20022.jpg":"ca7cab365aba679a73d53af4fac6ed87ebf464cbcc315eca333123c08a298fa2","t26o/image20023.jpg":"a7e59aa6236b2860daaf45136a335c223ca0a2524eb7c0bc3d08730196de7a3a","t26o/image20024.jpg":"ca8dba3048014305bb36d0b37cf3b7e2fb4969de771ac6f25a805f9771911285","t26o/image20025.jpg":"760fe9ffb53955623fbcb2277d6d71b3fc1389fe8f8e9dac4fa8620ee49073db","t26o/image20026.jpg":"74842fb214e510110f55c735b4cbd0dd2838e3e5996c0921e59ffb3f57cd1c22","t26o/image20027.jpg":"58e0492a8a2997e6136d2f8dd66012a857b602223b95caf8167c61c356175c6e","t26o/image20028.jpg":"0f930e2c9285f1993519b43dc2e001e6560c3686f3fc58c21a1ebf707910d69d","t26o/image20029.jpg":"e9469f76f587186273e88ce7da1663c4fa2fddac35478c462e57999629de55fb","t26o/image20030.jpg":"b40708780539ab7632024bb4605d08ef65c7924668b50c2585e4f7cb58edd756","t26o/image20031.jpg":"01f7b17e64af719eff0c9e92c3a295182137633970e6fcceced3fb5452a7b6f4","t26o/image20032.jpg":"d3abbf2095201845537a2ba04c7557824e73d113acf8c8d1f2b50bdc0bd1cf10","t26o/image20033.jpg":"acb64728ac0f69380d39d47916d7c13b70c2c6aa94b382539f00282445aeee99","t26o/image20034.jpg":"992443ecdeb3a18b6d8d545bc3b641a10241abf9a04a6b2161447fdc54a49412","t26o/image20035.jpg":"abb2fb83d64e27fcceda28c69d98bf1c9478df1f7ad9301564ac1e264f62d8ec","t26o/image20036.jpg":"ea02ed0745d38c1ad175f2f8af05ae3dd00c87ec90b884777f7121445bf9259e","t26o/image20037.jpg":"a5a5795530409797c91e390b99ac55e3e0f8c80a2079842bc1a58f2ccef6b4c2","t26o/image20038.jpg":"e9dd715e147bc44e546d4238da3ecf1f5b90affc38956fad15845c70e4feb958","t26o/image20039.jpg":"b9132588e570aa756df52796cf42c57c0433b623355cf386838de9908fa6318c","t26o/image20040.jpg":"5a7414783d9548283ee4648e8cd0c2867f5bee3037e198470bf4fb30808d951e","t26o/image20041.jpg":"f933a8d1cef8ebaddeefcda0bacf2a87a1ef18063c51284b384a80e557072d7e","t26o/image20042.jpg":"002bd5f48c1d777db1da16a62b8dc9faebac1075e5ca9b7e2a22ea67294f51e3","t26o/image20043.jpg":"827313c6048505ea6a0a6fb3106490b812cb2381a4542fa7caf1df978b5d8b88","t26o/image20044.jpg":"356b5f713c56330ee454cf8476e32e61eb54fd3b5f811734d7ef90facaecf0f9","t26o/image20045.jpg":"222ff196cf032a72ce7edc5abf39c206343ce9a871f80604c2ce05de496eeafc","t26o/image20046.jpg":"1d4181b07bb7578d1defa47ff1f60992efb43b147c330e4d27f4ea161c66d94c","t26o/image20047.jpg":"e549e39c9aa6db32bc50fda6bbc812f23eb5268db3ff6b12e1d8987b59d4a8ae","t26o/image20048.jpg":"d08b065848dfbece91156ad1a75f3a01b4ef61bb4911685cc93b7e9c037979a1","t26o/image20049.jpg":"ebae0af5a5696eac774ee81c1b7341d6838cdf38ea8f6ca6d202dabd3d9e775d","t26o/image20050.jpg":"830a95ca58a170bd4b7e948a93bd297f61b4e2cdc7288805d9e095a44d6764de","t26o/image20051.jpg":"f71df1025260c936122070932e28ed2e92ffddda92289517f152a2bfeb809cd8","t26o/image20052.jpg":"fd227821880d838392b3718c17392f68d05b1821a639829673b53c48c5697d82","t26o/image20053.jpg":"07852941e1b2766e822b88cf6f239c65294ad82fd8332cfe9ea8996ea960d176","t26o/image20054.jpg":"8cc63af8458a6b4d5f7096f80376747427591ed567ec741236e74694f5df1804","t26o/image20055.jpg":"58a52f779e463d3ea36a4ad6b0663c0a3c2dfce2e75dd0048f43622432459dda","t26o/image20056.jpg":"e2e6bcc1836fb650c6b2922dc16f302874823685f9bd93d7b354d85cf19b638b","t26o/image20057.jpg":"9d988990e4f42b76b92d89182cf0979cfd5daf093b4adedd4284466591480adc","t26o/image20058.jpg":"839af43cd2e80de954a91c16dca051897c97519fca458616cc1ea056504c8188","t26o/image20059.jpg":"6f4c6731faf6fa23413b12a9bdaec8df0f44b898b2091687b1b6e89f359ba1ae","t26o/image20060.jpg":"4615e6597c5cb0c56776992bcca1da1744a0738d76326f13e1f36bb87f84eec6","t26o/image20061.jpg":"de6ae4cc57a7ab69c665a86082334f502569a38e561f78d62bd561465bab3a48","t26o/image20062.jpg":"d12e9f4271155521fe71df9106db7d0bb41e4a85e8fea539c2d67be76dd1046a","t26o/image20063.jpg":"84d249f42b7b5dc9dcc05af4ba0ca5e5be6946a1e160adbbd12308b17e0be6ef","t26o/image20064.jpg":"28ce0922a703b310b9aa29ba5830f6cd0972a1ce7415a28b2f7cfc2413795325","t26o/image20065.jpg":"93434bd170e2a153a833f9a28f45c3eaf0ceb7acd01e4515a21860333bedd1f9","t26o/image20066.jpg":"e0e9efe90eab24c4a8cd1a6ec7f42d48a2d8e75226377dc7c0b66a4995bf236e","t26o/image20067.jpg":"bcda4553b514286fad6868ea80fc6a117083372f952e8c59cc7caa2ea0523da0","t26o/image20068.jpg":"a3046cc8423f3b8c255e51f51f215b729c49ce51b753b6898ed6b38e9dbcc748","t26o/image20069.jpg":"d2a085540a6689d2b86c60c50961f71cc3b17613a2b05e9ed13fd987c8acb597","t26o/image20070.jpg":"42b72b42f464c820e77a638202c86c565e8c5552a422eaa9ce836c96747a899e","t26o/image20071.jpg":"907a65e87a9aa94098a3d6995a762cc5e9aa8b3302f22d5ef72f149dd4e7998d","t26o/image20072.jpg":"326bfe977f95d3dba202b02fb53091f573a2b29af3269eb16aefe290fbe0691b","t26o/image20073.jpg":"eb1851bb1c99b79c96f09453cc00b3f58b3e35b00f4e3c4560acb5f320a2c77d","t26o/image20074.jpg":"10c7eaa8ba3c5c598dac6a91224a806b1674c01cf2314a0f1260e48fd613cd93","t26o/image20075.jpg":"90162ee0a11064e1a66518dd2c906719e4a2bf51687870277633196e3d33315c","t26o/image20076.jpg":"a604e912327375d502fc0f954359d16d1b5170056875eb75ba612a8d218ecac7","t26o/image20077.jpg":"049d46c51eee0cfdf63487d5696e46ae979a6bafab66a1cf50effdcf0963a2ae","t26o/image20078.jpg":"83530984837859548a5acc701b7052863d7d8ab065b5b3d367c919c2b7838c54","t26o/image20079.jpg":"d89656a13e3edf187e0e00f7350661efd8ae69e12b274de7f48abfc9986104b4","t26o/image20080.jpg":"915d45c613f79adb4b1605ce6e6f197167eb73fc6c0a4f47eb9af6ffb5306a19","t26o/image20081.jpg":"a301674e7e5c8edfbce42737275ac7649ab66bebf7d630ebc2e6149293bb1915","t26o/image20082.jpg":"3723e5061de6c7d11d33d8d964dffcca270dce92aae5ed5461079e63212d8feb","t26o/image20083.jpg":"ca0c3806f36d5d877de8ca096dc30c33aa481631aafc94483021afb76a27d1ab","t26o/image20084.jpg":"0b4e8d66b39d111bb78625981e50119a4167a9a90604e1dc30be05ab51556596","t26o/image20085.jpg":"a606f100aa0e922c854f3f5c144bf3240119c60245bfd65b7e941a741e0d92fc","t26o/image20086.jpg":"e44542f40ca482e5ef4ae8d5a46f38b40682289b1d16a05fb2c85e904e70ea55","t26o/image20087.jpg":"d3d6606719c3880c047be3419ef29682bb9e10e5e515278b49c56662e1a70335","t26o/image20088.jpg":"8fd194ec6fa994e6c8d919e7b457d6fd161412f1cbaf10a4796d99b0ddf501d3","t26o/image20089.jpg":"718b7028e44693a06458ec6cc4302457f8193fc314749915362e62ae18285e05","t26o/image20090.jpg":"103b3e6a7ba3a7fcc22bcc9589beb66caf32e02ca743d946f6c16f4bddaf1fbc","t26o/image20091.jpg":"fa8f0cbdfb9427996a94f3fb1a5b8a9501fdde32c5124853c1f7773c6a47cce4","t26o/image30000.jpg":"e416b4effcf2b47f8d39cb096066d205271f601c057d612702f0c13ff22cbe5f","t26o/image30001.jpg":"64a6192135d13c82fd3a8fa81bf2a707e85d052dff700f3120dfb86fb75306ae","t26o/image30002.jpg":"bcd13b10050c1349f3383cfe4b5af5651c13c889a39892bd4e9f88757b8e8a91","t26o/image30003.jpg":"655203c5e9f53f77c7e036da25510670e2da08e663510dcb1cf04fba35a5175b","t26o/image30004.jpg":"9a55af3c6505b1290c39ca55675d9abdb1b05df1e7456dd0d3a721028e9264f9","t26o/image30005.jpg":"393995e104c4d1c54be5d6b7c49519c7e9ae608b59cdb2960be0ec13f01c2082","t26o/image30006.jpg":"befb24093eb611ac33aa7065f97122b93e85723d7046d534772cdf619f526dfd","t26o/image30007.jpg":"84c76e11fc84b447d827538908faad8877e920b129ba129cfd678410ff41ed38","t26o/image30008.jpg":"2eaf56cf1a07ab448be9ab722bd9ba974d9de517f30fa4945bdb055c566788a9","t26o/image30009.jpg":"82a3574c26d4502ecd789af9bc09200047eff63754270d1d4ee6edeaedf7636f","t26o/image30010.jpg":"b589170c67fa2eb4f4145ba5f52fcfb198f099d4ff70fc9cecbb237cbf382862","t26o/image30011.jpg":"f60a720f9fe6e562c5f2a0394cb3b2c986146757b0ab687ce5e79134ffc6eb6a","t26o/image30012.jpg":"360181f08d48c42e2802e853fb7d845ffabded38c14bc2d577d6db57641456c3","t26o/image30013.jpg":"74abbecfff96e0818ba02b32040a3ddbd4e3746f322ae9cb676eba260ee0da55","t26o/image30014.jpg":"a49409ac22c46953ea47234b21bb45047ba0724baa092af08b6df43be8348d53","t26o/image30015.jpg":"f471444e3608d33d8a1916af8df9393a0fce2231a37e7b671c0cd72b3f3ba870","t26o/image30016.jpg":"04bc25ad290b89078b2b330aee2107ea841b4b06763fc90cfb0f2db433ebaf59","t26o/image30017.jpg":"25038157628c6bd5ebd10770b28dd5660f93eb13c20322a061f827d846650703","t26o/image30018.jpg":"14b95666f74654255de5fb04645d72747c3f9c191454715137cd9cd79dc9a6d3","t26o/image30019.jpg":"e6caf4ca342dc1ac01ab96bc594a638db8a002ea1f714434f779bb54228376ce","t26o/image30020.jpg":"0b9b349e9ca986d88217bbd4253b399ec4a2e7a2fb9dc2d6ed856700595fdb66","t26o/image30021.jpg":"a51a73650de15f55749587eca5d21eefabeaa3f3e46d2c44ffbd69bd58247610","t26o/image30022.jpg":"2ac3576942d5802d7eb25c06ac24d6125c1eeabff644ea5045ca3241f0b2dd5f","t26o/image30023.jpg":"4ae213ead9b4e2b756119aa247c50b16ac6854a36e4b5e6fdd52c9cfd21e3ae7","t26o/image30024.jpg":"ab4903899878c24d16617388e3bede60a6838e6111118fd34b615950ac32dabc","t26o/image30025.jpg":"cff103ceeb672d94c85de8a75c8ebe2fce159b5909401c36d05def53140f97fe","t274/img0000.jpg":"946db5043c119649d6db60e7d4a716861c4cdb0f21e0cb23d8d2164984def96f","t274/img0001.jpg":"702ebc30846bb9290610d5abbfc04c28084224d287121d1ab50d29c827705313","t274/img0002.jpg":"fd33c202b071553478a6865c90916bc62d061a5b8b0c4add8acde885f30bead7","t274/img0003.jpg":"008c9d3b81ca83e933a1e3876a72338c2ad84f17f3d27fd0489cf2bfdef8a4de","t274/img0004.jpg":"7a9ec80d5cdf90c367939e1f9889a8de03c3f9c68f39d7d1412066c4f14d9fbf","t274/img0005.jpg":"0b6c74a7de703f0065ceb1e6befbee9a75559723597b61aab6d5e4a8d77868b3","t274/img0006.jpg":"ee7f1c3fff22e0f57b184ccb2890d2bc0d546e80eabf4d8d8f395811ad2aa7cf","t274/img0007.jpg":"e5e8314a5e5d6371f341195d7c34a49763cc69d47c3f8035be9043d2f6f43a9d","t274/img0008.jpg":"4643ac88ddeecf4baadf40040077ed3e96e712be86cb500e5a336e909cc7e71c","t274/img0009.jpg":"14148dce3f5807e126c7770735aa1f28d1bfe6634510aafab460a340d8980f80","t274/img0010.jpg":"7e7d737879f08c51f7a8ffcd9ba55a3e4051b1227a98a4d3e9734d390a3e368e","t274/img0011.jpg":"77311a47eca80985ff9bac0ef72fd5695058db76f284fc3adca8d50fd5629676","t274/img0012.jpg":"21a718c2b10655f088a8aba07890c4ebab11484309c5b569878d1aa06fb4deb2","t274/img0013.jpg":"45a55656e6139d6d9913d31dddeec4df5029754eb22316b5265f942c24e381b0","t274/img0014.jpg":"3a0e2881193316ebf0d00d42262169cd7d4fafacef141ff85bab4c2f4a1ecf39","t274/img0015.jpg":"a565d0fd7b79d8f9590bfeae70a3374ef26083ed1a0a144238176e8f1e4709c2","t274/img0016.jpg":"554d6f94c9ccf067bc741d0fb05b1c3ac1c6e3dcba4f02d45062a021563b12e6","t274/img0017.jpg":"05261a7a245c29954bc82ec5775716bd835db389ce3a30e162b03d3b75374a73","t274/img0018.jpg":"53d14e192d62ec5fa2f7440320653ea89fba87947ba89a7ae80f98f79d108f8d","t274/img0019.jpg":"b8bbb92b3c55cb03476667545c00cd5078c1d1f105f0fc5663fe381a90d2ff24","t274/img0020.jpg":"40f270fcf990d2f93f04bf8a7f534a6c1575e77be4f5c7a1d7ceacc5de4e97c5","t274/img0021.jpg":"5482e3ef0e0bd945a418f8266a115789808295a752271a2436daf8a029fa9b91","t274/img0022.jpg":"1b5ac3542e490f4c5b23295bceb5cd6e8d8ee7b10b1ebd9e06ef4f4ee9828f3c","t274/img0023.jpg":"5403838c702c684902320263d42f9afc352980a0146af91ea9264640831f91fe","t274/img0024.jpg":"f94c53a8984e70c6fbec92add6b2d136ec6c30a8e0f4537d746edd313481d0a2","t274/img0025.jpg":"4510a4a18aed1db637afba4b0354f25d06acfab6d06bd7e8acfa1966481b3375","t274/img0026.jpg":"e5b3bd16c7a84cdab273caff92112e0f2277a08d1ebbc8f5ca7f9a12ac4fa814","t274/img0027.jpg":"8956d60f85279a81589f312bcc72cf2ee09a02e001a56f0fd83009591f2f9ce1","t274/img0028.jpg":"292419203f2447b21ca3ffb554fe08f83d33dd5240e659f6a9e6c414b329516b","t274/img0029.jpg":"7d2bf0da2b5ea2008e7513c88efb746b745bd01d9b45d66bdf396cfc178f0989","t274/img0030.jpg":"a2b4a3799ae69245711220a93b5b6f5dee5e2b5be09aef672cc93375f8888970","t274/img0031.jpg":"f4e322e59ccbe85bfde62689c78362910ee759003fbc32846c4b7ac0548bd12d","t27o/img0000.jpg":"06572821ca691e413b836d25054d65d30e7c31e21c4641252eb779dd2df70ef7","t27o/img0001.jpg":"dabeab4a6a46154530d02f05c5fde36ec26bbc579016c9dcd0723b370b31e633","t27o/img0002.jpg":"dbcb597242ed83cebbaf404c85aa7df665050c95e7cb9497157c063419fae06a","t27o/img0003.jpg":"349a3ecafb489620201ea8a335fc4040e2f50acd2332ea9f25baad184551524e","t27o/img0004.jpg":"638cd36afbb61bbbcebe938b0c15817a678406d7f0b5940d83aabc11bc2b5138","t27o/img0005.jpg":"ab56deb66cd58d038133eba6d53d639396aa931e5dd62fb3929892991d8db5f2","t27o/img0006.jpg":"d17dc3d38df63ce3726653662da40d9d1b530f5982972ab87fcf9bf0a99356b8","t27o/img0007.jpg":"a013fabcdadf6bad3115ecd6ed09a91b8408605a019a56c613c6fd2ec2a3cf47","t27o/img0008.jpg":"f38c3301563c574a31e8fbc18c4d6951f856b8a2decfa479b88ea320cd64d792","t27o/img0009.jpg":"14ee3be4a3eb80599cb3c3eeb7fbdd8cb3ab9b55c96da3a9ee2f8e944b67029f","t27o/img0010.jpg":"89d1f08a609317aebc5c1267a2ffda7e2c0ba383ac90ee94d633f93be095e11a","t27o/img0011.jpg":"1e0d5f6aa2f11cbb3d4f558fb3caaa445400ec25d0fb0a429a883a07bbd5a8bf","t27o/img0012.jpg":"d3b493001cc6d5fb24981e443533ae68440e1fe98499ab90c0e99113922a933f","t27o/img0013.jpg":"1f5393a34cc5c96f5c82e0936d6fdf87d8057a6c98576635d75f3997949bdeca","t27o/img0014.jpg":"ed25f82c88ec39c8056e2d85d388ed3684cbff8ccdc3111cf7f6dd6e18d24031","t27o/img0015.jpg":"5166662162fb78dc1c1b15aeb73c6ab883ab8d09906f7f23e7bf32075cbdd476","t27o/img0016.jpg":"3b69fd4647bced2098ca26348a6039ff363cc098bc0aa434f5da367f38fe4a69","t27o/img0017.jpg":"b097cb59ca764d23648a64300bd0d624140fc502c5f37b785d1e07fa90c9742f","t27o/img0018.jpg":"3d0d695a47975fb39d76141db3373849b052e1ae7ac2b78a72a040bf0ad4a4e8","t27o/img0019.jpg":"75343d8e2abe8709d679a8254dfc2db77b87d91c91df9935d2d5dab56e9beac7","t27o/img0020.jpg":"b23985e8d3b0801e71fd260f5a092092ef8304a873abc33b088367efa040d40a","t27o/img0021.jpg":"8244a7ac0731f4a377c3b34d98d63b7784f18d3911c03126714b91b158e7f88a","t27o/img0022.jpg":"52d0364d5c3779f546895aebca77bd6838957f91e1a42196702f49f0f812fe28","t27o/img0023.jpg":"de009ca5c47f2476a5ba9006d9ea9a9f9026b71728d1a7a690e0ae47ce525000","t27o/img0024.jpg":"5f0ca1e532d88e80a7ee67c2af1aa3a8a7275c00da97fbe847e58df20049e078","t27o/img0025.jpg":"ff2c69797194b9af9928221c8fc0648ab654dc34c45b5241e82034a44e98cb11","t27o/img0026.jpg":"e1339802e6934310dc156988b6bb481cec5be1443c77231685c9470fbac20f6e","t27o/img0027.jpg":"84e1c89994276a3add852707e38f41e93754323fae0ae47f03affbf7cb00d2b5","t27o/img0028.jpg":"8fffa20eeda3403c70961338869b67cb42b7675e356ab6d7da0c824d8b24e8c4","t27o/img0029.jpg":"a3236e11ed1db40e39f5c8a6bb1f9e8f759d09d54f7dd61a5a766ec2a493fdad"};
+    const frameMeta = { A: null, B: null, C: null };
+
     function readStoredPicks() {
       const picks = [];
       for (const source of PICK_SOURCES) {
@@ -3336,6 +3405,9 @@
           sources[slot] = { kind: "file", bytes: item.loaded.bytes, present: true, src: item.name };
           captions[slot].textContent = `loaded file: ${item.name} (${dimensions.imageWidth}x${dimensions.imageHeight}) - uniform-scale letterbox, original bytes hashed`;
         }
+        frameMeta.A = { key: "c1", name: loadedFrames[0].name };
+        frameMeta.B = { key: "c1", name: loadedFrames[1].name };
+        frameMeta.C = { key: "c1", name: loadedFrames[2].name };
         sources.A.src = sources.B.src = sources.C.src = "collection 1 (video1)";
 
         const demoCaption = document.querySelector(".demo-caption");
@@ -3374,6 +3446,7 @@
           const file = await fetchFrameFile(id, name);
           await loadFrame(slot, file);
           sources[slot].src = entry.source.label;
+          frameMeta[slot] = { key: entry.source.key, name: name };
           if (!captions[slot].textContent.includes(name)) throw new Error(`${name} did not load`);
         }
         runStatus.textContent = `handoff loaded ${triple[0][0]} -> ${triple[2][0]} into A / B / C - press RUN CV`;
@@ -3444,5 +3517,160 @@
   window.addEventListener('storage',function(e){if(e.key==='biotic_kengrams_v1')applyKgGate();});
 })();
 </script>
-</body>
+<script id="sk-framescale">
+(function(){
+  var FOV_UM=2341.92,MINOR_UM=250,MAJOR_UM=1000,PAD_B=22;
+  var TARGETS=["frameA","frameB","frameC","flowCanvas","clusterCanvas"];
+  var PROV=["provenanceA","provenanceB","provenanceC"];
+  var AMBER="#e8a51c",CREAM="rgba(238,226,207,0.85)";
+  var overlays={};
+  function isDemo(){
+    for(var i=0;i<PROV.length;i++){
+      var el=document.getElementById(PROV[i]);
+      var t=el?(el.textContent||""):"";
+      if(/demo frame|mini swarm|synthetic|not the registered/i.test(t))return true;
+    }
+    return false;
+  }
+  function ensure(id){
+    var cv=document.getElementById(id);
+    if(!cv||!cv.parentNode)return;
+    if(!overlays[id]){
+      var ov=document.createElement("canvas");
+      ov.className="sk-frame-overlay";
+      ov.setAttribute("aria-hidden","true");
+      cv.parentNode.appendChild(ov);
+      overlays[id]=ov;
+    }
+    var ov=overlays[id];
+    var w=cv.offsetLeft+cv.offsetWidth+8;
+    var h=cv.offsetTop+cv.offsetHeight+PAD_B+8;
+    var dpr=window.devicePixelRatio||1;
+    if(ov.width!==Math.round(w*dpr)||ov.height!==Math.round(h*dpr)){
+      ov.width=Math.round(w*dpr);ov.height=Math.round(h*dpr);
+      ov.style.width=w+"px";ov.style.height=h+"px";
+    }
+    ov.style.left="0px";ov.style.top="0px";
+    var ctx=ov.getContext("2d");
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    if(isDemo()){ov.style.display="none";return;}
+    ov.style.display="block";
+    var x0=cv.offsetLeft,y0=cv.offsetTop,cw=cv.offsetWidth,ch=cv.offsetHeight;
+    var umPx=FOV_UM/cw;
+    var fovY=FOV_UM*(ch/cw),umPy=fovY/ch;
+    ctx.lineWidth=1;
+    ctx.strokeStyle=AMBER;
+    ctx.beginPath();
+    ctx.moveTo(x0+0.5,y0+ch+0.5);ctx.lineTo(x0+cw+0.5,y0+ch+0.5);
+    ctx.moveTo(x0+0.5,y0+0.5);ctx.lineTo(x0+0.5,y0+ch+0.5);
+    ctx.stroke();
+    ctx.font="10px ui-monospace,monospace";
+    ctx.fillStyle=CREAM;
+    var u,v,px,py,major,lbl;
+    for(u=0;u<=cw*umPx+0.5;u+=MINOR_UM){
+      px=x0+u/umPx;
+      major=(u%MAJOR_UM===0);
+      ctx.strokeStyle=AMBER;
+      ctx.beginPath();
+      ctx.moveTo(px+0.5,y0+ch+0.5);ctx.lineTo(px+0.5,y0+ch+(major?7:4)+0.5);
+      ctx.stroke();
+      if(major){
+        lbl=(u===0?"0":String(u));
+        if(u+MAJOR_UM>cw*umPx)lbl+=" um";
+        ctx.fillText(lbl,px+3,y0+ch+16);
+      }
+    }
+    for(v=0;v<=ch*umPy+0.5;v+=MINOR_UM){
+      py=y0+ch-v/umPy;
+      major=(v%MAJOR_UM===0);
+      ctx.strokeStyle=AMBER;
+      ctx.beginPath();
+      ctx.moveTo(x0-0.5,py+0.5);ctx.lineTo(x0-(major?7:4)+0.5,py+0.5);
+      ctx.stroke();
+      if(major){
+        lbl=(v===0?"0":String(v));
+        if(v+MAJOR_UM>ch*umPy)lbl+=" um";
+        ctx.fillText(lbl,2,py+3);
+      }
+    }
+  }
+  function redrawAll(){for(var i=0;i<TARGETS.length;i++)ensure(TARGETS[i]);}
+  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",redrawAll);}else{redrawAll();}
+  window.addEventListener("resize",redrawAll);
+  if(window.MutationObserver){
+    var mo=new MutationObserver(function(){redrawAll();});
+    var attach=function(){
+      for(var i=0;i<PROV.length;i++){
+        var el=document.getElementById(PROV[i]);
+        if(el)mo.observe(el,{childList:true,characterData:true,subtree:true});
+      }
+    };
+    if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",attach);}else{attach();}
+  }
+})();
+</script><script id="sk-savecard">(function(){
+  var FOV_UM=2341.92,MINOR_UM=250,MAJOR_UM=1000,MX=54,BM=28,FH=56,S=2;
+  var AMBER="#e8a51c",CREAM="rgba(238,226,207,0.85)",GROUND="#0d0f12";
+  var PROV=["provenanceA","provenanceB","provenanceC"];
+  var CARD_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPEAAADZCAYAAADxNNZSAAAHVElEQVR4Ae3AA6AkWZbG8f937o3IzKdyS2Oubdu2bdu2bdu2bWmMnpZKr54yMyLu+Xa3anqmhztr1S+46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCILjqqqv+twIguOqqq/63AiC46qqr/rcCoHLV/2XmhRNX/W8GQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FQOWq/0vMVf+fABBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBULnq/zPznMRV/5sAEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEQXHXVVf9bARBcddVV/1sBEFx11VX/WwFQuer/M3HV/2YABFddddX/VgAEV1111f9WAARXXXXV/1YAVK76v0Q8J3PV/2UABFddddX/VgAEV1111f9WAARXXXXV/1YAiKuuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rAIKrrrrqfysAgquuuup/KwCCq6666n8rACpX/X9i/v3EVf9TABBcddVV/1sBEFx11VX/WwEQXHXVVf9bASCu+r/E/PcTV/1XASC46qqr/rcCILjqqqv+twIguOqqq/63AkBc9b+J+b9HXPVvBUBw1VVX/W8FQHDVVVf9bwVAcNVVV/1vBUBw1VVX/W8FgLjqP4r57yf++5n/XOKq+wEQXHXVVf9bARBcddVV/1sBEFx11VX/WwEgrnpBzH8v8f+D+a8n/m8AILjqqqv+twIguOqqq/63AiC46qqr/rcCQPzvZP77iav+K5j/euJ/BwCCq6666n8rAIKrrrrqfysAgquuuup/KwDE/wzmv5e46v8y899P/McDILjqqqv+twIguOqqq/63AiC46qqr/rcCoPJfz/zriauu+rcT/zrmfwcAgquuuup/KwCCq6666n8rAIKrrrrqfysAxH8+8y8TV131v5t5TuI/HwDBVVdd9b8VAMFVV131vxUAwVVXXfW/FQDiqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqA4KqrrvrfCoDgqquu+t8KgOCqq6763wqAfwTCaxS4qyUmQwAAAABJRU5ErkJggg==';
+  var cardLogo=new Image();cardLogo.src=CARD_LOGO;
+  var LABEL={frameA:"FRAME A - input frame",frameB:"FRAME B - input frame",frameC:"FRAME C - input frame",flowCanvas:"FRAME DIFF - threshold mask result",clusterCanvas:"FRAME DIFF - blob output result"};
+  var DLNAME={frameA:"frame A",frameB:"frame B",frameC:"frame C",flowCanvas:"flow result",clusterCanvas:"cluster result"};
+  Object.defineProperty(LABEL,"flowCanvas",{get:function(){return document.getElementById("resultLabel1").dataset.saveLabel;}});
+  Object.defineProperty(LABEL,"clusterCanvas",{get:function(){return document.getElementById("resultLabel2").dataset.saveLabel;}});
+  function provText(){var t="";for(var i=0;i<PROV.length;i++){var el=document.getElementById(PROV[i]);var s=el?(el.textContent||""):"";if(s&&!/demo frame|mini swarm|synthetic|not the registered/i.test(s)){t=s;break;}}return t;}
+  function isDemo(){return provText()==="";}
+  function saveCard(id){
+    var cv=document.getElementById(id);if(!cv||!cv.width)return;
+    if(id==="flowCanvas"||id==="clusterCanvas")DLNAME[id]=LABEL[id];
+    var W=cv.width,H=cv.height;
+    var out=document.createElement("canvas");out.width=(MX+W+8)*S;out.height=(H+BM+FH)*S;
+    var g=out.getContext("2d");g.setTransform(S,0,0,S,0,0);
+    g.fillStyle=GROUND;g.fillRect(0,0,MX+W+8,H+BM+FH);
+    g.drawImage(cv,MX,0);
+    var demo=isDemo();
+    if(!demo){
+      var umPx=FOV_UM/W,fovY=FOV_UM*(H/W),umPy=fovY/H;
+      g.lineWidth=1;g.strokeStyle=AMBER;
+      g.beginPath();g.moveTo(MX+0.5,H+0.5);g.lineTo(MX+W+0.5,H+0.5);g.moveTo(MX+0.5,0.5);g.lineTo(MX+0.5,H+0.5);g.stroke();
+      g.font="10px ui-monospace,Menlo,Consolas,monospace";g.fillStyle=CREAM;
+      var u,px,major,lbl;
+      for(u=0;u<=W*umPx+0.5;u+=MINOR_UM){px=MX+u/umPx;major=(u%MAJOR_UM===0);
+        g.strokeStyle=AMBER;g.beginPath();g.moveTo(px+0.5,H+0.5);g.lineTo(px+0.5,H+(major?7:4)+0.5);g.stroke();
+        if(major){lbl=(u===0?"0":String(u));if(u+MAJOR_UM>W*umPx)lbl+=" um";g.textAlign="left";g.fillText(lbl,px+3,H+16);}}
+      var v,py;
+      for(v=0;v<=H*umPy+0.5;v+=MINOR_UM){py=H-v/umPy;major=(v%MAJOR_UM===0);
+        g.strokeStyle=AMBER;g.beginPath();g.moveTo(MX-0.5,py+0.5);g.lineTo(MX-(major?7:4)+0.5,py+0.5);g.stroke();
+        if(major){lbl=(v===0?"0":String(v));if(v+MAJOR_UM>H*umPy)lbl+=" um";g.textAlign="right";g.fillText(lbl,MX-6,py+3);}}
+    }
+    g.fillStyle="#0e1610";g.fillRect(0,H+BM,MX+W+8,FH);
+    g.strokeStyle="#1c2a1c";g.lineWidth=1;g.strokeRect(0.5,H+BM+0.5,MX+W+8-1,FH-1);
+    var r=FH*0.4,cx=r+8,cy=H+BM+FH/2;
+    if(cardLogo&&cardLogo.complete&&cardLogo.naturalWidth>0){
+      g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle="#f4efe6";g.fill();g.clip();
+      var ar=(cardLogo.naturalWidth||1)/(cardLogo.naturalHeight||1),d=r*2*0.8,dw,dh;
+      if(ar>=1){dh=d;dw=d*ar}else{dw=d;dh=d/ar}
+      g.drawImage(cardLogo,cx-dw/2,cy-dh/2,dw,dh);g.restore();
+      g.strokeStyle="rgba(217,164,65,.8)";g.lineWidth=1;g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.stroke();
+    }
+    var prov=provText();if(prov.length>90)prov=prov.slice(0,87)+"...";
+    var l1="RISE OF MICROBES - SEEK & TRACK";
+    var l2=LABEL[id]+(prov?"  |  "+prov:"");
+    var ts=new Date().toISOString().replace("T"," ").slice(0,16)+" UTC";
+    var l3=demo?"built-in demo frame - no physical scale":"0.714 um/px - full frame 2341.92 um - TerraScope 4x objective  |  saved "+ts;
+    var lines=[l1,l2,l3];
+    var WU=MX+W+8,x0=cx+r+10,fs=11;
+    g.textAlign="left";g.textBaseline="middle";
+    var fits=function(t,s){g.font="bold "+s+"px ui-monospace,Menlo,Consolas,monospace";return g.measureText(t).width<=WU-x0-8;};
+    while(fs>7&&!(lines.every(function(t){return fits(t,fs)})))fs--;
+    var y0=H+BM+FH*0.28,dy=FH*0.24;
+    g.fillStyle="#e8b840";g.font="bold "+fs+"px ui-monospace,Menlo,Consolas,monospace";g.fillText(lines[0],x0,y0);
+    g.fillStyle="#b8d4b8";g.font=fs+"px ui-monospace,Menlo,Consolas,monospace";
+    g.fillText(lines[1],x0,y0+dy);g.fillText(lines[2],x0,y0+dy*2);
+    out.toBlob(function(b){if(!b)return;var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="TerraQuest - Rise of Microbes - "+DLNAME[id]+".png";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000);},"image/png");
+  }
+  var btns=document.querySelectorAll(".sk-save");
+  for(var i=0;i<btns.length;i++){(function(b){b.addEventListener("click",function(){saveCard(b.getAttribute("data-sk-save"));});})(btns[i]);}
+})();</script></body>
 </html>

@@ -44,13 +44,24 @@ button:disabled{opacity:.4;cursor:default}
 .note{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:.04em}
 #modal{position:fixed;inset:0;background:rgba(13,15,18,.95);display:none;align-items:center;justify-content:center;flex-direction:column;padding:18px;z-index:50}
 #modal.show{display:flex}
-#modal img{max-width:min(96vw,1400px);max-height:82vh;object-fit:contain;border:1px solid var(--line);background:#000}
-#modal .mbar{display:flex;gap:14px;align-items:center;margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:center}
+#modal img{max-width:min(96vw,1400px,100vw - 132px);max-height:82vh;object-fit:contain;border:1px solid var(--line);background:#000}
+#modal .mbar{display:flex;gap:14px;align-items:center;margin-top:36px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:center}
 #modal .mbar a,#modal .mbar button{color:var(--amber)}
 .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
 .header-tools{display:flex;align-items:flex-start;justify-content:flex-end;gap:12px;flex-wrap:wrap}
 .header-tools .collnav{margin-top:0}
 .console-chip{width:270px;height:103px;flex:none;border:1px solid var(--line);background-image:url(terrascope_card_expanded.png);background-repeat:no-repeat;background-size:704px 320px;background-position:-413.5px -108.5px}
+.sfwrap{position:relative;line-height:0}
+.scaleframe{position:absolute;inset:0;display:none;pointer-events:none;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.scaleframe.on{display:block}
+.scaleframe .sfaxis{position:absolute;background:rgba(217,164,65,.9)}
+.scaleframe .sfaxis.x{left:0;right:0;bottom:0;height:1px}
+.scaleframe .sfaxis.y{top:0;bottom:0;left:0;width:1px}
+.scaleframe .sftick{position:absolute;background:rgba(238,226,207,.9)}
+.scaleframe .sftick.x{bottom:0;width:1px}
+.scaleframe .sftick.y{left:0;height:1px}
+.scaleframe .sflab{position:absolute;font-size:10px;letter-spacing:.05em;color:var(--amber);background:rgba(13,15,18,.72);padding:1px 4px;line-height:1.2;white-space:nowrap;transform:translate(-50%,0)}
+.scaleframe .sflab.y{transform:translate(-100%,-50%)}
 footer{padding:22px 0 40px;color:var(--muted);font-size:12px;line-height:1.6}
 </style>
 </head>
@@ -66,6 +77,7 @@ footer{padding:22px 0 40px;color:var(--muted);font-size:12px;line-height:1.6}
   </div>
   <p class="sub">twelve timelapsed collections from the Susana_TerraQuest drive - 569 frames - plus the two original TerraScope sets (12 frames each). click a frame to enlarge it; turn on pick mode and click a start frame to select it plus the next two - the consecutive triple Seek runs on.</p>
   <p class="sub">All frames taken with a 4x objective. The TerraScope that captured them is the same one attested on the Avalanche chain.</p>
+  <p class="sub">Scale, stated once for every image on this page: 0.714 um per pixel on raw 3280x2464 frames - the same TerraScope 4x objective everywhere, calibrated against reference scale1 and Englert 2009. Each enlarged frame is framed with um tick axes computed at that scale.</p>
   <nav class="collnav">
     <a href="#c1">collection 1 · video1 · pictures/ · image0009 → image0020</a>
     <a href="#c2">collection 2 · video2 · pictures/ · image0024 → image0035</a>
@@ -86,7 +98,7 @@ footer{padding:22px 0 40px;color:var(--muted);font-size:12px;line-height:1.6}
 <main id="main"></main>
 <footer>sources: google drive, shared "anyone with the link" - all fourteen collections are listed in the SOURCES block at the top of this page's code (edit that one list to repoint storage, no redesign). pick selections are stored in this browser only. display-only - nothing uploaded, nothing on-chain.</footer>
 </div>
-<div id="modal"><img id="mimg" alt=""><div class="mbar"><button id="mprev">prev</button><span id="mname"></span><button id="mnext">next</button><a id="mopen" target="_blank" rel="noopener">open original</a><button id="mclose">close</button></div></div>
+<div id="modal"><div class="sfwrap"><img id="mimg" alt=""><div class="scaleframe" id="sframe" aria-hidden="true"></div></div><div class="mbar"><button id="mprev">prev</button><span id="mname"></span><button id="mnext">next</button><a id="mopen" target="_blank" rel="noopener">open original</a><button id="mclose">close</button></div></div>
 <script>
 "use strict";
 /* ===== SOURCES - edit this block to repoint storage ===== */
@@ -778,6 +790,48 @@ function buildCollection(src){
   paintPick();
 }
 SOURCES.forEach(buildCollection);
+</script>
+<script>
+(function(){
+'use strict';
+var FOV_UM=2341.92;
+var MINOR_UM=250;
+var MAJOR_UM=500;
+var frame=document.getElementById('sframe');
+var img=document.getElementById('mimg');
+function buildTicks(W,H){
+  var umPerPx=FOV_UM/W;
+  var heightUm=H*umPerPx;
+  var xs=[],ys=[],u;
+  for(u=0;u<=FOV_UM+1e-6;u+=MINOR_UM){var xp=u/umPerPx;if(xp>W-1)break;if(u%MAJOR_UM===0)xs.push(u);}
+  for(u=0;u<=heightUm+1e-6;u+=MINOR_UM){var yp=u/umPerPx;if(yp>H-1)break;if(u%MAJOR_UM===0)ys.push(u);}
+  var html='',i;
+  for(i=0;i<=FOV_UM+1e-6;i+=MINOR_UM){
+    var x=i/umPerPx;if(x>W-1)break;
+    var mx=(i%MAJOR_UM===0);
+    html+='<div class="sftick x" style="left:'+x.toFixed(1)+'px;height:'+(mx?10:6)+'px"></div>';
+    if(mx){html+='<div class="sflab" style="left:'+x.toFixed(1)+'px;bottom:-18px">'+Math.round(i)+(i===xs[xs.length-1]?' um':'')+'</div>';}
+  }
+  for(i=0;i<=heightUm+1e-6;i+=MINOR_UM){
+    var y=i/umPerPx;if(y>H-1)break;
+    var my=(i%MAJOR_UM===0);
+    html+='<div class="sftick y" style="top:'+y.toFixed(1)+'px;width:'+(my?10:6)+'px"></div>';
+    if(my){html+='<div class="sflab y" style="top:'+y.toFixed(1)+'px;left:-8px">'+Math.round(i)+(i===ys[ys.length-1]?' um':'')+'</div>';}
+  }
+  html+='<div class="sfaxis x"></div><div class="sfaxis y"></div>';
+  return html;
+}
+function paint(){
+  if(!frame||!img){return;}
+  if(!img.complete||!img.naturalWidth){frame.classList.remove('on');frame.innerHTML='';return;}
+  var W=img.clientWidth,H=img.clientHeight;
+  if(W<80||H<60){frame.classList.remove('on');frame.innerHTML='';return;}
+  frame.innerHTML=buildTicks(W,H);
+  frame.classList.add('on');
+}
+if(img){img.addEventListener('load',paint);}
+window.addEventListener('resize',paint);
+})();
 </script>
 </body>
 </html>
