@@ -15,12 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Fetch all 46 bundle files from the reference site
+      - name: Fetch all 47 bundle files from the reference site
         env:
           BASE: https://sites.hellominds.ai/b1/biotic-model
         run: |
           set -euo pipefail
           files=(
+            arena.html
             battle.html
             battle_data.json
             collections.html
@@ -68,7 +69,7 @@ jobs:
             terrascope_card_expanded.png
             vault.html
           )
-          if [ "${#files[@]}" -ne 46 ]; then echo "manifest count ${#files[@]} != 46"; exit 1; fi
+          if [ "${#files[@]}" -ne 47 ]; then echo "manifest count ${#files[@]} != 47"; exit 1; fi
           for f in "${files[@]}"; do
             echo "fetch $f"
             curl -fsSL --retry 3 --retry-delay 2 "$BASE/$f" -o "$f"
@@ -81,6 +82,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes - repo already matches the reference site"
           else
-            git commit -m "Sync 46-file bundle from sites.hellominds.ai/b1/biotic-model"
+            git commit -m "Sync 47-file bundle from sites.hellominds.ai/b1/biotic-model"
             git push
           fi
